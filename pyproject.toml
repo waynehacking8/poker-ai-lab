@@ -2,3 +2,26 @@
 markers = [
     "slow: long-running tests (deselect with '-m \"not slow\"')",
 ]
+
+[tool.ruff]
+target-version = "py311"
+# Pre-existing cfr/ code uses ~95-char lines; 100 keeps the conservative
+# ruff selection while not forcing a one-time reformat of code that
+# pre-dates this configuration.
+line-length = 100
+
+[tool.ruff.lint]
+# Conservative ruleset — pyflakes (F), pycodestyle (E, W). Import
+# sorting (I) is deliberately NOT enforced to avoid reformatting the
+# pre-existing CFR code; new code should still pass under the current
+# selection.
+select = ["E", "F", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+# The smoke / debug scripts intentionally insert PROJECT_ROOT into
+# sys.path before importing the cfr package so they can be invoked as
+# `python scripts/foo.py` (not just via `python -m`). That puts the
+# imports below a non-import statement, which is exactly what E402
+# forbids — but the alternative would be uglier.
+"scripts/smoke_test_*.py" = ["E402"]
+"scripts/debug_kuhn.py" = ["E402"]
