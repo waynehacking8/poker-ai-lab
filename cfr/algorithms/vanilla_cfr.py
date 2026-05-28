@@ -100,7 +100,13 @@ def train(
     verbose: bool = False,
     seed: int | None = 0,
 ) -> CFRState:
-    """Run vanilla CFR with chance-sampling for the given number of iterations."""
+    """Run vanilla CFR with chance-sampling for the given number of iterations.
+
+    Each iteration samples one chance outcome (deal) uniformly at random
+    and runs a single tree traversal. Used as the everyday CFR baseline;
+    for canonical-form Zinkevich 2007 CFR with full chance enumeration,
+    use :func:`train_enumeration`.
+    """
     state = CFRState()
     deals = game.all_deals()
     rng = np.random.default_rng(seed)
@@ -112,6 +118,38 @@ def train(
         util_running += _cfr(game, state, "", cards, 1.0, 1.0)
         if verbose and (it + 1) % max(1, iterations // 10) == 0:
             print(f"iter {it + 1:>6} | mean P1 util ≈ {util_running / (it + 1):+.4f}")
+    return state
+
+
+def train_enumeration(
+    game,
+    iterations: int,
+    verbose: bool = False,
+) -> CFRState:
+    """Canonical vanilla CFR with full chance enumeration.
+
+    Each iteration visits **every** chance outcome (deal) and accumulates
+    the exact expected counterfactual regret. No RNG — two runs at the
+    same iteration count are bit-identical.
+
+    Per-iteration cost is ``|deals| × tree_size``, but each iteration
+    is the exact expected CFR update (zero sampling variance). This is
+    the Zinkevich 2007 algorithm as actually written in the paper —
+    OpenSpiel's CFRSolver class uses this same full-enumeration form.
+
+    On Leduc this is the variant that matches published convergence
+    behaviour; the chance-sampling variant in :func:`train` is faster
+    per iteration but converges over many more iterations.
+    """
+    state = CFRState()
+    deals = game.all_deals()
+    chance_prob = 1.0 / len(deals)
+
+    for it in range(iterations):
+        for cards in deals:
+            _cfr(game, state, "", cards, chance_prob, chance_prob)
+        if verbose and (it + 1) % max(1, iterations // 10) == 0:
+            print(f"iter {it + 1:>6} | info sets touched = {len(state.regret_sum)}")
     return state
 
 
