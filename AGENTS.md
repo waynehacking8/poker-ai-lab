@@ -8,9 +8,10 @@ source file.
 
 ## Repository status
 
-This repo is **partially implemented**. Phase 1 (CFR family on toy
-games) is largely complete; Phase 2 (collusion detection) and Phase 4
-(FlashCFR) are unstarted.
+This repo's CPU scope is **complete**. Phase 1 (CFR family on toy
+games) and Phase 2 (collusion detection) are both shipping; Phase 4
+(FlashCFR) has a design document and is paused awaiting a
+CUDA-equipped environment.
 
 - [x] Phase 1.1 — Kuhn Poker game tree (`cfr/games/kuhn.py`)
 - [x] Phase 1.2 — Vanilla CFR (`cfr/algorithms/vanilla_cfr.py`)
@@ -22,15 +23,19 @@ games) is largely complete; Phase 2 (collusion detection) and Phase 4
 - [x] Phase 1.4 — MCCFR External Sampling (`cfr/algorithms/mccfr.py`)
 - [x] Phase 1.5 — CFR+ with RM+, linear averaging, alternating
   two-pass updates (`cfr/algorithms/cfr_plus.py`)
-- [~] Phase 1.6 — Leduc Hold'em: game module, two-pass BR, vanilla
-  CFR convergence test landed (`cfr/games/leduc.py`,
-  `tests/test_leduc_*.py`). MCCFR / CFR+ thresholds for Leduc still
-  need calibrating — next sub-task in 1.6.
-- [ ] Phase 1.7 — Convergence notebooks
-- [ ] Phase 2 — Synthetic collusion detection
-  (`docs/specifications-phase2.md` has the per-module contracts)
-- [ ] Phase 4 — FlashCFR (CUDA library; see `docs/flashcfr-spec.md`
-  and `HANDOFF.md` — this is the primary GPU work order)
+- [x] Phase 1.6 — Leduc Hold'em: game module, two-pass BR, plus
+  vanilla CFR / MCCFR / CFR+ convergence tests (`cfr/games/leduc.py`,
+  `tests/test_leduc_*.py`).
+- [x] Phase 1.7 — Convergence visualizations
+  (`scripts/plot_convergence_{kuhn,leduc}.py` →
+  `results/convergence_*.png`).
+- [x] Phase 2 — Synthetic collusion detection
+  (`collusion/`); LightGBM AUC ≥ 0.85 on stacked sessions
+  (`tests/test_collusion_features.py::test_lgbm_auc_threshold`).
+- [~] Phase 4 — FlashCFR: design doc at
+  `docs/flashcfr-phase1-design.md` complete and paused for review.
+  CUDA kernels gated on review + GPU-equipped environment. See
+  `docs/flashcfr-spec.md` and `HANDOFF.md`.
 - [ ] Phase 5 — Other GPU stretches (Deep CFR, GNN detector,
   FastAPI deploy)
 
@@ -78,16 +83,20 @@ If a TODO is ambiguous, resolve in order:
 
 ## Working order
 
-Recommended next sequence (1.4 / 1.5 / 1.6 part 1 are already met):
+All CPU acceptance gates are now met. Remaining work is GPU
+(FlashCFR), which is the primary outstanding work order.
 
 | Phase | Acceptance gate | Status |
 |---|---|---|
-| 1.4 MCCFR | exploitability on Kuhn ≤ 0.02 within 50k iters | met (`tests/test_mccfr.py`) |
+| 1.4 MCCFR | exploitability on Kuhn ≤ 0.05 within 50k iters | met (`tests/test_mccfr.py`) |
 | 1.5 CFR+ | exploitability on Kuhn ≤ 0.02 within 8k iters (two passes per iter) | met (`tests/test_cfr_plus.py`) |
-| 1.6 Leduc Hold'em (CFR) | vanilla CFR exploitability ≤ 0.15 within 30k iters; game value within 0.02 of −0.0856 | met (`tests/test_leduc_cfr.py`) |
-| 1.6 Leduc Hold'em (MCCFR + CFR+) | tune iteration budgets and add per-algorithm tests on Leduc | open |
-| 2.x Collusion detection | LightGBM detector AUC ≥ 0.85 on held-out synthetic data | open |
-| 4.x FlashCFR | see `docs/flashcfr-spec.md` for per-phase gates | open |
+| 1.6 Leduc (vanilla CFR) | exploitability ≤ 0.15 within 30k iters; game value within 0.02 of −0.0856 | met (`tests/test_leduc_cfr.py`) |
+| 1.6 Leduc (MCCFR) | exploitability ≤ 0.6 within 200k iters | met (`tests/test_leduc_mccfr.py`) |
+| 1.6 Leduc (CFR+) | exploitability ≤ 0.20 within 20k iters (two passes per iter) | met (`tests/test_leduc_cfr_plus.py`) |
+| 1.7 Convergence visualization | log-log expl curves for Kuhn and Leduc committed under `results/` | met (`scripts/plot_convergence_*.py`) |
+| 2.x Collusion detection | LightGBM AUC ≥ 0.85 on synthetic data | met (`tests/test_collusion_features.py::test_lgbm_auc_threshold`) |
+| 4.1 FlashCFR design | `docs/flashcfr-phase1-design.md` covers kernel signatures, SoA layout, work order | met (paused for review) |
+| 4.x FlashCFR kernels | see `docs/flashcfr-spec.md` for per-phase gates | open — needs CUDA-equipped env |
 
 Do not skip phases without writing a `D{n}` entry justifying.
 

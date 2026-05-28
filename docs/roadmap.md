@@ -68,42 +68,57 @@ Updated as the prototype evolves.
       Replaced `len(history) % 2` with `game.current_player(...)` in
       `_terminal_util_current` and made the recursive negation
       conditional on whether the next node's player actually differs.
-- [ ] Run MCCFR and CFR+ on Leduc (next commit — both work but
-      thresholds need calibrating to the larger tree).
+- [x] MCCFR (External Sampling) on Leduc — 200k iter, expl ≈ 0.47
+      (`tests/test_leduc_mccfr.py`). MCCFR per-iteration variance is
+      higher than vanilla CFR; the test sets a loose 0.6 threshold.
+- [x] CFR+ on Leduc — 20k iter / 40k traversals, expl ≈ 0.15
+      (`tests/test_leduc_cfr_plus.py`). Each iteration runs two passes
+      (alternating traversers) so the work budget is `2 × N`.
 
-### 1.7 Notebooks
-- [ ] `notebooks/convergence_kuhn.ipynb` — exploitability vs iterations
-- [ ] `notebooks/strategy_comparison.ipynb` — CFR / MCCFR / CFR+
-- [ ] `notebooks/leduc_results.ipynb` — Leduc Hold'em equilibrium
+### 1.7 Convergence visualization
+- [x] `scripts/plot_convergence_kuhn.py` — log-log exploitability curve
+      for vanilla / MCCFR / CFR+ on Kuhn → `results/convergence_kuhn.png`.
+- [x] `scripts/plot_convergence_leduc.py` — same three algorithms on
+      Leduc → `results/convergence_leduc.png`.
+- [ ] Notebook variants (skipped — `.py` chart scripts are equivalent,
+      run in CI, and don't carry diff noise from cell outputs).
 
 ---
 
 ## Phase 2 — Collusion detection
 
 ### 2.1 Honest player
-- [ ] Wrap a trained CFR policy as a callable agent
-- [ ] Support stochastic sampling from average strategy
+- [x] `collusion/simulator/honest_player.py` — wraps an average-strategy
+      table as a callable agent. Deterministic given seed; falls back to
+      uniform on unseen info sets.
 
 ### 2.2 Colluding pair
-- [ ] Share hole-card information between two agents
-- [ ] Soft-play: increase fold rate when opponent is the partner
-- [ ] Chip-dumping: deliberately lose to partner
+- [x] `collusion/simulator/colluding_pair.py` — partner-aware soft-fold,
+      chip-dump, and no-bluff-vs-partner rules. Reverts to honest play
+      when the partner is not at the table.
 
 ### 2.3 Game runner
-- [ ] Simulate N-player tables of Leduc (or extended Kuhn) games
-- [ ] Log every (player, info_set, action) tuple to a structured format
-- [ ] Configurable colluder rate per simulation
+- [x] `collusion/simulator/run_session` — heads-up Kuhn played pairwise
+      across `num_players` seats; long-format DataFrame log with the
+      §3 schema plus `opponent_id` and synthetic `latency` columns.
+- [x] `run_many_sessions` — namespaced stacking of independent sessions
+      (without this, a single 4-player session yields only 6 labelled
+      pairs which is too few for any classifier).
 
 ### 2.4 Feature engineering
-- [ ] Pairwise stats: simultaneous fold rate, fold-against-partner rate,
-      betting-pattern correlation
-- [ ] Aggregate stats: per-player win rate, fold rate, aggression
-- [ ] Optional graph features: co-occurrence at same table, chip flow
+- [x] `collusion/features/pairwise.py` — `co_table_freq`,
+      `mutual_fold_rate_*`, `simultaneous_fold_rate` (always 0 in HU
+      Kuhn, retained for schema completeness), `chip_flow_i_to_j`,
+      `decision_time_corr`.
+- [x] `compute_pairwise_features_multi` — per-session feature
+      extraction with offset-aware pair index.
 
 ### 2.5 Detector — LightGBM baseline
-- [ ] Binary classifier (collusion / no collusion) at the pair level
-- [ ] Train / validation / test split with no overlap of players
-- [ ] ROC curve, precision-recall curve, feature importance plot
+- [x] `collusion/models/lgbm_classifier.py` — binary classifier with
+      player-disjoint split, early stopping on AUC, ROC curve and
+      precision-at-recall-50 returned. AUC ≥ 0.85 on the stacked
+      `40 × 4-player × 2k-hand` setup (`tests/test_collusion_features
+      .py::test_lgbm_auc_threshold`).
 
 ### 2.6 Detector — GNN (stretch)
 - [ ] Player graph: edges weighted by behavioral co-occurrence
@@ -123,10 +138,11 @@ The main GPU work order for this repo. Full specification lives at
 speedup over CPU CFR, modelled after Berkeley/MIT's FlashLib.
 
 ### 4.1 Phase 1 design — Kuhn on GPU
-- [ ] Design doc at `docs/flashcfr-phase1-design.md` covering CUDA
+- [x] Design doc at `docs/flashcfr-phase1-design.md` covering CUDA
       kernel signatures, struct-of-arrays memory layout, and
-      kernel-by-kernel work order. PAUSE for review here.
-- [ ] Implement vanilla CFR CUDA kernels for Kuhn Poker.
+      kernel-by-kernel work order. **PAUSED for review.**
+- [ ] Implement vanilla CFR CUDA kernels for Kuhn Poker (gated on
+      design-doc review and CUDA-equipped environment).
 - [ ] Validation: GPU-learned strategies match CPU baseline within
       seed-noise tolerance.
 - [ ] Benchmark: iterations / second ≥ 10× CPU baseline on Kuhn.
@@ -178,7 +194,11 @@ deliberately excluded from this prototype:
 
 ---
 
-*Last updated: 2026-05-28 — 1.6 part 1 (Leduc game + two-pass BR +
-vanilla CFR on Leduc) landed alongside 1.4 / 1.5. MCCFR / CFR+
-convergence tests on Leduc follow in the next commit. Tests live at
-`tests/test_{vanilla_cfr,mccfr,cfr_plus,exploitability,leduc_game,leduc_cfr}.py`.*
+*Last updated: 2026-05-28 — Phase 1 closed (1.6 part 2 + 1.7 chart
+scripts landed; tests at `tests/test_{vanilla_cfr,mccfr,cfr_plus,
+exploitability,leduc_game,leduc_cfr,leduc_mccfr,leduc_cfr_plus}.py`).
+Phase 2 simulator + features + LightGBM classifier landed; AUC ≥ 0.85
+on stacked 4-player sessions (`tests/test_collusion_{features,
+simulator}.py`). FlashCFR Phase 1 design doc landed
+(`docs/flashcfr-phase1-design.md`), paused for review before CUDA
+implementation. CI + MIT LICENSE added.*

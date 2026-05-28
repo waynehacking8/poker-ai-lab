@@ -12,12 +12,22 @@ scope** over scale or novelty.
 ## What this is
 
 - A working implementation of **vanilla CFR** on Kuhn Poker (3-card toy
-  game) and Leduc Hold'em (planned).
-- Variants: **MCCFR (External Sampling)** and **CFR+** (planned).
-- An **exploitability** evaluator for tabular policies.
-- A pipeline to generate **synthetic colluding-game data** and train
-  detectors using behavioral features (planned).
-- End-to-end runnable on a laptop CPU — no GPU required.
+  game) and Leduc Hold'em.
+- Variants: **MCCFR (External Sampling)** and **CFR+** on both games.
+- An **exploitability** evaluator for tabular policies (info-set-aware
+  two-pass best response, with brute-force enumeration retained as a
+  Kuhn oracle).
+- A pipeline that generates **synthetic colluding-game data** (CFR
+  policies + soft-play colluder pairs) and trains a **LightGBM
+  pair-level detector**; reaches AUC ≥ 0.85 on stacked 4-player Kuhn
+  sessions.
+- Convergence plots committed under `results/`.
+- A **FlashCFR Phase 1 design document** (`docs/flashcfr-phase1-design
+  .md`) defining the CUDA kernel signatures, struct-of-arrays memory
+  layout, and kernel-by-kernel work order — paused for review before
+  implementation.
+- End-to-end runnable on a laptop CPU — no GPU required for any of the
+  above (FlashCFR kernels themselves are gated on CUDA hardware).
 
 ## What this is NOT
 
@@ -27,7 +37,9 @@ scope** over scale or novelty.
   behaviors are simulated and likely simpler than what real platforms see.
 - **Not benchmarked on No-Limit Hold'em.** Toy games only — the
   techniques are correct, the scale is not.
-- **Not yet complete.** This is a work-in-progress prototype.
+- **CUDA path is design-only.** `docs/flashcfr-phase1-design.md`
+  defines the kernels; no `.cu` files exist yet (the spec explicitly
+  pauses for review at this point).
 
 ---
 
@@ -36,21 +48,24 @@ scope** over scale or novelty.
 ```
 poker-ai-lab/
 ├── cfr/                       # Phase 1: CFR family on toy poker games
-│   ├── games/                 # Kuhn Poker, Leduc Hold'em (planned)
-│   ├── algorithms/            # vanilla_cfr, mccfr, cfr_plus
-│   └── evaluate/              # exploitability
-├── collusion/                 # Phase 2: synthetic data + detector (planned)
-│   ├── simulator/             # honest player, colluding pair, game runner
-│   ├── features/              # pairwise behavioral features, player graphs
-│   └── models/                # LightGBM classifier, GNN detector (optional)
-├── scripts/                   # Demo / smoke-test entry points
-├── notebooks/                 # Convergence plots, detection ROC curves
-├── results/                   # Figures and tables committed to repo
+│   ├── games/                 # Kuhn Poker, Leduc Hold'em
+│   ├── algorithms/            # vanilla_cfr, mccfr, cfr_plus, _state
+│   └── evaluate/              # exploitability (two-pass BR + brute force)
+├── collusion/                 # Phase 2: synthetic data + detector
+│   ├── simulator/             # honest_player, colluding_pair, game_runner
+│   ├── features/              # pairwise behavioral features
+│   └── models/                # lgbm_classifier
+├── scripts/                   # Smoke tests + convergence plot scripts
+├── results/                   # PNG convergence plots committed to repo
+├── tests/                     # pytest suite — every phase has tests pinned
 └── docs/
-    ├── cfr-notes.md           # Reading notes on CFR papers
-    ├── design-decisions.md    # Why this scope, why these choices
-    ├── roadmap.md             # Status of each module
-    └── references.md          # Papers + recommended reading order
+    ├── cfr-notes.md                # Reading notes on CFR papers
+    ├── design-decisions.md         # Why this scope, why these choices
+    ├── roadmap.md                  # Status of each module
+    ├── references.md               # Papers + recommended reading order
+    ├── specifications-phase2.md    # Per-module contracts for Phase 2
+    ├── flashcfr-spec.md            # GPU CFR library spec (Phase 4)
+    └── flashcfr-phase1-design.md   # Kernel + memory design (paused for review)
 ```
 
 ---
@@ -97,9 +112,9 @@ paper from 2007–2015 as the canonical small benchmark.
 
 | Algorithm | Year | Key idea | Status |
 |---|---|---|---|
-| Vanilla CFR | 2007 | Regret matching + counterfactual reach | done — Kuhn expl ≈ 0.004 (200k); Leduc expl ≈ 0.10 (30k) |
-| MCCFR (External Sampling) | 2009 | Sample opponent + chance, traverse self | done on Kuhn — Leduc tuning pending |
-| CFR+ | 2014 | RM+ + linear averaging + alternating updates | done on Kuhn — Leduc tuning pending |
+| Vanilla CFR | 2007 | Regret matching + counterfactual reach | Kuhn expl ≈ 0.004 (200k iter); Leduc expl ≈ 0.10 (30k iter) |
+| MCCFR (External Sampling) | 2009 | Sample opponent + chance, traverse self | Kuhn expl ≈ 0.01 (50k iter); Leduc expl ≈ 0.47 (200k iter) |
+| CFR+ | 2014 | RM+ + linear averaging + alternating updates | Kuhn expl ≈ 0.02 (8k iter); Leduc expl ≈ 0.15 (20k iter, 40k traversals) |
 | Deep CFR | 2019 | Neural network for regret storage | stretch, requires GPU |
 
 ### Evaluation
@@ -108,9 +123,23 @@ paper from 2007–2015 as the canonical small benchmark.
 metric — sum of best-response values for both players. At a Nash
 equilibrium this equals 0 (in zero-sum games).
 
+### Convergence plots
+
+Generated by `scripts/plot_convergence_{kuhn,leduc}.py`:
+
+| Game | File | Vanilla / MCCFR / CFR+ final expl |
+|---|---|---|
+| Kuhn (20k iter) | `results/convergence_kuhn.png` | 0.012 / 0.010 / 0.021 |
+| Leduc (50k / 200k / 20k iter) | `results/convergence_leduc.png` | 0.074 / 0.47 / 0.15 |
+
+Both algorithms that **sample** chance (MCCFR and CFR+ as configured
+here) converge slower per-iteration on Leduc than vanilla CFR, because
+Leduc's 528 information sets need more visits to stabilise than the
+chance-sample-per-iteration rate provides.
+
 ---
 
-## Phase 2 — Collusion detection (planned)
+## Phase 2 — Collusion detection
 
 Online poker platforms must detect three main fraud types:
 
@@ -120,11 +149,21 @@ Online poker platforms must detect three main fraud types:
 | **Bots** | Automated decisions, no human fatigue | Decision latency distribution, mouse trajectory, 24-hour activity |
 | **Multi-accounting** | Same person on multiple accounts | Device fingerprint, IP, behavior similarity |
 
-This phase will simulate honest games (using CFR-trained policies from
-Phase 1) and inject colluding pairs (sharing hole cards, soft-playing).
-Features are then engineered at the pairwise level, and a LightGBM
-classifier is trained to flag colluders. A simple GNN variant is planned
-as a stretch goal.
+This phase simulates honest games (using CFR-trained Kuhn policies from
+Phase 1) and injects colluding pairs that share hole cards and apply
+soft-play / chip-dump rules. Six pairwise behavioral features are
+computed per `(i, j)`: co-table frequency, mutual fold rates,
+simultaneous fold rate, chip flow, decision-time correlation. A
+LightGBM classifier with player-disjoint train/test split reaches
+**AUC ≥ 0.85** on stacked 4-player Kuhn sessions
+(`tests/test_collusion_features.py::test_lgbm_auc_threshold`). A GNN
+variant is listed as a stretch goal.
+
+Run the end-to-end pipeline:
+
+```bash
+pytest tests/test_collusion_features.py::test_lgbm_auc_threshold -m slow -v
+```
 
 ---
 
