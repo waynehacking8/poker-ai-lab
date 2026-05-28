@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from cfr.algorithms._state import CFRState, policy_table
-from cfr.algorithms.cfr_plus import _cfr_plus
+from cfr.algorithms.cfr_plus import _apply_rm_plus_floor, _cfr_plus
 from cfr.algorithms.mccfr import _external_sampling
 from cfr.algorithms.vanilla_cfr import _cfr
 from cfr.evaluate.exploitability import exploitability
@@ -82,7 +82,12 @@ def _trace_cfr_plus(game, total: int, seed: int) -> List[Tuple[int, float]]:
         for it in range(target, next_target):
             cards = deals[int(rng.choice(deal_idx))]
             for traverser in (0, 1):
-                _cfr_plus(game, state, "", cards, 1.0, 1.0, traverser, iteration=it + 1)
+                strategy_cache: dict = {}
+                _cfr_plus(
+                    game, state, "", cards, 1.0, 1.0,
+                    traverser, iteration=it + 1, strategy_cache=strategy_cache,
+                )
+                _apply_rm_plus_floor(state)
         target = next_target
         trace.append((target, exploitability(game, policy_table(state))))
     return trace

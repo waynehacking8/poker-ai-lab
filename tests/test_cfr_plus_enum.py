@@ -8,17 +8,18 @@ convergence per iteration is much faster.
 Calibration sweep (seed irrelevant, deterministic):
 
   Kuhn:
-       50 iter |  0.01 s | expl 0.043
-      200 iter |  0.03 s | expl 0.021
-     1000 iter |  0.15 s | expl 0.010
+       50 iter |  0.01 s | expl 0.0056
+      200 iter |  0.03 s | expl 0.00059
+     1000 iter |  0.13 s | expl 0.00018
 
   Leduc:
-       50 iter |   5.0 s | expl 0.33 | val -0.080
-      200 iter |  20   s | expl 0.21 | val -0.074
-     1000 iter | 103   s | expl 0.14 | val -0.076
+       50 iter |   4.0 s | expl 0.140  | val -0.082
+      200 iter |  16   s | expl 0.0154 | val -0.078
+      500 iter |  41   s | expl 0.0040 | val -0.078
+     1000 iter |  83   s | expl 0.0010 | val -0.078
 
-Kuhn test pinned at 200 iter / expl < 0.05.
-Leduc test pinned at 200 iter / expl < 0.30 (marked slow).
+Kuhn test pinned at 200 iter / expl < 0.005.
+Leduc test pinned at 200 iter / expl < 0.05 (marked slow).
 """
 
 from __future__ import annotations
@@ -53,7 +54,7 @@ def test_kuhn_enum_regrets_non_negative():
 def test_kuhn_enum_converges():
     state = cfr_plus.train_enumeration(kuhn, iterations=200)
     policy = policy_table(state)
-    assert exploitability(kuhn, policy) < 0.05
+    assert exploitability(kuhn, policy) < 0.005
 
 
 def test_kuhn_enum_is_deterministic():
@@ -83,7 +84,7 @@ def test_leduc_enum_converges():
     state = cfr_plus.train_enumeration(leduc, iterations=200)
     policy = policy_table(state)
     assert len(state.strategy_sum) == 528
-    assert exploitability(leduc, policy) < 0.30
+    assert exploitability(leduc, policy) < 0.05
 
 
 @pytest.mark.slow
@@ -91,4 +92,4 @@ def test_leduc_enum_game_value_near_published_nash():
     state = cfr_plus.train_enumeration(leduc, iterations=200)
     policy = policy_table(state)
     value = expected_game_value(leduc, policy, policy)
-    assert value == pytest.approx(LEDUC_P1_NASH_VALUE, abs=0.025)
+    assert value == pytest.approx(LEDUC_P1_NASH_VALUE, abs=0.012)
