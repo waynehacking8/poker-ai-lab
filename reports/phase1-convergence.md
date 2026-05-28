@@ -199,24 +199,44 @@ Used to set the test thresholds. Seed = 42 throughout.
 
 ## 5. CFR+ chance-sampling vs full enumeration
 
-**`cfr_plus.train` (default, chance-sampling)** is slower per-iteration
-than vanilla CFR on Leduc — at 20 000 iter / 40 000 traversals it
-reaches expl ≈ 0.15, compared to vanilla's 0.10 at 30 000 iter / one
-traversal apiece. This is the opposite of the headline Tammelin 2014
-ordering, and it is an artifact of sampling one deal per iteration
-rather than enumerating chance.
+`cfr_plus.train` (default, chance-sampling) is slower per-iteration
+than vanilla CFR on Leduc as configured here — at 20 000 iter / 40 000
+traversals it reaches expl ≈ 0.15, compared to vanilla's 0.10 at
+30 000 iter / one traversal apiece. This is the opposite of the
+algorithm-ordering intuition CFR+ usually gives, and it is an artifact
+of sampling one deal per iteration rather than enumerating chance:
+RM+ accelerates by replaying many updates per info set, and sampling
+fragments that signal.
 
-**`cfr_plus.train_enumeration`** (added alongside the sampling variant)
-runs CFR+ in Tammelin's original setup — every deal traversed every
-iteration. It is deterministic (no RNG) and pinned in
+`cfr_plus.train_enumeration` (added alongside the sampling variant)
+runs the original Tammelin 2014 setup — every deal traversed every
+iteration, no RNG. It is **deterministic** (two runs are bit-identical)
+and pinned in
 [`tests/test_cfr_plus_enum.py`](../tests/test_cfr_plus_enum.py):
 
-| Game | Iter | Wall time | Expl |
+| Game | Iter | Wall time | Expl | Game value |
+|---|---|---|---|---|
+| Kuhn | 200 | 0.03 s | 0.021 | — |
+| Kuhn | 1 000 | 0.15 s | 0.010 | — |
+| Leduc | 200 | 20 s | 0.21 | -0.074 |
+| Leduc | 1 000 | 103 s | 0.14 | -0.076 |
+| Leduc | 2 000 | 211 s | 0.103 | -0.077 |
+| Leduc | 5 000 | 534 s | 0.070 | -0.077 |
+
+**Convergence rate analysis** (Leduc):
+
+| Range | Observed factor | √T prediction | Match |
 |---|---|---|---|
-| Kuhn | 200 | 0.03 s | 0.021 |
-| Kuhn | 1 000 | 0.15 s | 0.010 |
-| Leduc | 200 | 20 s | 0.21 |
-| Leduc | 1 000 | 103 s | 0.14 |
+| 200 → 1 000 | 1.50× | 2.24× | sub-√T (RM+ warm-up regime) |
+| 1 000 → 2 000 | 1.36× | 1.41× | within 4 % of √T |
+| 2 000 → 5 000 | 1.47× | 1.58× | within 7 % of √T |
+
+From ~1000 iter onward the variant converges essentially at the
+expected √T rate. The early-iter sub-√T behaviour is the RM+
+warm-up — cumulative positive regrets need a few hundred iterations
+to settle into a stable strategy mix before linear averaging
+accelerates convergence. Game value tracks the published Lanctot 2013
+Nash value (-0.0856) within ~0.01 at all iteration counts ≥ 200.
 
 A wall-time fair comparison on Leduc:
 
@@ -225,17 +245,21 @@ A wall-time fair comparison on Leduc:
 | `cfr_plus.train` (chance sample) | 20 000 | 18 s | 0.15 |
 | `cfr_plus.train_enumeration` | 200 | 20 s | 0.21 |
 
-At this scale the sampling variant is still slightly ahead in wall
-time, because Leduc has 120 deals × 2 traversers ≈ 240 traversals per
+At this scale the sampling variant is slightly ahead in wall time
+because Leduc has 120 deals × 2 traversers = 240 traversals per
 enumeration iteration vs 2 per sampling iteration. The enumeration
 variant's value is **determinism and direct correspondence to the
-published algorithm**, not raw wall time; the sampling variant's
-chance-sample-as-stochastic-estimator is what scales to larger games.
+canonical algorithm presentation**, not raw wall time; the sampling
+variant scales further before global memory becomes the bottleneck.
 
 RM+ and linear averaging both work as specified in either variant —
 the regret-non-negativity invariant holds (verified by
 [`test_cfr_plus.py::test_regrets_are_non_negative`](../tests/test_cfr_plus.py)
 and [`test_cfr_plus_enum.py::test_kuhn_enum_regrets_non_negative`](../tests/test_cfr_plus_enum.py)).
+The game value of the enumeration variant at 1000 iter Leduc is
+-0.076 vs the published Lanctot 2013 Nash value -0.0856 — within 0.01,
+confirming the implementation is converging *toward* Nash even where
+the per-iteration rate looks slow.
 
 ---
 
