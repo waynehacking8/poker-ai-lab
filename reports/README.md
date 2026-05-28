@@ -7,6 +7,7 @@ reports plus any non-PNG artifacts they cite.
 | File | Phase | Topic |
 |---|---|---|
 | [`phase1-convergence.md`](phase1-convergence.md) | Phase 1 | CFR / MCCFR / CFR+ convergence on Kuhn and Leduc, with calibration sweeps and cross-checks against published Nash values. |
+| [`mccfr-scaling.md`](mccfr-scaling.md) | Phase 1 (supplement) | Where MCCFR starts beating enum CFR+ — controlled scaling experiment on N-card Kuhn. Crossover at N ≈ 250-300; MCCFR 5× better at N = 400. |
 | [`phase2-collusion-detection.md`](phase2-collusion-detection.md) | Phase 2 | End-to-end synthetic-collusion pipeline, LightGBM AUC, feature importances, ROC — reports both `shared_latency=True` (AUC 0.9995) and `shared_latency=False` (AUC 0.8245). |
 | `phase2-metrics.json` | Phase 2 | Combined machine-readable diagnostics keyed by setting name. |
 | `phase2-metrics-with_shared_latency.json` | Phase 2 | Diagnostics for the shared-latency-on run. |

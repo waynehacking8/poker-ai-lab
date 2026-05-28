@@ -1,0 +1,130 @@
+[
+  {
+    "N": 3,
+    "deals": 6,
+    "enum_cfr_plus": {
+      "iters": 134313,
+      "wall": 20.00000309944153,
+      "expl": 3.948638483741718e-06
+    },
+    "mccfr_es": {
+      "iters": 1132000,
+      "wall": 20.01057195663452,
+      "expl": 0.0015000040295793937
+    },
+    "winner": "Enum CFR+",
+    "enum_to_mccfr_expl_ratio": 0.0026324185841346904
+  },
+  {
+    "N": 13,
+    "deals": 156,
+    "enum_cfr_plus": {
+      "iters": 6932,
+      "wall": 20.00057029724121,
+      "expl": 7.1653815191530246e-06
+    },
+    "mccfr_es": {
+      "iters": 1120000,
+      "wall": 20.01082491874695,
+      "expl": 0.0030046025194415543
+    },
+    "winner": "Enum CFR+",
+    "enum_to_mccfr_expl_ratio": 0.0023848018074899328
+  },
+  {
+    "N": 30,
+    "deals": 870,
+    "enum_cfr_plus": {
+      "iters": 1267,
+      "wall": 20.012513160705566,
+      "expl": 1.1092041632521088e-05
+    },
+    "mccfr_es": {
+      "iters": 1109000,
+      "wall": 20.008666038513184,
+      "expl": 0.003712699975473417
+    },
+    "winner": "Enum CFR+",
+    "enum_to_mccfr_expl_ratio": 0.0029875943937825757
+  },
+  {
+    "N": 60,
+    "deals": 3540,
+    "enum_cfr_plus": {
+      "iters": 319,
+      "wall": 20.05281400680542,
+      "expl": 5.500080519779682e-05
+    },
+    "mccfr_es": {
+      "iters": 1087000,
+      "wall": 20.017696857452393,
+      "expl": 0.003667835189979783
+    },
+    "winner": "Enum CFR+",
+    "enum_to_mccfr_expl_ratio": 0.01499544072974009
+  },
+  {
+    "N": 120,
+    "deals": 14280,
+    "enum_cfr_plus": {
+      "iters": 80,
+      "wall": 20.221099853515625,
+      "expl": 0.000562600266072924
+    },
+    "mccfr_es": {
+      "iters": 1087000,
+      "wall": 20.001115083694458,
+      "expl": 0.005363480512988857
+    },
+    "winner": "Enum CFR+",
+    "enum_to_mccfr_expl_ratio": 0.10489462294315469
+  },
+  {
+    "N": 200,
+    "deals": 39800,
+    "enum_cfr_plus": {
+      "iters": 29,
+      "wall": 20.518222093582153,
+      "expl": 0.003663348244174844
+    },
+    "mccfr_es": {
+      "iters": 1060000,
+      "wall": 20.016910791397095,
+      "expl": 0.0053376335897319035
+    },
+    "winner": "Enum CFR+",
+    "enum_to_mccfr_expl_ratio": 0.6863244137293517
+  },
+  {
+    "N": 300,
+    "deals": 89700,
+    "enum_cfr_plus": {
+      "iters": 13,
+      "wall": 20.769627332687378,
+      "expl": 0.017740059683930054
+    },
+    "mccfr_es": {
+      "iters": 1075000,
+      "wall": 20.005987644195557,
+      "expl": 0.00783466508969112
+    },
+    "winner": "MCCFR",
+    "enum_to_mccfr_expl_ratio": 2.2643035127656557
+  },
+  {
+    "N": 400,
+    "deals": 159600,
+    "enum_cfr_plus": {
+      "iters": 8,
+      "wall": 22.444895029067993,
+      "expl": 0.04440851750318994
+    },
+    "mccfr_es": {
+      "iters": 1071000,
+      "wall": 20.004539251327515,
+      "expl": 0.008748546157837156
+    },
+    "winner": "MCCFR",
+    "enum_to_mccfr_expl_ratio": 5.0761025548693866
+  }
+]
