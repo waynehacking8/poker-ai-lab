@@ -135,6 +135,7 @@ def run_session(
     seed: int = 0,
     soft_fold_prob: float = 0.7,
     chip_dump_prob: float = 0.1,
+    shared_latency: bool = True,
 ) -> pd.DataFrame:
     """Simulate ``num_hands`` heads-up Kuhn hands across ``num_players``.
 
@@ -149,6 +150,17 @@ def run_session(
     decision-time correlation, respectively) and the spec leaves both
     "synthetic latencies" and the chip-flow accounting as
     implementation choices.
+
+    ``shared_latency``:
+      - ``True`` (default): colluding partners draw their per-hand
+        latencies from a **shared** ``Normal(1.5, 0.3)`` base plus tiny
+        i.i.d. ``Normal(0, 0.05)`` jitter — produces ``decision_time_corr``
+        ≈ 0.97 for colluding pairs and ≈ 0 otherwise.
+      - ``False``: all latencies are i.i.d. ``Normal(1.5, 0.3)`` regardless
+        of pair status. Use this to evaluate the detector without the
+        synthetic strong-signal feature — closer to what an adversarial
+        colluder who deliberately uncorrelates their input cadence would
+        produce.
     """
     if num_players < 2:
         raise ValueError(f"num_players must be >= 2, got {num_players}")
@@ -172,8 +184,10 @@ def run_session(
         pair = (int(seats[0]), int(seats[1]))
         hole = deals[int(rng.choice(len(deals)))]
 
-        # Synthetic latencies. Colluding partners share a latent base.
-        if pair[0] in partner_of and partner_of[pair[0]] == pair[1]:
+        is_partner_pair = (
+            pair[0] in partner_of and partner_of[pair[0]] == pair[1]
+        )
+        if shared_latency and is_partner_pair:
             base = rng.normal(1.5, 0.3)
             latency_p1 = max(0.05, base + rng.normal(0, 0.05))
             latency_p2 = max(0.05, base + rng.normal(0, 0.05))
@@ -204,6 +218,7 @@ def run_many_sessions(
     seed: int = 0,
     soft_fold_prob: float = 0.7,
     chip_dump_prob: float = 0.1,
+    shared_latency: bool = True,
 ) -> pd.DataFrame:
     """Run several independent sessions and concatenate them.
 
@@ -211,6 +226,8 @@ def run_many_sessions(
     ``player_id``/``partner_id`` by ``session_idx * num_players``. The
     resulting frame is suitable for stacking many small sessions into
     one feature matrix without pair-index collisions.
+
+    ``shared_latency`` is forwarded to ``run_session`` — see its docstring.
     """
     frames: List[pd.DataFrame] = []
     for session_idx in range(num_sessions):
@@ -222,6 +239,7 @@ def run_many_sessions(
             seed=seed + session_idx,
             soft_fold_prob=soft_fold_prob,
             chip_dump_prob=chip_dump_prob,
+            shared_latency=shared_latency,
         )
         offset = session_idx * num_players
         for col in (

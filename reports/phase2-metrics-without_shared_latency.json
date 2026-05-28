@@ -1,0 +1,41 @@
+{
+  "setting": "without_shared_latency",
+  "shared_latency": false,
+  "num_sessions": 40,
+  "num_players_per_session": 4,
+  "num_hands_per_session": 2000,
+  "colluder_fraction": 0.25,
+  "log_rows": 189278,
+  "n_pairs_total": 240,
+  "n_train": 119,
+  "n_test": 121,
+  "auc_test": 0.8245238095238095,
+  "precision_at_recall_50": 0.5789473684210527,
+  "positive_rate_test": 0.16666666666666666,
+  "feature_importances_gain": [
+    {
+      "feature": "mutual_fold_rate_j_vs_i",
+      "gain": 208.849893954642
+    },
+    {
+      "feature": "mutual_fold_rate_i_vs_j",
+      "gain": 152.55370202408812
+    },
+    {
+      "feature": "co_table_freq",
+      "gain": 34.07459354480904
+    },
+    {
+      "feature": "decision_time_corr",
+      "gain": 12.528912417590618
+    },
+    {
+      "feature": "chip_flow_i_to_j",
+      "gain": 5.531377891979016
+    },
+    {
+      "feature": "simultaneous_fold_rate",
+      "gain": 0.0
+    }
+  ]
+}

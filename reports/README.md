@@ -7,9 +7,14 @@ reports plus any non-PNG artifacts they cite.
 | File | Phase | Topic |
 |---|---|---|
 | [`phase1-convergence.md`](phase1-convergence.md) | Phase 1 | CFR / MCCFR / CFR+ convergence on Kuhn and Leduc, with calibration sweeps and cross-checks against published Nash values. |
-| [`phase2-collusion-detection.md`](phase2-collusion-detection.md) | Phase 2 | End-to-end synthetic-collusion pipeline, LightGBM AUC, feature importances, ROC. |
-| `phase2-metrics.json` | Phase 2 | Machine-readable diagnostics referenced by the §4 results table. |
-| `phase2-roc.png` | Phase 2 | ROC curve embedded in the Phase 2 report. |
+| [`phase2-collusion-detection.md`](phase2-collusion-detection.md) | Phase 2 | End-to-end synthetic-collusion pipeline, LightGBM AUC, feature importances, ROC — reports both `shared_latency=True` (AUC 0.9995) and `shared_latency=False` (AUC 0.8245). |
+| `phase2-metrics.json` | Phase 2 | Combined machine-readable diagnostics keyed by setting name. |
+| `phase2-metrics-with_shared_latency.json` | Phase 2 | Diagnostics for the shared-latency-on run. |
+| `phase2-metrics-without_shared_latency.json` | Phase 2 | Diagnostics for the adversarial baseline (uncorrelated latencies). |
+| `phase2-roc-comparison.png` | Phase 2 | Side-by-side ROC for both settings — headline chart embedded in §4.2. |
+| `phase2-roc-with_shared_latency.png` | Phase 2 | ROC for the shared-latency-on run only. |
+| `phase2-roc-without_shared_latency.png` | Phase 2 | ROC for the adversarial baseline only. |
+| `phase2-roc.png` | Phase 2 | Backwards-compat alias — same as `phase2-roc-with_shared_latency.png`. |
 
 The PNG convergence plots referenced by Phase 1 live in
 [`../results/`](../results/) (`convergence_kuhn.png`,
