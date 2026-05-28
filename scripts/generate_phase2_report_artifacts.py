@@ -20,7 +20,6 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 from cfr.algorithms import vanilla_cfr
@@ -73,8 +72,7 @@ def main() -> None:
     auc = result["auc_test"]
     fig, ax = plt.subplots(figsize=(6, 5))
     ax.plot(fpr, tpr, label=f"LightGBM (AUC = {auc:.3f})")
-    ax.plot([0, 1], [0, 1], color="grey", linestyle="--", linewidth=0.8,
-            label="random")
+    ax.plot([0, 1], [0, 1], color="grey", linestyle="--", linewidth=0.8, label="random")
     ax.set_xlabel("False positive rate")
     ax.set_ylabel("True positive rate")
     ax.set_title("Phase 2 — pair-level collusion detector ROC")
@@ -99,8 +97,7 @@ def main() -> None:
             (labels.reindex(features.index, fill_value=False)).mean()
         ),
         "feature_importances_gain": [
-            {"feature": k, "gain": float(v)}
-            for k, v in result["feature_importances"]
+            {"feature": k, "gain": float(v)} for k, v in result["feature_importances"]
         ],
     }
     summary_path = out_dir / "phase2-metrics.json"

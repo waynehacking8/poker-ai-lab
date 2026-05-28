@@ -44,22 +44,28 @@ def _hand_summaries(log: pd.DataFrame) -> pd.DataFrame:
         folder = None
         ordered = frame.sort_index().reset_index(drop=True)
         for idx, row in ordered.iterrows():
-            if row["action"] == "p" and idx > 0 and ordered.loc[idx - 1, "action"] == "b":
+            if (
+                row["action"] == "p"
+                and idx > 0
+                and ordered.loc[idx - 1, "action"] == "b"
+            ):
                 folder = int(row["player_id"])
                 break
 
         # Latencies — one observed value per seat in this hand.
         lat_p1 = float(ordered.loc[ordered["player_id"] == seat_p1, "latency"].iloc[0])
         lat_p2 = float(ordered.loc[ordered["player_id"] == seat_p2, "latency"].iloc[0])
-        rows.append({
-            "hand_id": hand_id,
-            "seat_p1": seat_p1,
-            "seat_p2": seat_p2,
-            "util_p1": util_p1,
-            "folder": folder,
-            "latency_p1": lat_p1,
-            "latency_p2": lat_p2,
-        })
+        rows.append(
+            {
+                "hand_id": hand_id,
+                "seat_p1": seat_p1,
+                "seat_p2": seat_p2,
+                "util_p1": util_p1,
+                "folder": folder,
+                "latency_p1": lat_p1,
+                "latency_p2": lat_p2,
+            }
+        )
     return pd.DataFrame(rows)
 
 
@@ -70,20 +76,31 @@ def _pair_iter(num_players: int) -> Iterable[Tuple[int, int]]:
 def compute_pairwise_features(log: pd.DataFrame, num_players: int) -> pd.DataFrame:
     """Compute per-pair behavioural features. Returns a DataFrame indexed
     by ``(i, j)`` with ``i < j``."""
-    required_cols = {"hand_id", "player_id", "seat_p1", "seat_p2",
-                      "hand_utility_p1", "action", "latency"}
+    required_cols = {
+        "hand_id",
+        "player_id",
+        "seat_p1",
+        "seat_p2",
+        "hand_utility_p1",
+        "action",
+        "latency",
+    }
     missing = required_cols - set(log.columns)
     if missing:
         # The schema-only test passes a minimal log; emit zero features
         # for every pair so the schema check still succeeds.
         return pd.DataFrame(
             0.0,
-            index=pd.MultiIndex.from_tuples(list(_pair_iter(num_players)),
-                                             names=["i", "j"]),
+            index=pd.MultiIndex.from_tuples(
+                list(_pair_iter(num_players)), names=["i", "j"]
+            ),
             columns=[
-                "co_table_freq", "mutual_fold_rate_i_vs_j",
-                "mutual_fold_rate_j_vs_i", "simultaneous_fold_rate",
-                "chip_flow_i_to_j", "decision_time_corr",
+                "co_table_freq",
+                "mutual_fold_rate_i_vs_j",
+                "mutual_fold_rate_j_vs_i",
+                "simultaneous_fold_rate",
+                "chip_flow_i_to_j",
+                "decision_time_corr",
             ],
         )
 
@@ -98,15 +115,18 @@ def compute_pairwise_features(log: pd.DataFrame, num_players: int) -> pd.DataFra
         ]
         n = len(co_seated)
         if n == 0:
-            feature_rows.append({
-                "i": i, "j": j,
-                "co_table_freq": 0.0,
-                "mutual_fold_rate_i_vs_j": 0.0,
-                "mutual_fold_rate_j_vs_i": 0.0,
-                "simultaneous_fold_rate": 0.0,
-                "chip_flow_i_to_j": 0.0,
-                "decision_time_corr": 0.0,
-            })
+            feature_rows.append(
+                {
+                    "i": i,
+                    "j": j,
+                    "co_table_freq": 0.0,
+                    "mutual_fold_rate_i_vs_j": 0.0,
+                    "mutual_fold_rate_j_vs_i": 0.0,
+                    "simultaneous_fold_rate": 0.0,
+                    "chip_flow_i_to_j": 0.0,
+                    "decision_time_corr": 0.0,
+                }
+            )
             continue
 
         i_folded = (co_seated["folder"] == i).sum()
@@ -139,25 +159,29 @@ def compute_pairwise_features(log: pd.DataFrame, num_players: int) -> pd.DataFra
         else:
             corr = 0.0
 
-        feature_rows.append({
-            "i": i, "j": j,
-            "co_table_freq": n / total_hands,
-            "mutual_fold_rate_i_vs_j": float(i_folded) / n,
-            "mutual_fold_rate_j_vs_i": float(j_folded) / n,
-            # Both players folding in the same round can't happen in HU
-            # Kuhn (only one fold per hand). Retained for schema
-            # consistency with the spec.
-            "simultaneous_fold_rate": 0.0,
-            "chip_flow_i_to_j": mean_flow,
-            "decision_time_corr": corr,
-        })
+        feature_rows.append(
+            {
+                "i": i,
+                "j": j,
+                "co_table_freq": n / total_hands,
+                "mutual_fold_rate_i_vs_j": float(i_folded) / n,
+                "mutual_fold_rate_j_vs_i": float(j_folded) / n,
+                # Both players folding in the same round can't happen in HU
+                # Kuhn (only one fold per hand). Retained for schema
+                # consistency with the spec.
+                "simultaneous_fold_rate": 0.0,
+                "chip_flow_i_to_j": mean_flow,
+                "decision_time_corr": corr,
+            }
+        )
 
     df = pd.DataFrame(feature_rows).set_index(["i", "j"])
     return df
 
 
 def compute_pairwise_features_multi(
-    log: pd.DataFrame, num_players: int,
+    log: pd.DataFrame,
+    num_players: int,
 ) -> pd.DataFrame:
     """Compute pairwise features independently per ``session_id``.
 
@@ -174,8 +198,14 @@ def compute_pairwise_features_multi(
         # Relocate ids to 0..num_players-1 for feature extraction, then
         # restore the offset on the resulting index.
         local = group.copy()
-        for col in ("player_id", "seat", "partner_id", "opponent_id",
-                     "seat_p1", "seat_p2"):
+        for col in (
+            "player_id",
+            "seat",
+            "partner_id",
+            "opponent_id",
+            "seat_p1",
+            "seat_p2",
+        ):
             if col in local.columns and local[col].dtype != object:
                 local[col] = local[col] - offset
         feats = compute_pairwise_features(local, num_players)

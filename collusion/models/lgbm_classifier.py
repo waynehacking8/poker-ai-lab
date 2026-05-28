@@ -8,7 +8,7 @@ appears in both partitions.
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
@@ -33,8 +33,10 @@ def _split_by_player(
     )
     train_mask = ~test_mask
     return (
-        features.loc[train_mask], features.loc[test_mask],
-        labels.loc[train_mask], labels.loc[test_mask],
+        features.loc[train_mask],
+        features.loc[test_mask],
+        labels.loc[train_mask],
+        labels.loc[test_mask],
     )
 
 
@@ -48,7 +50,10 @@ def train_lgbm(
     import lightgbm as lgb
 
     X_train, X_test, y_train, y_test = _split_by_player(
-        features, labels, test_size, seed,
+        features,
+        labels,
+        test_size,
+        seed,
     )
 
     train_set = lgb.Dataset(X_train, label=y_train.astype(int))

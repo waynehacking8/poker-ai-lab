@@ -21,7 +21,7 @@ per-hand decision latencies are correlated.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -33,7 +33,9 @@ from collusion.simulator.honest_player import HonestPlayer
 
 
 def _assign_colluder_pairs(
-    num_players: int, colluder_fraction: float, rng: np.random.Generator,
+    num_players: int,
+    colluder_fraction: float,
+    rng: np.random.Generator,
 ) -> List[Tuple[int, int]]:
     if colluder_fraction <= 0.0:
         return []
@@ -101,18 +103,20 @@ def _play_hand(
         else:
             action = agent.act(info_set, legal)
 
-        rows.append({
-            "hand_id": hand_id,
-            "player_id": seat,
-            "seat": seat,
-            "info_set": info_set,
-            "action": action,
-            "own_card": own_card,
-            "is_colluder": seat in partner_of,
-            "partner_id": partner_of.get(seat),
-            "opponent_id": opp_seat,
-            "latency": latency_p1 if cur == 0 else latency_p2,
-        })
+        rows.append(
+            {
+                "hand_id": hand_id,
+                "player_id": seat,
+                "seat": seat,
+                "info_set": info_set,
+                "action": action,
+                "own_card": own_card,
+                "is_colluder": seat in partner_of,
+                "partner_id": partner_of.get(seat),
+                "opponent_id": opp_seat,
+                "latency": latency_p1 if cur == 0 else latency_p2,
+            }
+        )
         history = kuhn.next_history(history, action)
 
     util_p1 = kuhn.terminal_utility(history, hole)
@@ -152,7 +156,12 @@ def run_session(
 
     colluder_pairs = _assign_colluder_pairs(num_players, colluder_fraction, rng)
     agents, partner_of = _build_agents(
-        num_players, colluder_pairs, policy, soft_fold_prob, chip_dump_prob, rng,
+        num_players,
+        colluder_pairs,
+        policy,
+        soft_fold_prob,
+        chip_dump_prob,
+        rng,
     )
     deals = kuhn.all_deals()
 
@@ -173,7 +182,13 @@ def run_session(
             latency_p2 = max(0.05, rng.normal(1.5, 0.3))
 
         rows, _ = _play_hand(
-            hand_id, pair, hole, agents, partner_of, latency_p1, latency_p2,
+            hand_id,
+            pair,
+            hole,
+            agents,
+            partner_of,
+            latency_p1,
+            latency_p2,
         )
         all_rows.extend(rows)
 
@@ -209,7 +224,14 @@ def run_many_sessions(
             chip_dump_prob=chip_dump_prob,
         )
         offset = session_idx * num_players
-        for col in ("player_id", "seat", "partner_id", "opponent_id", "seat_p1", "seat_p2"):
+        for col in (
+            "player_id",
+            "seat",
+            "partner_id",
+            "opponent_id",
+            "seat_p1",
+            "seat_p2",
+        ):
             if col in log.columns:
                 if log[col].dtype == object:
                     log[col] = log[col].map(

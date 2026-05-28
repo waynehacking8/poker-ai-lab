@@ -29,7 +29,6 @@ from typing import Dict, Tuple
 
 import numpy as np
 
-from cfr.games import kuhn
 
 from collusion.simulator.honest_player import HonestPlayer
 
