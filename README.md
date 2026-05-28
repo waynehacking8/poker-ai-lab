@@ -167,10 +167,41 @@ pytest tests/test_collusion_features.py::test_lgbm_auc_threshold -m slow -v
 
 ---
 
+## Field context (why this matters in 2026)
+
+Vanilla CFR is the **same algorithmic family** that powers modern
+imperfect-information AI all the way to 2026 SOTA:
+
+- **2017–2019** Libratus / DeepStack / Pluribus — CFR + nested subgame
+  solving beats human pros on HUNL and 6-max.
+- **2020 ReBeL** — CFR becomes the subgame solver inside an
+  AlphaZero-style RL loop over Public Belief States.
+- **2021 Player of Games (DeepMind)** — Growing-Tree CFR generalizes
+  across perfect and imperfect information (chess / Go / poker /
+  Scotland Yard).
+- **2022 Cicero (Meta, Diplomacy)** — first deployment of
+  "LLM-as-interface + planner-as-decider + alignment filter"; the
+  architecture later re-derived in poker by ToolPoker.
+- **2025 Obscuro** — *one-sided* GT-CFR breaks the common-knowledge
+  ceiling that PBS-based systems hit; superhuman on Fog of War chess.
+- **2026 Equilibrium Refinements** — picks sequential equilibria from
+  subgame gadget games, reducing exploitability by >50%. CFR's
+  theoretical surface is still active.
+- **2026 ToolPoker (ICLR)** — refutes pure-LLM poker bots; same
+  Cicero-style hybrid wins.
+
+This prototype implements the **unit test** for that whole lineage —
+correct vanilla CFR + MCCFR + exploitability on Kuhn / Leduc. See
+[`docs/field-evolution.md`](docs/field-evolution.md) for the full
+narrative, the three live disagreements in the field, and the
+"GPT-moment" question.
+
+---
+
 ## References
 
-See [`docs/references.md`](docs/references.md) for the full reading list.
-Core papers:
+See [`docs/references.md`](docs/references.md) for the full reading list
+(now including the 2022–2026 lineage above). Core foundational papers:
 
 1. Zinkevich et al. 2007 — *Regret Minimization in Games with Incomplete
    Information*
@@ -181,6 +212,10 @@ Core papers:
 5. Heinrich & Silver 2016 — *Deep RL from Self-Play in Imperfect-Information
    Games* (NFSP)
 6. Brown et al. 2019 — *Deep CFR*
+7. Brown, Bakhtin, Lerer, Gong 2020 — *ReBeL* (CFR ↔ RL bridge)
+8. Bakhtin et al. 2022 — *Cicero* (LLM + planner + filter on Diplomacy)
+9. Zhang & Sandholm 2025 — *Obscuro* (one-sided GT-CFR, FoW chess)
+10. Kubicek, Lisy, Sandholm 2026 — *Equilibrium Refinements*
 
 ---
 

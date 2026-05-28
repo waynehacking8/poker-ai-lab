@@ -78,9 +78,100 @@ primary papers.
   Learning.* NeurIPS. — PSRO framework.
 - **Brown, Bakhtin, Lerer, Gong (2020)**
   *Combining Deep Reinforcement Learning and Search for
-  Imperfect-Information Games.* NeurIPS. — ReBeL.
-- **DeepMind (2021)** *Player of Games.* arXiv:2112.03178. — Unified
-  approach across imperfect/perfect info games.
+  Imperfect-Information Games.* NeurIPS. — ReBeL. Reframes CFR as the
+  subgame solver inside an AlphaZero-style self-play training loop over
+  Public Belief States (PBS).
+- **Schmid et al. / DeepMind (2021 arXiv, 2023 Science Advances)**
+  *Player of Games.* arXiv:2112.03178. — A single algorithm that wins at
+  chess, Go, HUNL poker, and Scotland Yard via Growing-Tree CFR (GT-CFR)
+  + self-play value/policy network. The direct technical ancestor of
+  Obscuro (2025).
+
+---
+
+## Imperfect-information AI: 2022–2026 lineage
+
+These papers extend the canonical CFR / RL stack and are the basis of the
+"field evolution" narrative in `docs/field-evolution.md`. Reading them
+elevates the prototype's framing from "CFR on toy games" to "the same
+algorithmic family that drives 2026 SOTA systems".
+
+### 5.5 (insert) — Cicero (Meta, 2022)
+
+- **Bakhtin et al. (2022)**, *Human-level play in the game of Diplomacy
+  by combining language models with strategic reasoning.* Science, Nov
+  2022. — First AI to reach human-level play on full-press Diplomacy.
+  Architecture: **piKL planner** (policy-iterated KL-regularized regret
+  minimization) + 2.7B LM (intent-conditioned dialogue) + intent /
+  alignment filter. Significant beyond Diplomacy: it is the first
+  successful "**LLM as surface, game-theoretic planner as decider,
+  filter as alignment**" three-layer architecture — the same pattern
+  later re-derived in poker by ToolPoker (ICLR 2026).
+
+### 5.5–5.10 — Post-Pluribus systems
+
+- **Zhao et al. (AAAI 2022)** *AlphaHoldem: High-Performance
+  Artificial Intelligence for Heads-Up No-Limit Texas Hold'em from
+  End-to-End Reinforcement Learning.* — Pure end-to-end deep RL with a
+  pseudo-siamese architecture; bypasses CFR and human-engineered card
+  abstraction entirely. Single PC, 3 days, 2.9 ms / decision.
+  Demonstrates that the "drop CFR, train end-to-end" thesis works on
+  HUNL, while sacrificing the exploitability guarantee.
+
+- **Various authors (2023+)** *PokerGPT* family. — Lightweight
+  RLHF-tuned LLM playing poker via prompt-formatted state. Claimed to
+  beat Slumbot; later largely refuted by ToolPoker (ICLR 2026), which
+  finds pure LLMs consistently lose to NFSP and CFR+ due to heuristic
+  reasoning, factual errors, and a "knowing-doing gap".
+
+- **Zhang & Sandholm (2025)** *General search techniques without common
+  knowledge for imperfect-information games, and application to
+  superhuman Fog of War chess.* arXiv:2506.01242. — **Obscuro** is the
+  first superhuman AI on Fog of War (dark) chess, a game whose **common-
+  knowledge set reaches ~10¹⁸**, breaking the PBS assumption that ReBeL
+  / DeepStack rely on. Key innovation: **one-sided GT-CFR**, which
+  expands only one player's information-set tree, dodging the
+  common-knowledge explosion. Same group as Libratus (2017) — an
+  unbroken eight-year research line.
+
+- **Kubicek, Lisy, Sandholm (2026)** *Equilibrium Refinements Improve
+  Subgame Solving in Imperfect-Information Games.* arXiv:2601.17131. —
+  Observes that gadget games used in safe subgame solving typically
+  have **infinitely many Nash equilibria** that are equivalent in the
+  gadget yet behave very differently in the original game. Adopting
+  **sequential equilibrium** (Kreps & Wilson 1982) as the solution
+  concept reduces overall exploitability by **>50%**. Demonstrates that
+  the CFR theoretical line is still live in 2026.
+
+- **Anon (2026)** *How Far Are LLMs from Professional Poker Players?
+  Revisiting Game-Theoretic Reasoning with Agentic Tool Use.* ICLR
+  2026. — Introduces **ToolPoker**: an LLM that does not decide actions
+  but instead calls an external CFR-based solver and translates GTO
+  output to natural-language justification. Empirically refutes the
+  optimistic claims of PokerGPT-class systems. Same architecture as
+  Cicero (2022) — two independent research lines converge on the same
+  conclusion four years apart.
+
+### Why these papers matter for this prototype
+
+The prototype implements **vanilla CFR + MCCFR** on toy games — exactly
+the same algorithmic family that, scaled up and combined with
+neural-network value functions, drives Libratus / DeepStack / ReBeL /
+Player of Games / Obscuro. The 2022–2026 papers above show:
+
+1. CFR is not obsolete — **Equilibrium Refinements (2026)** is a fresh
+   theoretical improvement on the very same subgame solving used in
+   Libratus (2017).
+2. The pure-end-to-end-RL alternative (AlphaHoldem) sacrifices
+   exploitability guarantees in exchange for speed; the trade-off is
+   live, not settled.
+3. The LLM-only alternative (PokerGPT) failed; the hybrid pattern
+   (Cicero-style, ToolPoker-style) is what works.
+
+Reading these in sequence — Pluribus → ReBeL → AlphaHoldem → Cicero →
+Player of Games → Obscuro → Equilibrium Refinements → ToolPoker —
+recapitulates the field's reasoning over the last decade. See
+`docs/field-evolution.md` for the narrative version.
 
 ---
 
