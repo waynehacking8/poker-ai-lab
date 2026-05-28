@@ -88,13 +88,49 @@ Updated as the prototype evolves.
 
 ---
 
-## Phase 3 — Stretch goals (post-interview)
+## Phase 4 — FlashCFR (GPU-accelerated CFR library)
+
+The main GPU work order for this repo. Full specification lives at
+[`docs/flashcfr-spec.md`](flashcfr-spec.md). Target: 20–100×
+speedup over CPU CFR, modelled after Berkeley/MIT's FlashLib.
+
+### 4.1 Phase 1 design — Kuhn on GPU
+- [ ] Design doc at `docs/flashcfr-phase1-design.md` covering CUDA
+      kernel signatures, struct-of-arrays memory layout, and
+      kernel-by-kernel work order. PAUSE for review here.
+- [ ] Implement vanilla CFR CUDA kernels for Kuhn Poker.
+- [ ] Validation: GPU-learned strategies match CPU baseline within
+      seed-noise tolerance.
+- [ ] Benchmark: iterations / second ≥ 10× CPU baseline on Kuhn.
+
+### 4.2 Phase 2 — MCCFR on Leduc Hold'em (GPU)
+- [ ] External-Sampling MCCFR kernels.
+- [ ] Nsight Compute profiling; optimize top 3 hottest kernels.
+- [ ] Report SM occupancy, warp efficiency, memory bandwidth used
+      vs theoretical peak.
+
+### 4.3 Phase 3 — CFR+ on HU Limit Hold'em
+- [ ] Hand-bucketing pipeline using FlashLib KMeans (EHS / OCHS
+      features computed on GPU).
+- [ ] Multi-GPU regret-table sharding.
+- [ ] Benchmark vs OpenSpiel (Python and C++).
+
+### 4.4 Phase 4 — Deep CFR (optional)
+- [ ] Replace tabular regret with PyTorch advantage network.
+- [ ] Compare sample efficiency vs the tabular variant.
+
+---
+
+## Phase 5 — Stretch goals (post-FlashCFR)
 
 - [ ] **Opponent modeling**: cluster simulated players into TAG / LAG /
       Passive / Loose archetypes; train a best-response policy per
       archetype.
-- [ ] **Deep CFR**: replace tabular regret with PyTorch advantage net.
-      Requires GPU; demo on Leduc.
+- [ ] **Subgame solving** acceleration (Libratus-style nested
+      re-solving).
+- [ ] **Real-time inference mode** for online bots; sub-100ms decision
+      latency.
+- [ ] **Distributed multi-node training** with NCCL.
 - [ ] **Online deployment skeleton**: FastAPI service that wraps a
       trained policy + a collusion classifier; latency budget < 500ms
       per decision.
