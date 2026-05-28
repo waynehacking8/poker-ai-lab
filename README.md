@@ -4,8 +4,7 @@
 > for imperfect-information games and **machine-learning-based collusion
 > detection** for online card-game platforms.
 
-Built as preparation material for an AI Engineer interview focused on poker /
-card-game AI. The repo prioritizes **correctness, readability, and honest
+The repo prioritizes **correctness, readability, and honest
 scope** over scale or novelty.
 
 ---
