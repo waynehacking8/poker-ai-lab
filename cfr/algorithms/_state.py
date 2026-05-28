@@ -6,8 +6,11 @@ matching. They differ only in how those sums are *updated* (vanilla:
 opponent-reach-weighted; MCCFR: sampled; CFR+: floored at 0 with linear
 strategy averaging) — not in their layout.
 
-Keeping this single ``CFRState`` lets the algorithms share the same
-``policy_table`` extraction and the same exploitability oracle.
+Storage is **sized per information set** rather than globally, so the
+same state object can serve games with variable legal-action counts
+(e.g., Leduc Hold'em: 2 actions when no bet is pending, 3 when raising
+is legal, 2 again at the cap). Callers pass ``num_actions`` on every
+operation; ``policy_table`` recovers the size from the stored arrays.
 """
 
 from __future__ import annotations
@@ -24,31 +27,35 @@ class CFRState:
 
     regret_sum: Dict[str, np.ndarray] = field(default_factory=dict)
     strategy_sum: Dict[str, np.ndarray] = field(default_factory=dict)
-    num_actions: int = 2
 
-    def _ensure(self, info_set: str) -> None:
+    def _ensure(self, info_set: str, num_actions: int) -> None:
         if info_set not in self.regret_sum:
-            self.regret_sum[info_set] = np.zeros(self.num_actions)
-            self.strategy_sum[info_set] = np.zeros(self.num_actions)
+            self.regret_sum[info_set] = np.zeros(num_actions)
+            self.strategy_sum[info_set] = np.zeros(num_actions)
 
-    def current_strategy(self, info_set: str) -> np.ndarray:
+    def current_strategy(self, info_set: str, num_actions: int) -> np.ndarray:
         """Regret-matching: proportions of positive regrets; uniform if all <= 0."""
-        self._ensure(info_set)
+        self._ensure(info_set, num_actions)
         regrets = self.regret_sum[info_set]
         positive = np.maximum(regrets, 0.0)
         total = positive.sum()
         if total > 0.0:
             return positive / total
-        return np.full(self.num_actions, 1.0 / self.num_actions)
+        return np.full(num_actions, 1.0 / num_actions)
 
     def average_strategy(self, info_set: str) -> np.ndarray:
-        """Time-averaged strategy — this is what converges to Nash."""
+        """Time-averaged strategy — this is what converges to Nash.
+
+        Size is recovered from the stored ``strategy_sum`` vector, so the
+        caller does not need to remember ``num_actions``.
+        """
         if info_set not in self.strategy_sum:
-            return np.full(self.num_actions, 1.0 / self.num_actions)
-        total = self.strategy_sum[info_set].sum()
+            raise KeyError(f"info set never visited: {info_set!r}")
+        sums = self.strategy_sum[info_set]
+        total = sums.sum()
         if total > 0.0:
-            return self.strategy_sum[info_set] / total
-        return np.full(self.num_actions, 1.0 / self.num_actions)
+            return sums / total
+        return np.full(len(sums), 1.0 / len(sums))
 
 
 def policy_table(state: CFRState) -> Dict[str, np.ndarray]:

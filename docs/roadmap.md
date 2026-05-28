@@ -19,13 +19,14 @@ Updated as the prototype evolves.
       game value = -0.052 ≈ Kuhn's analytical value of -1/18.
 
 ### 1.3 Exploitability evaluator
-- [x] Brute-force enumeration of pure best-response strategies (correct
-      for any zero-sum extensive-form game, tractable up to ~10 info sets
-      per player).
+- [x] Brute-force enumeration of pure best-response strategies (kept as
+      `best_response_value_brute_force` and used as a test oracle on
+      Kuhn — its `|A|^|I|` cost is infeasible past ~12 info sets).
+- [x] Two-pass information-set-aware BR algorithm (`best_response_value`,
+      `cfr/evaluate/exploitability.py`). Pass 1 enumerates opponent
+      cf-reaches per BR-player info set; pass 2 decides BR actions
+      bottom-up. Exact match with brute force on Kuhn within 1e-9.
 - [x] Two-player summed exploitability.
-- [ ] Two-pass information-set-aware BR algorithm (needed for Leduc — the
-      brute-force version's complexity is `|A|^|I|`, which exhausts
-      memory beyond ~12 info sets).
 - [ ] Per-iteration exploitability logging (for convergence plots).
 
 ### 1.4 MCCFR (External Sampling)
@@ -48,9 +49,27 @@ Updated as the prototype evolves.
       to dominate — on 12-info-set Kuhn the gap is modest)
 
 ### 1.6 Leduc Hold'em
-- [ ] Game tree (6 cards, 2 betting rounds, 1 community card)
-- [ ] Showdown logic (pair beats high card)
-- [ ] Run all three CFR variants on Leduc
+- [x] Game tree per Southey 2005: 6-card deck (J/Q/K × 2 suits), 2
+      betting rounds (`/` separator in history), bet 2 / raise 4 chip
+      structure, cap 2 raises per round (`cfr/games/leduc.py`).
+- [x] Showdown logic — pair-with-community beats non-pair, then high
+      hole card; genuine ties split.
+- [x] Variable-action support added to `CFRState` (2 actions when no bet
+      is pending, 3 with raise legal, 2 again at the cap) — see
+      `cfr/algorithms/_state.py`.
+- [x] Vanilla CFR converges on Leduc — at 30k iterations exploitability
+      ≈ 0.10, game value ≈ -0.084 matching Lanctot 2013's published
+      Nash value of -0.0856. (`tests/test_leduc_cfr.py`,
+      `scripts/smoke_test_leduc.py`)
+- [x] Fixed a sign-flip bug surfaced by Leduc: the recursive CFR
+      negation assumed strict player alternation. Leduc's round
+      separator lets the same player act on both sides of a round
+      boundary (e.g., the `cr` → `crc/` transition leaves P0 to act).
+      Replaced `len(history) % 2` with `game.current_player(...)` in
+      `_terminal_util_current` and made the recursive negation
+      conditional on whether the next node's player actually differs.
+- [ ] Run MCCFR and CFR+ on Leduc (next commit — both work but
+      thresholds need calibrating to the larger tree).
 
 ### 1.7 Notebooks
 - [ ] `notebooks/convergence_kuhn.ipynb` — exploitability vs iterations
@@ -159,5 +178,7 @@ deliberately excluded from this prototype:
 
 ---
 
-*Last updated: 2026-05-28 — 1.4 MCCFR (ES) and 1.5 CFR+ landed; tests at
-`tests/test_{vanilla_cfr,mccfr,cfr_plus}.py`.*
+*Last updated: 2026-05-28 — 1.6 part 1 (Leduc game + two-pass BR +
+vanilla CFR on Leduc) landed alongside 1.4 / 1.5. MCCFR / CFR+
+convergence tests on Leduc follow in the next commit. Tests live at
+`tests/test_{vanilla_cfr,mccfr,cfr_plus,exploitability,leduc_game,leduc_cfr}.py`.*

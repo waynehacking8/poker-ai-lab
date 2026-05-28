@@ -90,17 +90,17 @@ scale.
 ### Why Leduc Hold'em next?
 
 Leduc Hold'em (6 cards, 2 betting rounds, 1 community card) is the standard
-research benchmark just above Kuhn. ~3000 information sets — still
-tractable for vanilla CFR. Used by every CFR paper from 2007–2015 as the
-canonical small benchmark.
+research benchmark just above Kuhn — 528 information sets across both
+players (264 each). Still tractable for vanilla CFR. Used by every CFR
+paper from 2007–2015 as the canonical small benchmark.
 
 ### Algorithms implemented
 
 | Algorithm | Year | Key idea | Status |
 |---|---|---|---|
-| Vanilla CFR | 2007 | Regret matching + counterfactual reach | done — Kuhn expl ≈ 0.004 at 200k iters |
-| MCCFR (External Sampling) | 2009 | Sample opponent + chance, traverse self | done — Kuhn expl ≈ 0.02 at 50k iters |
-| CFR+ | 2014 | RM+ + linear averaging + alternating updates | done — Kuhn expl ≈ 0.02 at 8k iters (2 passes each) |
+| Vanilla CFR | 2007 | Regret matching + counterfactual reach | done — Kuhn expl ≈ 0.004 (200k); Leduc expl ≈ 0.10 (30k) |
+| MCCFR (External Sampling) | 2009 | Sample opponent + chance, traverse self | done on Kuhn — Leduc tuning pending |
+| CFR+ | 2014 | RM+ + linear averaging + alternating updates | done on Kuhn — Leduc tuning pending |
 | Deep CFR | 2019 | Neural network for regret storage | stretch, requires GPU |
 
 ### Evaluation

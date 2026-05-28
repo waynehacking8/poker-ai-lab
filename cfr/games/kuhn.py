@@ -66,9 +66,18 @@ def terminal_utility(history: str, cards: Tuple[int, int]) -> float:
     raise ValueError(f"Not a terminal history: {history!r}")
 
 
-def info_set_key(card: int, history: str) -> str:
-    """Build the information-set key visible to the acting player."""
-    return f"{CARD_NAMES[card]}:{history}"
+def info_set_key(player: int, cards: Tuple[int, int], history: str) -> str:
+    """Build the information-set key visible to ``player``.
+
+    In Kuhn the only public information is the betting history; the
+    opponent's hole card is hidden, so ``cards[1 - player]`` is not used.
+    """
+    return f"{CARD_NAMES[cards[player]]}:{history}"
+
+
+def next_history(history: str, action: str) -> str:
+    """Kuhn has a single betting round, so appending the action is enough."""
+    return history + action
 
 
 def all_deals() -> List[Tuple[int, int]]:

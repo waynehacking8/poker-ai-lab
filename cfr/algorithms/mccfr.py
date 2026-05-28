@@ -59,27 +59,26 @@ def _external_sampling(
         return _terminal_util_for(game, history, cards, traverser)
 
     player = game.current_player(history)
-    info_set = game.info_set_key(cards[player], history)
+    info_set = game.info_set_key(player, cards, history)
     actions = game.legal_actions(history)
-    strategy = state.current_strategy(info_set)
+    num_actions = len(actions)
+    strategy = state.current_strategy(info_set, num_actions)
 
     if player == traverser:
-        num_actions = len(actions)
         utils = np.zeros(num_actions)
         for i, action in enumerate(actions):
             utils[i] = _external_sampling(
-                game, state, history + action, cards, traverser, rng
+                game, state, game.next_history(history, action), cards, traverser, rng,
             )
         node_util = float(np.dot(strategy, utils))
-        state._ensure(info_set)
         state.regret_sum[info_set] += utils - node_util
         state.strategy_sum[info_set] += strategy
         return node_util
 
     # Opponent: sample one action proportional to current strategy.
-    idx = int(rng.choice(len(actions), p=strategy))
+    idx = int(rng.choice(num_actions, p=strategy))
     return _external_sampling(
-        game, state, history + actions[idx], cards, traverser, rng
+        game, state, game.next_history(history, actions[idx]), cards, traverser, rng,
     )
 
 
@@ -94,7 +93,7 @@ def train(
     Iterations alternate between traversers (P0 on even iterations,
     P1 on odd). Chance (the deal) is sampled uniformly each iteration.
     """
-    state = CFRState(num_actions=len(game.ACTIONS))
+    state = CFRState()
     deals = game.all_deals()
     rng = np.random.default_rng(seed)
     deal_indices = np.arange(len(deals))

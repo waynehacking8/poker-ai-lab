@@ -32,17 +32,20 @@ on Kuhn but harder to extend to Leduc.
 
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 
 from cfr.algorithms._state import CFRState
 
 
-def _terminal_util_current(game, history: str, cards: Tuple[int, int]) -> float:
-    """Adapter: convert P1-perspective utility to current-player perspective."""
+def _terminal_util_current(game, history: str, cards) -> float:
+    """Convert game.terminal_utility (P1-perspective) to current-player perspective.
+
+    Uses ``game.current_player(history)`` so the conversion stays correct
+    even when the game's history representation does not equate one
+    character with one player turn (e.g., Leduc's ``'/'`` separator).
+    """
     util_p1 = game.terminal_utility(history, cards)
-    current = len(history) % 2
+    current = game.current_player(history)
     return util_p1 if current == 0 else -util_p1
 
 
@@ -50,7 +53,7 @@ def _cfr_plus(
     game,
     state: CFRState,
     history: str,
-    cards: Tuple[int, int],
+    cards: tuple,
     reach_p0: float,
     reach_p1: float,
     traverser: int,
@@ -60,33 +63,35 @@ def _cfr_plus(
         return _terminal_util_current(game, history, cards)
 
     player = game.current_player(history)
-    info_set = game.info_set_key(cards[player], history)
+    info_set = game.info_set_key(player, cards, history)
     actions = game.legal_actions(history)
     num_actions = len(actions)
 
-    strategy = state.current_strategy(info_set)
+    strategy = state.current_strategy(info_set, num_actions)
     util = np.zeros(num_actions)
     node_util = 0.0
 
     for i, action in enumerate(actions):
-        next_history = history + action
+        next_history = game.next_history(history, action)
         if player == 0:
-            util[i] = -_cfr_plus(
+            child = _cfr_plus(
                 game, state, next_history, cards,
                 reach_p0 * strategy[i], reach_p1, traverser, iteration,
             )
         else:
-            util[i] = -_cfr_plus(
+            child = _cfr_plus(
                 game, state, next_history, cards,
                 reach_p0, reach_p1 * strategy[i], traverser, iteration,
             )
+        # Negate only if the next node's current player is different from ours.
+        sign = 1.0 if game.current_player(next_history) == player else -1.0
+        util[i] = sign * child
         node_util += strategy[i] * util[i]
 
     # Alternating updates: only the traverser writes this iteration.
     if player == traverser:
         cf_reach = reach_p1 if player == 0 else reach_p0
         own_reach = reach_p0 if player == 0 else reach_p1
-        state._ensure(info_set)
         # RM+: floor regrets at 0 after the update.
         state.regret_sum[info_set] = np.maximum(
             state.regret_sum[info_set] + cf_reach * (util - node_util), 0.0
@@ -109,7 +114,7 @@ def train(
     traverser. The 1-indexed iteration counter is shared by both passes,
     matching the standard CFR+ convention (Tammelin 2014).
     """
-    state = CFRState(num_actions=len(game.ACTIONS))
+    state = CFRState()
     deals = game.all_deals()
     rng = np.random.default_rng(seed)
     deal_indices = np.arange(len(deals))
