@@ -15,15 +15,18 @@ Updated as the prototype evolves.
 - [x] Recursive traversal with reach probabilities
 - [x] Regret matching + average strategy tracking
 - [x] Smoke-test script (`scripts/smoke_test_kuhn.py`)
-- [ ] **Debugging:** exploitability stuck at ~0.55 instead of converging
-      to 0. Strategies at most info sets are qualitatively correct; Q-card
-      defense (Q:b, Q:pb) is too aggressive. Suspected fix: snapshot
-      per-iteration strategy before tree traversal.
+- [x] Convergence verified — at 200k iterations exploitability = 0.004,
+      game value = -0.052 ≈ Kuhn's analytical value of -1/18.
 
 ### 1.3 Exploitability evaluator
-- [x] Best-response computation against fixed opponent policy
-- [x] Two-player summed exploitability
-- [ ] Per-iteration exploitability logging (for convergence plots)
+- [x] Brute-force enumeration of pure best-response strategies (correct
+      for any zero-sum extensive-form game, tractable up to ~10 info sets
+      per player).
+- [x] Two-player summed exploitability.
+- [ ] Two-pass information-set-aware BR algorithm (needed for Leduc — the
+      brute-force version's complexity is `|A|^|I|`, which exhausts
+      memory beyond ~12 info sets).
+- [ ] Per-iteration exploitability logging (for convergence plots).
 
 ### 1.4 MCCFR (External Sampling)
 - [ ] Sample opponent action + chance, traverse all of acting player's actions
