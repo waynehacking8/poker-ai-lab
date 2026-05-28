@@ -3,6 +3,8 @@
 Iteration budgets are tuned per algorithm — Leduc is large enough that
 the per-iteration cost differences become visible. CFR+ uses 1/3 of the
 vanilla budget because each iteration performs two tree traversals.
+Each algorithm is run under multiple seeds; the chart shows the mean
+exploitability and a ±1-std band.
 
 Run from project root:
     python -m scripts.plot_convergence_leduc
@@ -13,7 +15,7 @@ from __future__ import annotations
 import argparse
 import time
 from pathlib import Path
-from typing import List, Tuple
+from typing import Callable, List, Tuple
 
 import matplotlib
 
@@ -29,6 +31,7 @@ from cfr.evaluate.exploitability import exploitability
 from cfr.games import leduc
 
 LEDUC_P1_NASH_VALUE = -0.0856
+DEFAULT_SEEDS = (42, 43, 44)  # 3 seeds — Leduc runs are minutes per algo per seed
 
 
 def _checkpoints(total: int, num_points: int = 12) -> List[int]:
@@ -36,7 +39,9 @@ def _checkpoints(total: int, num_points: int = 12) -> List[int]:
     return sorted(set(int(x) for x in np.logspace(np.log10(start), np.log10(total), num_points)))
 
 
-def _trace(stepper, game, total: int, seed: int, *, two_pass: bool = False) -> List[Tuple[int, float]]:
+def _trace(
+    stepper: Callable, game, total: int, seed: int,
+) -> List[Tuple[int, float]]:
     state = CFRState()
     deals = game.all_deals()
     rng = np.random.default_rng(seed)
@@ -49,13 +54,18 @@ def _trace(stepper, game, total: int, seed: int, *, two_pass: bool = False) -> L
             cards = deals[int(rng.choice(deal_idx))]
             stepper(state, cards, it, rng)
         target = next_target
-        expl = exploitability(game, policy_table(state))
-        trace.append((target, expl))
-        print(f"  ... {target:>7} iter | expl = {expl:.4f}")
+        trace.append((target, exploitability(game, policy_table(state))))
     return trace
 
 
-def main(out_path: Path) -> None:
+def _trace_many(stepper, game, total: int, seeds):
+    runs = [_trace(stepper, game, total, seed) for seed in seeds]
+    xs = np.array([pt[0] for pt in runs[0]])
+    ys = np.array([[pt[1] for pt in run] for run in runs])
+    return xs, ys.mean(axis=0), ys.std(axis=0)
+
+
+def main(out_path: Path, seeds) -> None:
     def vanilla_step(state, cards, it, rng):
         _cfr(leduc, state, "", cards, 1.0, 1.0)
 
@@ -73,17 +83,19 @@ def main(out_path: Path) -> None:
     ]
     fig, ax = plt.subplots(figsize=(8, 5))
     for name, fn, n in runs:
-        print(f"\n=== {name} ({n} iter) ===")
+        print(f"\n=== {name} ({n} iter × {len(seeds)} seeds) ===")
         t0 = time.time()
-        trace = _trace(fn, leduc, n, seed=42)
+        xs, mean, std = _trace_many(fn, leduc, n, seeds)
         dt = time.time() - t0
-        xs, ys = zip(*trace)
-        ax.loglog(xs, ys, marker="o", markersize=3, label=f"{name} ({dt:.0f}s)")
+        ax.loglog(xs, mean, marker="o", markersize=3, label=f"{name} ({dt:.0f}s)")
+        ax.fill_between(xs, np.maximum(mean - std, 1e-6), mean + std, alpha=0.2)
+        print(f"  final expl mean = {mean[-1]:.4f} ± {std[-1]:.4f}"
+              f" @ {xs[-1]} iters | wall {dt:.1f}s")
 
     ax.axhline(0.10, color="grey", linestyle="--", linewidth=0.8, label="expl = 0.10")
     ax.set_xlabel("iterations")
-    ax.set_ylabel("exploitability")
-    ax.set_title("CFR family convergence on Leduc Hold'em (seed=42)")
+    ax.set_ylabel("exploitability (mean ± 1 std over %d seeds)" % len(seeds))
+    ax.set_title("CFR family convergence on Leduc Hold'em")
     ax.grid(True, which="both", alpha=0.3)
     ax.legend()
     fig.tight_layout()
@@ -95,5 +107,12 @@ def main(out_path: Path) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=Path("results/convergence_leduc.png"))
+    parser.add_argument(
+        "--seeds",
+        type=int,
+        nargs="+",
+        default=list(DEFAULT_SEEDS),
+        help="Seeds to average over (default: 42-44; 3 seeds keep Leduc run under ~10 min).",
+    )
     args = parser.parse_args()
-    main(args.out)
+    main(args.out, tuple(args.seeds))
