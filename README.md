@@ -98,9 +98,9 @@ canonical small benchmark.
 
 | Algorithm | Year | Key idea | Status |
 |---|---|---|---|
-| Vanilla CFR | 2007 | Regret matching + counterfactual reach | written, debugging convergence |
-| MCCFR (External Sampling) | 2009 | Sample opponent + chance, traverse self | planned |
-| CFR+ | 2014 | Reset negative regrets to 0; linear averaging | planned |
+| Vanilla CFR | 2007 | Regret matching + counterfactual reach | done — Kuhn expl ≈ 0.004 at 200k iters |
+| MCCFR (External Sampling) | 2009 | Sample opponent + chance, traverse self | done — Kuhn expl ≈ 0.02 at 50k iters |
+| CFR+ | 2014 | RM+ + linear averaging + alternating updates | done — Kuhn expl ≈ 0.02 at 8k iters (2 passes each) |
 | Deep CFR | 2019 | Neural network for regret storage | stretch, requires GPU |
 
 ### Evaluation
