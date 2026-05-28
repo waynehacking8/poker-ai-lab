@@ -42,35 +42,55 @@ def test_compute_pairwise_features_schema() -> None:
 
 @pytest.mark.slow
 def test_lgbm_auc_threshold() -> None:
-    """End-to-end smoke: simulator -> features -> LightGBM AUC >= 0.85."""
+    """End-to-end smoke: simulator -> features -> LightGBM AUC >= 0.85.
+
+    The §6 spec setting (4-player, single session) yields only 6
+    labelled pairs — too few to train a classifier on. We instead stack
+    many independent 4-player sessions, each with its own colluder
+    assignment, to grow the labelled-pair pool. Players from different
+    sessions are namespaced apart so pairs never collide.
+    """
     pytest.importorskip("lightgbm")
-    from collusion.simulator.game_runner import run_session
-    from collusion.features.pairwise import compute_pairwise_features
+    from collusion.simulator.game_runner import run_many_sessions
+    from collusion.features.pairwise import compute_pairwise_features_multi
     from collusion.models.lgbm_classifier import train_lgbm
 
-    # This relies on Phase 1 producing a Kuhn policy first.
     from cfr.algorithms import vanilla_cfr
     from cfr.games import kuhn
 
     state = vanilla_cfr.train(kuhn, iterations=20_000, seed=0)
     policy = vanilla_cfr.policy_table(state)
 
-    log = run_session(
+    log = run_many_sessions(
+        num_sessions=40,
         num_players=4,
-        num_hands=10_000,
+        num_hands=2_000,
         colluder_fraction=0.25,
         policy=policy,
         seed=0,
     )
-    features = compute_pairwise_features(log, num_players=4)
-    labels = _derive_labels(log, num_players=4)
+    features = compute_pairwise_features_multi(log, num_players=4)
+    labels = _derive_labels(log, num_players=4 * 40)
+    # Align label index with the feature index — only pairs present in
+    # features carry meaningful labels.
+    labels = labels.reindex(features.index, fill_value=False)
     result = train_lgbm(features, labels, test_size=0.3, seed=0)
     assert result["auc_test"] >= 0.85
 
 
 def _derive_labels(log: pd.DataFrame, num_players: int) -> pd.Series:
     """Helper: build pair-level ground-truth labels from the simulator log."""
-    raise NotImplementedError(
-        "Implement alongside the simulator. Should return a Series indexed "
-        "by (i, j) with i < j, value True iff (i, j) is a colluding pair."
+    from itertools import combinations
+    partner_of = (
+        log.dropna(subset=["partner_id"])
+        .drop_duplicates(subset=["player_id"])
+        .set_index("player_id")["partner_id"]
+        .astype(int)
+        .to_dict()
     )
+    pairs = list(combinations(range(num_players), 2))
+    labels = pd.Series(
+        [partner_of.get(i) == j for (i, j) in pairs],
+        index=pd.MultiIndex.from_tuples(pairs, names=["i", "j"]),
+    )
+    return labels
