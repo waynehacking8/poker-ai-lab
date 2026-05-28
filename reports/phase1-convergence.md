@@ -223,16 +223,22 @@ chance enumeration is itself expensive.
 On the toy games here, full enumeration is cheap enough that the
 chance-sampling variants offer no real advantage:
 
+All numbers in this table are seed=42 single-seed runs on the same
+laptop; chance-sampling rows have small seed-to-seed variance which
+this presentation does not show.
+
 | Variant | Game | Iter | Wall | Expl |
 |---|---|---|---|---|
-| `vanilla_cfr.train` (chance sample) | Leduc | 50 000 | 15 s | 0.082 (3-seed mean) |
-| `vanilla_cfr.train_enumeration` | Leduc | 500 | 28 s | 0.057 (deterministic) |
-| `cfr_plus.train` (chance sample) | Leduc | 20 000 | 18 s | 0.152 (3-seed mean) |
-| `cfr_plus.train_enumeration` | Leduc | 200 | 17 s | 0.015 (deterministic) |
+| `vanilla_cfr.train` (chance sample) | Leduc | 50 000 | 22.5 s | 0.074 |
+| `vanilla_cfr.train_enumeration` | Leduc | 500 | 27.5 s | 0.057 |
+| `cfr_plus.train` (chance sample) | Leduc | 20 000 | 22.4 s | 0.154 |
+| `cfr_plus.train_enumeration` | Leduc | 200 | 16.6 s | 0.015 |
 
 At similar wall time, enumeration reaches lower exploitability on
-both algorithms. For algorithms where enumeration cost is acceptable
-(any game of Leduc scale or smaller), **always prefer enumeration**.
+both algorithms (vanilla: 0.057 vs 0.074 in roughly the same 25 s
+window; CFR+: 0.015 vs 0.154 — enum is **10× better** for less wall
+time). For games of Leduc scale or smaller, **always prefer
+enumeration**.
 
 ### Bug fix history
 
