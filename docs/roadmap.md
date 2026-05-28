@@ -15,7 +15,7 @@ Updated as the prototype evolves.
 - [x] Recursive traversal with reach probabilities
 - [x] Regret matching + average strategy tracking
 - [x] Smoke-test script (`scripts/smoke_test_kuhn.py`)
-- [ ] **🐛 Debugging:** exploitability stuck at ~0.55 instead of converging
+- [ ] **Debugging:** exploitability stuck at ~0.55 instead of converging
       to 0. Strategies at most info sets are qualitatively correct; Q-card
       defense (Q:b, Q:pb) is too aggressive. Suspected fix: snapshot
       per-iteration strategy before tree traversal.
@@ -103,10 +103,10 @@ Updated as the prototype evolves.
 These would be defensible features for a larger project, but are
 deliberately excluded from this prototype:
 
-- ❌ **No-Limit Texas Hold'em.** Out of scope (see `design-decisions.md` D2).
-- ❌ **Real production data.** Out of scope (D6).
-- ❌ **Distributed training.** No need at this scale.
-- ❌ **Hyperparameter sweeps.** CFR is essentially parameter-free; the
+- **No-Limit Texas Hold'em.** Out of scope (see `design-decisions.md` D2).
+- **Real production data.** Out of scope (D6).
+- **Distributed training.** No need at this scale.
+- **Hyperparameter sweeps.** CFR is essentially parameter-free; the
       collusion classifier uses LightGBM defaults until baseline is solid.
 
 ---

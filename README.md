@@ -12,23 +12,23 @@ scope** over scale or novelty.
 
 ## What this is
 
-- ✅ A working implementation of **vanilla CFR** on Kuhn Poker (3-card toy
+- A working implementation of **vanilla CFR** on Kuhn Poker (3-card toy
   game) and Leduc Hold'em (planned).
-- ✅ Variants: **MCCFR (External Sampling)** and **CFR+** (planned).
-- ✅ An **exploitability** evaluator for tabular policies.
-- ✅ A pipeline to generate **synthetic colluding-game data** and train
+- Variants: **MCCFR (External Sampling)** and **CFR+** (planned).
+- An **exploitability** evaluator for tabular policies.
+- A pipeline to generate **synthetic colluding-game data** and train
   detectors using behavioral features (planned).
-- ✅ End-to-end runnable on a laptop CPU — no GPU required.
+- End-to-end runnable on a laptop CPU — no GPU required.
 
 ## What this is NOT
 
-- ❌ **Not novel research.** All algorithms follow published papers
+- **Not novel research.** All algorithms follow published papers
   (Zinkevich 2007, Lanctot 2009, Tammelin 2014, etc.).
-- ❌ **Not production-ready.** No real-world poker data; collusion
+- **Not production-ready.** No real-world poker data; collusion
   behaviors are simulated and likely simpler than what real platforms see.
-- ❌ **Not benchmarked on No-Limit Hold'em.** Toy games only — the
+- **Not benchmarked on No-Limit Hold'em.** Toy games only — the
   techniques are correct, the scale is not.
-- ❌ **Not yet complete.** This is a work-in-progress prototype.
+- **Not yet complete.** This is a work-in-progress prototype.
 
 ---
 
@@ -98,10 +98,10 @@ canonical small benchmark.
 
 | Algorithm | Year | Key idea | Status |
 |---|---|---|---|
-| Vanilla CFR | 2007 | Regret matching + counterfactual reach | ✅ written, debugging convergence |
-| MCCFR (External Sampling) | 2009 | Sample opponent + chance, traverse self | 🚧 planned |
-| CFR+ | 2014 | Reset negative regrets to 0; linear averaging | 🚧 planned |
-| Deep CFR | 2019 | Neural network for regret storage | ⏭ stretch, requires GPU |
+| Vanilla CFR | 2007 | Regret matching + counterfactual reach | written, debugging convergence |
+| MCCFR (External Sampling) | 2009 | Sample opponent + chance, traverse self | planned |
+| CFR+ | 2014 | Reset negative regrets to 0; linear averaging | planned |
+| Deep CFR | 2019 | Neural network for regret storage | stretch, requires GPU |
 
 ### Evaluation
 
