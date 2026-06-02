@@ -68,7 +68,7 @@ primary papers.
 
 ---
 
-## Self-play / RL (Chapter 4 of the interview note)
+## Self-play / RL
 
 - **Heinrich & Silver (2016)**
   *Deep Reinforcement Learning from Self-Play in Imperfect-Information
@@ -175,7 +175,7 @@ recapitulates the field's reasoning over the last decade. See
 
 ---
 
-## Modern RL trends (background for the broader interview prep)
+## Modern RL trends (background context)
 
 - **Schulman et al. (2017)** PPO. arXiv:1707.06347.
 - **Rafailov et al. (2023)** DPO. arXiv:2305.18290.

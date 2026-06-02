@@ -2,7 +2,7 @@
 
 A record of non-obvious choices made while building this prototype, with
 the reasoning behind each. Intended to be defensible under technical
-interview scrutiny — every choice should have a "why this, why not that".
+scrutiny — every choice should have a "why this, why not that".
 
 ---
 
@@ -23,7 +23,7 @@ distinguishes someone who could be hired into the role versus someone
 who only read the papers.
 
 **Why not deep on one:** A "from-scratch No-Limit Hold'em solver" is
-indefensible in interview-prep timeframes — it would either be incomplete
+indefensible within a scoped prototype's timeframe — it would either be incomplete
 or a thin wrapper on OpenSpiel. A "production collusion system" would
 require real game logs we don't have. The two-phase scope is the largest
 honest deliverable.
@@ -44,10 +44,10 @@ sets) only.
   card abstraction, multi-week compute, and engineering tricks that are
   the work of multi-person research teams over years.
 
-**Why not Texas Hold'em:** The interview-prep prototype's purpose is to
+**Why not Texas Hold'em:** The research prototype's purpose is to
 show I **understand and can implement the algorithms**, not to claim I
 re-solved a domain that took CMU teams a decade. Honesty about scope is
-a stronger interview signal than fake ambition.
+a stronger signal of engineering judgment than fake ambition.
 
 ---
 
@@ -64,7 +64,7 @@ Python + NumPy.
   in 5 minutes. They cannot do that with an OpenSpiel call.
 - Toy games are small enough that no library is needed for performance.
 
-**Why not OpenSpiel:** Using OpenSpiel would invite the interview
+**Why not OpenSpiel:** Using OpenSpiel would invite the
 question "what did you actually write?" with no defensible answer. The
 moment the prototype lives or dies on OpenSpiel internals, the
 demonstration value collapses.
@@ -180,11 +180,11 @@ having its own deliverable and timeline.
 formatting or polish.
 
 **Why:**
-- The most common interview failure mode at this seniority is "I built
+- The most common failure mode at this seniority is "I built
   it but can't explain why I made the choices I made". A written record
   forces clear thinking and provides reviewers a starting point.
-- Reviewers who read this file before interviewing me will have better
-  questions; the interview becomes more productive.
+- Reviewers who read this file understand the design rationale up front,
+  so any follow-up discussion starts from a more productive baseline.
 - For my own future reference — six months from now, "why did I pick
   LightGBM?" should not be a mystery.
 

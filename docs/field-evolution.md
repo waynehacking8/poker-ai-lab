@@ -3,8 +3,8 @@
 > Why this file exists: a CFR-on-toy-games prototype is easy to read as
 > "I implemented an old algorithm". This document re-frames the same
 > work inside the field's current paradigm map, so a reviewer can locate
-> the prototype on the right axis — and so I can defend that placement
-> in interview.
+> the prototype on the right axis — and so that placement can be
+> defended under technical scrutiny.
 
 ---
 
@@ -41,7 +41,7 @@
 
 ## 3. Three live disagreements the field has not settled
 
-These are the questions an interviewer will actually have an opinion on.
+These are the questions a practitioner reviewing this work will have an opinion on.
 
 ### D1. CFR-style solvers vs. pure end-to-end RL
 
@@ -101,7 +101,7 @@ information sets). Concretely:
 
 The prototype is **not** a Libratus / Pluribus reproduction; it is the
 **unit test** for the family those systems are built on. The honest
-interview framing: "I implemented the canonical algorithm correctly on
+framing: "I implemented the canonical algorithm correctly on
 its canonical benchmark, so I can read the modern papers without
 hand-waving over the math."
 
@@ -128,7 +128,7 @@ hand-waving over the math."
   which is exactly why it's the precursor and not the moment itself.
 
 **What the GPT moment will probably look like** (best guess, defensible
-in interview):
+under technical scrutiny):
 - A general **strategic foundation model** trained on game logs,
   negotiation transcripts, auction data, etc.
 - LLM as the natural-language interface; specialized solvers (CFR,
@@ -139,7 +139,7 @@ in interview):
 
 ---
 
-## 6. How this maps to interview talking points
+## 6. Key technical takeaways
 
 If a reviewer asks "what does this prototype demonstrate":
 

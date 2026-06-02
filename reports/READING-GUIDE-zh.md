@@ -3,7 +3,7 @@
 英文版的三份報告(`phase1-convergence.md`、`mccfr-scaling.md`、
 `phase2-collusion-detection.md`)用嚴謹格式記錄實驗結果。
 這份中文指南是**怎麼讀那些報告**的 narrator — 幫你用三種速度切入,
-告訴你每張圖的形狀為什麼合理、哪些細節是面試官會抓的、哪些是該誠實
+告訴你每張圖的形狀為什麼合理、哪些細節是 reviewer 會抓的、哪些是該誠實
 標出的限制。
 
 ---
@@ -11,7 +11,7 @@
 ## 給誰看
 
 - **你自己** — 隔幾週回來複習,不用每次重新爬全部報告
-- **面試官 / reviewer** — 帶他們快速 navigate 三份報告的價值
+- **reviewer / 接手讀者** — 帶他們快速 navigate 三份報告的價值
 - **接手的 AI / 工程師** — 知道每份報告的目的、結構、怎麼引用
 
 英文報告負責「**這是什麼**」;這份中文指南負責「**該怎麼讀、為什麼合理、怎麼防被質疑**」。
@@ -262,7 +262,7 @@ defaults 並誠實標出 finding。
 | Self-play / NFSP | 同上 |
 | Multi-player(3+ 桌)CFR | HU only |
 
-面試時碰到上述問題,**老實答「我做過 design,沒實作」或「我讀過 papers,沒踩過坑」** — 比浮誇好。
+被問到上述問題時,**老實答「我做過 design,沒實作」或「我讀過 papers,沒踩過坑」** — 比浮誇好。
 
 ---
 
@@ -324,7 +324,7 @@ without shared latency:  AUC 0.8245   (fold-rate 主導,更誠實的數字)
 
 ### Q4:「為什麼不直接用 OpenSpiel?」
 
-> 「OpenSpiel 是 production-grade 的選擇,但對 interview-prep prototype
+> 「OpenSpiel 是 production-grade 的選擇,但對這種 research prototype
 > 來說會把『你究竟做了什麼』模糊掉。從零實作讓我碰到每個 sign
 > convention、reach probability、Leduc round-boundary 的 edge case
 > — 也讓我找得到 inline RM+ floor 那個 bug。**這個設計選擇記在 D3**。」
