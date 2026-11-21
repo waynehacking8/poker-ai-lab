@@ -18,25 +18,34 @@ State of the repo on branch `holdem-chipzen` (nothing pushed). The FlashCFR docu
      HU Nash numbers; `holdem_remote.sh` syncs the tree to gb10-d and runs a command there;
      `holdem_diag.py` buckets where chips go; `holdem_latency.py` measures decide().
    * `reports/holdem-iterations.md`: what lost, what changed, before and after numbers.
-   * `tools/`: the Chipzen replay fetch and analysis scripts (the replays themselves are in
-     `.cache/` and are gitignored).
+   * `tools/`: the Chipzen replay fetch and analysis scripts, `match_ceiling.py` and
+     `replay_conformance.py` (see `tools/README.md`, including the 900 s rate limit). The
+     replays themselves are in `.cache/` and are gitignored. To run the conformance test on
+     gb10-d, copy `.cache/chipzen-replays` to `~/poker-ai-lab-sim/.cache/` once
+     (`holdem_remote.sh` does not sync `.cache`); the pytest skips without it.
+   * Engine fidelity (2026-11-21): all 10,516 real NLHE hands replay exactly through
+     `holdem/engine.py`. Blind levels past 600 (800 from hand 121, 1000 from hand 141) are
+     inferred from OFC replays; nothing past hand 146 is observed. Earlier win rates in other
+     tracks were measured on the old engine (no 800 and 1000 levels, small blind prompted
+     against a tiny all-in big blind) and should be re-run for comparison.
 
 ## Numbers (gb10-d, 400 seat-swapped matches per opponent, real format)
 
-Real format: 10,000 stacks, blinds 50/100 rising every 20 hands to 600, play to bust.
-Command: `scripts/holdem_remote.sh python -m holdem.arena --opp all --matches 400 --seed 1 --workers 6`
+Real format: 10,000 stacks, blinds 50/100 rising every 20 hands to 600, then 800 and 1000
+from hands 121 and 141 (inferred), play to bust. Re-measured after the engine fidelity fixes.
+Command: `scripts/holdem_remote.sh python -m holdem.arena --opp all --matches 400 --seed 1 --workers 4`
 (raw lines in `results/holdem/arena_seed1.jsonl` and `arena_seed2.jsonl`, seed 2 was never
 used for tuning).
 
 | opponent | win rate seed 1 | 95% CI | seed 2 | mean hands per won match |
 |---|---|---|---|---|
 | station | 96.0% | 93.6 to 97.5 | 95.5% | 27 |
-| reference | 90.8% | 87.5 to 93.2 | 90.3% | 88 |
-| nit | 88.8% | 85.3 to 91.5 | 86.5% | 87 |
+| reference | 90.2% | 86.9 to 92.8 | 90.0% | 88 |
+| nit | 88.2% | 84.7 to 91.0 | 86.0% | 86 |
 | random | 83.0% | 79.0 to 86.4 | 79.0% | 24 |
-| lag | 71.5% | 66.9 to 75.7 | 69.3% | 44 |
-| maniac | 72.3% | 67.7 to 76.4 | 72.3% | 10 |
-| station_raiser | 69.5% | 64.8 to 73.8 | 72.3% | 32 |
+| lag | 71.5% | 66.9 to 75.7 | 69.2% | 44 |
+| maniac | 71.8% | 67.1 to 75.9 | 72.8% | 9 |
+| station_raiser | 69.8% | 65.1 to 74.0 | 72.0% | 32 |
 
 The 80 percent bar is NOT met for lag, maniac and station_raiser (random is at the line).
 See the iteration log for the diagnosis. Short version: against maniac and random the chips

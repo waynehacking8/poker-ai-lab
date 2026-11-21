@@ -91,6 +91,50 @@ configuration, within noise of 71.5), random 80% -> 83%, nit 84.5% -> 88.8%.
 | maniac | 72.3% | 67.7 to 76.4 | 72.3% |
 | station_raiser | 69.5% | 64.8 to 73.8 | 72.3% |
 
+## Engine fidelity fixes and the short big blind leak
+
+A fresh replay of 10,516 real Chipzen NLHE hands through `holdem/engine.py`
+(`tools/replay_conformance.py`, `raise` amounts in replays are chips added) found two places
+where the simulator differs from the server, and one bot leak in the same spot.
+
+1. Small blind prompted too often. When the big blind is all in for no more than the small
+   blind's post, the server never asks the small blind: the hand runs out and the uncalled
+   excess goes back (12 real hands, e.g. match 53990391 hand 9, stacks 19980 and 20). The
+   engine priced the small blind's call against the full big blind. It now measures the
+   preflop bet to match as the larger post. A big blind post between the small blind's post
+   and a full big blind still prompts fold or call at post minus small blind (554b8185 #13,
+   e8b41c5e #21); the old code gave a to_call of 50 there instead of 43.
+2. The blind schedule stopped at 600. Same-platform OFC replays go 300/600 at hand 101,
+   400/800 at 121 and 500/1000 at 141 (last observed hand 146); NLHE replays only reach hand
+   117 and matched. The engine now steps to 800 at hand 121 and 1000 at hand 141 and holds
+   there. These two levels are inferred, not observed in NLHE. About 5 percent of arena
+   matches against nit and reference reach hand 121.
+3. Bot leak. Against a short forced all-in big blind (for example 93) the small blind faces
+   43 to win 186 (about 23 percent equity needed). The bot read bb from the short post and
+   priced the call from that, so it folded 15 hand classes such as 32o that are clear calls.
+   Those are match-ending spots. Now the context takes the larger of the big blind post and
+   twice the small blind post as the level, and when the opponent is all in with only fold or
+   call left the bot calls exactly when equity is at least to_call / (pot + to_call), with a
+   random range for a forced blind and the range tracker's range after a raise. The same rule
+   covers the bot as big blind facing an all-in small blind raise.
+
+Result: 10,504 of 10,516 hands passed strict replay before, all 10,516 pass now with ending
+stacks equal to `stacks_after`. Arena, 400 matches each, before (engine 5fbd6b5) to after:
+
+| opponent | seed 1 before | seed 1 after | seed 2 before | seed 2 after |
+|---|---|---|---|---|
+| station | 96.0% | 96.0% | 95.5% | 95.5% |
+| reference | 90.8% | 90.2% | 90.3% | 90.0% |
+| nit | 88.8% | 88.2% | 86.5% | 86.0% |
+| random | 83.0% | 83.0% | 79.0% | 79.0% |
+| lag | 71.5% | 71.5% | 69.3% | 69.2% |
+| maniac | 72.3% | 71.8% | 72.3% | 72.8% |
+| station_raiser | 69.5% | 69.8% | 72.3% | 72.0% |
+
+Every change is inside the 95 percent interval of the earlier number (plus or minus about
+4 points), so the fixes do not move the win rates; what changes is that these numbers now
+come from an engine that agrees with the server hand for hand.
+
 ## Status against the 80 percent bar
 
 Not met for lag, maniac and station_raiser; random is on the line, its lower CI bound is
