@@ -37,3 +37,9 @@ data/processed/
 # Results (track key plots manually with `git add -f`)
 results/cache/
 *.log
+
+# Hold'em / Chipzen
+.venv-chipzen/
+chipzen_bot/**/__pycache__/
+results/holdem/*.tmp
+.cache/
