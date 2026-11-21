@@ -1,18 +1,22 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-21 15:03 UTC.
+Updated 2026-11-21 20:40 UTC.
 
 ## Goal and gate
 - Heads-up NLHE bot for Chipzen.ai Season 16. Registration closes Mon 23 Nov 23:59 UTC.
 - Ship gate (Wayne): at least 80% match wins against every one of the 23 league opponents,
   each separately, over at least 400 matches (point estimate; report the Wilson lower bound).
-  No upload or registration before a candidate passes and a fresh verifier confirms it.
+  Added 2026-11-21 (Wayne): the shipped bot must also beat the old heuristic bot (holdem-chipzen
+  102b05e) head to head: at least 400 matches, Wilson 95% lower bound above 50%.
+  No upload or registration before a candidate passes both and a fresh verifier confirms it.
 - Design rule (Wayne): adaptation comes from a decision model (online opponent model plus a
   procedure that maximizes match-win probability plus a safety blend), not switched fixed strategies.
 
-## State (league on the corrected engine, `reports/league/leaderboard.md` on holdem-league 955a021)
+## State (league on the corrected engine, `reports/league/leaderboard.md` on holdem-league 1c74fbd)
 | entrant | branch / commit | passed | field | weakest |
 |---|---|---|---|---|
+| rl-distill1 | holdem-rl 22b46de | 23/23 | 91.5 | qwentom-leap clone 85.0; heuristic h2h 43.0 |
+| adapt-v2 | holdem-adapt 4a4b419 | 23/23 | 89.4 | SolvencyCheck clone 80.8; heuristic h2h 29.5 |
 | rl-17cf03f | holdem-rl 17cf03f | 22/23 | 89.4 | PoetAndCoder clone 79.5 |
 | adapt-v1 | holdem-adapt | 22/23 | 86.0 | maniac 74.5 |
 | chipzen-102b05e | holdem-chipzen 102b05e | 8/23 | 76.0 | A5 64.0 |
@@ -24,13 +28,12 @@ Updated 2026-11-21 15:03 UTC.
 poker-ai-lab (holdem-chipzen), -league, -rl, -adapt, -br, -blueprint, -search, -research.
 
 ## Open work
-1. Archetype clones refit without the 10 held-out bots -> `league/data/clones_prior.npz` (league track).
-2. RL retrain on the clean clones plus ManiacBR distillation; the long run is launched by the
-   orchestrator on gb10-d (`~/poker-ai-lab-rl`), the agent only runs short chunks.
-3. adapt-v2: full-hand search horizon for the maniac.
-4. Best-response values and arena checks for lag and station_raiser (holdem-br).
-5. On a pass: fresh confirmation run with new seeds, verifier, amd64 image build on gb10-d,
-   upload through ego-browser, register.
+1. Verifier: rl-distill1 on fresh seeds (pairs 200 to 399, out/confirm-distill1 on gb10-d) plus runtime checks.
+2. Image: deploy/ on holdem-rl, built on gb10-d in ~/build-rl (amd64), copied to .cache/images/.
+3. RL round 3: train against the heuristic bot (SDK-engine rollouts or a fast port) to win head to head.
+4. Long RL runs on gb10-d, launched by me: tools/run_full2.sh and tools/run_clean2.sh in ~/poker-ai-lab-rl
+   (clean2 uses the seat-level prior league/data/clones_prior.npz, holdem-league cca1b51, arch:1 skipped).
+5. On a pass of both gates: verifier, upload through ego-browser, register.
 
 ## Traps
 - `tools/league_add.sh`: never edit it while a run of it is active (bash reads scripts lazily).
