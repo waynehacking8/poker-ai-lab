@@ -206,15 +206,19 @@ raw output in `results/holdem/`):
 | opponent | win rate | 95% CI | mean hands per won match |
 |---|---|---|---|
 | calling station | 96.0% | 93.6 to 97.5 | 27 |
-| SDK reference bot | 90.8% | 87.5 to 93.2 | 88 |
-| nit | 88.8% | 85.3 to 91.5 | 87 |
+| SDK reference bot | 90.2% | 86.9 to 92.8 | 88 |
+| nit | 88.2% | 84.7 to 91.0 | 86 |
 | random | 83.0% | 79.0 to 86.4 | 24 |
 | loose-aggressive opener | 71.5% | 66.9 to 75.7 | 44 |
-| maniac | 72.3% | 67.7 to 76.4 | 10 |
-| station that raises | 69.5% | 64.8 to 73.8 | 32 |
+| maniac | 71.8% | 67.1 to 75.9 | 9 |
+| station that raises | 69.8% | 65.1 to 74.0 | 32 |
 
-A second seed that was never used for tuning gives the same picture (95.5, 90.3, 86.5, 79.0,
-69.3, 72.3, 72.3). Honest reading: it beats the weak and passive bots clearly and is only a
+These numbers were re-measured after the engine fidelity fixes (see "Engine fidelity" in
+`reports/holdem-iterations.md`): the simulator now matches every one of the 10,516 real
+Chipzen hands we replayed, and the blind schedule continues past 600. The levels past 600
+(800 from hand 121, 1000 from hand 141) are inferred from the same platform's OFC replays;
+nothing past hand 146 has been observed. A second seed that was never used for tuning gives
+the same picture (95.5, 90.0, 86.0, 79.0, 69.2, 72.8, 72.0). Honest reading: it beats the weak and passive bots clearly and is only a
 moderate favourite against the aggressive ones. Winner-take-all matches against a bot that
 shoves a quarter of its hands are decided by one or two all-ins, which caps what an
 equity based player can reach; `reports/holdem-iterations.md` has the diagnosis and the

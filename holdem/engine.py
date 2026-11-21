@@ -9,7 +9,9 @@ hook messages.  Rules follow the platform's protocol notes:
   * ``min_raise`` / ``max_raise`` are raise-to totals, ``min_raise`` can exceed
     ``max_raise`` (then only the shove is legal), there is no ``all_in`` action,
   * a short all-in raise does not reopen the betting for a seat that already acted,
-  * the uncalled part of a bet is returned, odd chips go to the big blind.
+  * the uncalled part of a bet is returned, odd chips go to the big blind,
+  * a big blind that is all in for no more than the small blind's post is never
+    answered: the hand runs out and the small blind gets the excess back.
 
 The match format mirrors the real season fixtures: 10,000 chip stacks, blinds
 50/100 rising every 20 hands (100, 150, 200, 300, 400, 600 big blind), played
@@ -26,8 +28,12 @@ from chipzen.models import Card, GameState
 from nlhe.cards import card_str
 from nlhe.evaluator import category_name, evaluate
 
-SCHEDULE = ((20, 100), (40, 150), (60, 200), (80, 300), (100, 400))
-FINAL_BB = 600
+# Observed levels (NLHE replays reach hand 117): big blind 100 for hands 1-20, 150 to 40,
+# 200 to 60, 300 to 80, 400 to 100, 600 from hand 101.  The levels past 600 are
+# INFERRED from the same platform's OFC replays (800 from hand 121, 1000 from hand 141,
+# last observed hand 146); nothing past hand 146 has been observed.  Held at 1000 after that.
+SCHEDULE = ((20, 100), (40, 150), (60, 200), (80, 300), (100, 400), (120, 600), (140, 800))
+FINAL_BB = 1000
 
 
 def blinds_for_hand(hand_number: int, schedule=SCHEDULE, final_bb: int = FINAL_BB):
@@ -107,7 +113,9 @@ class Hand:
 
     # -- betting ---------------------------------------------------------
     def _betting_round(self, phase, first):
-        level = self.bb if phase == "preflop" else 0
+        # the bet to match preflop is the larger post: a short all-in big blind does not
+        # raise it above the small blind's post (the server never prompts the small blind then)
+        level = max(self.bet) if phase == "preflop" else 0
         last_raise = self.bb
         pending = [s for s in (first, 1 - first) if self.stack[s] > 0]
         acted: set[int] = set()
