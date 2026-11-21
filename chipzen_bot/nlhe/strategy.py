@@ -116,7 +116,9 @@ class Brain:
             starts[s] = st + info.contrib.get(s, 0)
         info = parse_history(state.action_history, starts)
         live = [s for s in others if s not in info.folded and (s in info.seats or opp_stack[s] > 0)]
-        bb = info.big_blind or max(state.min_raise // 2, 1)
+        # A short all-in big blind posts less than the real level; the small blind's post
+        # (half the level) is the other number the protocol exposes, so take the larger.
+        bb = max(info.big_blind, 2 * info.small_blind) or max(state.min_raise // 2, 1)
         n_live = len(live) + 1
         seats_live = sorted([me, *live, state.dealer_seat])
         seats_live = sorted(set(seats_live))
@@ -284,6 +286,18 @@ class Brain:
         seat = live[0] if live else None
         stats = self.model.get(seat) if seat is not None else None
         multiway = ctx["n_live"] > 2
+
+        # He is all in and only fold or call remains: no later street, so the price is
+        # plain pot odds.  A forced short big blind all-in has a random range.
+        if (to_call > 0 and ctx["opp_behind"] == 0 and "raise" not in ctx["valid"]
+                and not multiway and seat is not None
+                and (n_raises == 0 or to_call < my_stack)):
+            if n_raises == 0:
+                eq = pf.VS_RANDOM[cls]
+            else:
+                eq = pf.equity_vs_range(cls, self._opp_class_weights(ctx, seat))
+            cost = min(to_call, my_stack)
+            return self._call(ctx) if eq >= cost / (pot + cost) else self._fold(ctx)
 
         if n_raises == 0:
             if to_call > 0:  # first to act (button / small blind): open, limp-fold or shove
