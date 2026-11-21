@@ -1,4 +1,4 @@
-"""Chipzen entry point for the RL Distill1Bot (numpy-only policy, weights rl/models/distill1.npz).
+"""Chipzen entry point for the RL policy bot (numpy-only, weights rl/models/weights.npz set at build time).
 
 The platform injects CHIPZEN_WS_URL and CHIPZEN_TOKEN (or CHIPZEN_TICKET) at launch.
 """
@@ -13,7 +13,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from chipzen.client import run_bot  # noqa: E402
 
-from rl.bot_distill import Distill1Bot  # noqa: E402
+from rl.bot import RLBot  # noqa: E402
+
+WEIGHTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rl", "models", "weights.npz")
 
 
 def main() -> None:
@@ -25,7 +27,7 @@ def main() -> None:
     asyncio.run(
         run_bot(
             url,
-            Distill1Bot(),
+            RLBot(model=WEIGHTS),
             token=os.environ.get("CHIPZEN_TOKEN"),
             ticket=os.environ.get("CHIPZEN_TICKET"),
         )

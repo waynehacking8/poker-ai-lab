@@ -2,7 +2,7 @@
 # Play one full match: localmatch.py server in one container, the built image as the bot.
 # usage: run_local_match.sh OPP SEED   (run on the box, in a dir holding repo/ and res/)
 # Image limits mirror the platform: amd64, 0.5 vCPU, 256 MB, uid 10001, read-only, cap-drop.
-OPP=$1; SEED=$2
+OPP=$1; SEED=$2; IMAGE=${IMAGE:-holdem-rl-distill1}
 cd "$(dirname "$0")"
 docker network inspect rlnet >/dev/null 2>&1 || docker network create rlnet
 docker rm -f rlsrv rlbot >/dev/null 2>&1
@@ -13,7 +13,7 @@ until docker exec rlsrv sh -c 'python -c "import socket;socket.create_connection
 T0=$(date +%s.%N)
 docker run -d --name rlbot --network rlnet --platform linux/amd64 --cpus 0.5 --memory 256m \
   --user 10001:10001 --read-only --cap-drop ALL --security-opt no-new-privileges \
-  -e CHIPZEN_WS_URL=ws://rlsrv:8765/ws/match/m_local_1/bot holdem-rl-distill1 >/dev/null
+  -e CHIPZEN_WS_URL=ws://rlsrv:8765/ws/match/m_local_1/bot $IMAGE >/dev/null
 # cold start: time until the server sees the bot's connection (its first decision request follows)
 until docker logs rlsrv 2>&1 | grep -q CONNECTED || [ -f res/$OPP-$SEED.json ]; do sleep 0.1; done
 echo "COLD_START_S=$(echo "$(date +%s.%N) - $T0" | bc)"

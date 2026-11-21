@@ -2,7 +2,7 @@
 #
 # Chipzen image for the RL Distill1Bot. Build context is the repo root (see deploy/README.md).
 # Ships only what the bot imports at runtime: rl/{bot,bot_distill,features,runtime}.py, the
-# distill1 weights and nlhe/{cards,evaluator,preflop} with its data. No torch, numba, training
+# chosen weights and nlhe/{cards,evaluator,preflop} with its data. No torch, numba, training
 # code, specialists or teacher.
 #
 # Base pinned by digest, same as chipzen_bot/Dockerfile (tag python:3.12-slim).
@@ -22,7 +22,9 @@ RUN pip install -r requirements.txt \
 
 COPY deploy/bot.py /bot/bot.py
 COPY rl/__init__.py rl/bot.py rl/bot_distill.py rl/features.py rl/runtime.py /bot/rl/
-COPY rl/models/distill1.npz /bot/rl/models/distill1.npz
+# Weights: any repo path via --build-arg MODEL=..., installed under a fixed name.
+ARG MODEL=rl/models/distill1.npz
+COPY ${MODEL} /bot/rl/models/weights.npz
 COPY chipzen_bot/nlhe/__init__.py chipzen_bot/nlhe/cards.py chipzen_bot/nlhe/evaluator.py chipzen_bot/nlhe/preflop.py /bot/nlhe/
 COPY chipzen_bot/nlhe/data/ /bot/nlhe/data/
 
