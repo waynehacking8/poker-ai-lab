@@ -242,15 +242,47 @@ Statistics within tolerance (of 15) per archetype with the EM de-censored fit: [
 * Match length: the simulated field plays slightly longer matches than the real held-out set (about
   34 against 32 hands on average, medians 28 and 29).
 
-## Uncontaminated prior (`league/data/clones_prior.npz`)
+## Uncontaminated prior
 
-The archetype tables refit without every match that involves one of the 10 per-bot test bots (AutodidactInnovations, Blueprint, DeepStack, InfernalMonarch, Kimiko, MercuryRetrograde, PoetAndCoder, SolvencyCheck, mr_hide, qwentom-leap). Archetype labels, weights and the per-bot clones are copied unchanged from `clones.npz`, so ids stay comparable. 60 of 235 matches (2524 hands) remain.
+The per-bot clones are the league's held-out test opponents, so anything trained against the archetypes must not have seen those 10 bots: AutodidactInnovations, Blueprint, DeepStack, InfernalMonarch, Kimiko, MercuryRetrograde, PoetAndCoder, SolvencyCheck, mr_hide, qwentom-leap. Two refits of the archetype action tables, with the same fit and shrinkage (toward the pooled table of the remaining seats, pseudo-count 30); archetype labels, weights and per-bot clones are copied unchanged from `clones.npz`, so ids stay comparable.
 
-Hand-seats left per archetype: A0-limper-calm 321, A1-station 0, A2-opener-aggro-shover 1133, A3-opener-aggro-shover 142, A4-bb-folder-calm 126, A5-opener-calm 2862. Every archetype table is shrunk toward the pooled table of the remaining seats with pseudo-count 30; archetypes with under 400 seats (A0-limper-calm, A1-station, A3-opener-aggro-shover, A4-bb-folder-calm) are thin, and an archetype with zero seats is the pooled table, not that archetype. A1-station is Kimiko and DeepStack only, both held-out bots, so it has no clean data at all and the prior's A1 is a generic table: do not use `arch:1` of the prior as a station.
+* `league/data/clones_prior.npz` (seat variant, the clean definition): only the test bots' own seats are dropped, their opponents' seats stay. 235 matches, 7598 hands.
+* `league/data/clones_prior_strict.npz` (strict variant): every match involving a test bot is dropped. 60 of 235 matches, 2524 hands.
+
+Both files carry `meta["pooled_archetypes"]`. A1-station is Kimiko and DeepStack only, both test bots, so no clean data exists for it under either rule: its table is the pooled table, not a station. Do not use that `arch:` id of a prior as a station.
+
+Hand-seats left per archetype:
+
+| variant | A0-limper-calm | A1-station | A2-opener-aggro-shover | A3-opener-aggro-shover | A4-bb-folder-calm | A5-opener-calm |
+|---|---|---|---|---|---|---|
+| seat (clones_prior) | 986 | 0 | 1671 | 707 | 463 | 3754 |
+| strict (clones_prior_strict) | 321 | 0 | 1133 | 142 | 126 | 2862 |
 
 ### How far the tables moved (400 simulated matches per archetype and model, same seeds, against the field mix)
 
-Cells are full fit, prior and the change in percentage points.
+Cells are full fit / prior and the change in percentage points. The last row is the mean absolute change over the 14 rate statistics.
+
+Seat variant:
+
+| statistic | A0-limper-calm | A1-station | A2-opener-aggro-shover | A3-opener-aggro-shover | A4-bb-folder-calm | A5-opener-calm |
+|---|---|---|---|---|---|---|
+| btn_open | 0.20 / 0.40 (+21) | 0.28 / 0.60 (+32) | 0.80 / 0.72 (-9) | 0.54 / 0.61 (+7) | 0.13 / 0.45 (+31) | 0.65 / 0.65 (+0) |
+| btn_limp | 0.79 / 0.48 (-31) | 0.72 / 0.21 (-51) | 0.02 / 0.10 (+8) | 0.35 / 0.18 (-17) | 0.52 / 0.22 (-30) | 0.20 / 0.17 (-3) |
+| bb_fold_vs_open | 0.08 / 0.34 (+26) | 0.00 / 0.42 (+41) | 0.34 / 0.39 (+5) | 0.04 / 0.36 (+32) | 0.70 / 0.53 (-18) | 0.42 / 0.43 (+1) |
+| bb_3bet | 0.05 / 0.11 (+6) | 0.32 / 0.12 (-20) | 0.27 / 0.19 (-8) | 0.12 / 0.12 (-0) | 0.05 / 0.11 (+6) | 0.10 / 0.10 (+0) |
+| btn_fold_vs_3bet | 0.31 / 0.52 (+21) | 0.04 / 0.52 (+48) | 0.78 / 0.61 (-17) | 0.04 / 0.45 (+41) | 0.15 / 0.54 (+39) | 0.64 / 0.58 (-6) |
+| pf_allin_short | 0.02 / 0.06 (+4) | 0.02 / 0.07 (+5) | 0.13 / 0.10 (-3) | 0.04 / 0.07 (+3) | 0.01 / 0.06 (+6) | 0.06 / 0.06 (+0) |
+| pf_allin_deep | 0.01 / 0.00 (-0) | 0.00 / 0.01 (+0) | 0.02 / 0.01 (-1) | 0.01 / 0.01 (-0) | 0.00 / 0.01 (+0) | 0.01 / 0.00 (-0) |
+| flop_bet | 0.23 / 0.35 (+12) | 0.00 / 0.43 (+43) | 0.81 / 0.59 (-23) | 0.50 / 0.42 (-8) | 0.33 / 0.43 (+10) | 0.37 / 0.42 (+5) |
+| turn_bet | 0.28 / 0.33 (+6) | 0.00 / 0.37 (+37) | 0.61 / 0.44 (-16) | 0.46 / 0.35 (-11) | 0.32 / 0.36 (+4) | 0.33 / 0.34 (+1) |
+| river_bet | 0.32 / 0.34 (+2) | 0.00 / 0.36 (+36) | 0.51 / 0.38 (-13) | 0.44 / 0.35 (-9) | 0.33 / 0.35 (+2) | 0.35 / 0.31 (-3) |
+| fold_to_bet | 0.22 / 0.40 (+18) | 0.02 / 0.41 (+39) | 0.50 / 0.41 (-9) | 0.38 / 0.42 (+5) | 0.34 / 0.40 (+6) | 0.50 / 0.44 (-6) |
+| post_agg | 0.58 / 0.61 (+3) | 0.03 / 0.67 (+63) | 0.87 / 0.73 (-14) | 0.79 / 0.66 (-14) | 0.70 / 0.66 (-4) | 0.72 / 0.66 (-6) |
+| wtsd | 0.70 / 0.42 (-28) | 0.98 / 0.40 (-58) | 0.36 / 0.38 (+2) | 0.53 / 0.40 (-14) | 0.60 / 0.39 (-21) | 0.48 / 0.40 (-8) |
+| fold_end | 0.16 / 0.36 (+21) | 0.02 / 0.38 (+36) | 0.36 / 0.36 (+0) | 0.22 / 0.38 (+16) | 0.47 / 0.47 (-0) | 0.39 / 0.39 (+0) |
+| mean abs change, pp | 14.2 | 36.5 | 9.1 | 12.6 | 12.7 | 2.9 |
+
+Strict variant:
 
 | statistic | A0-limper-calm | A1-station | A2-opener-aggro-shover | A3-opener-aggro-shover | A4-bb-folder-calm | A5-opener-calm |
 |---|---|---|---|---|---|---|
@@ -272,21 +304,21 @@ Cells are full fit, prior and the change in percentage points.
 
 ### Held-out validation (70/30 split, same held-out matches)
 
-Statistics within tolerance (of 15) per archetype. The base columns are the contaminated train-split fit, the prior columns the same split refit without the test bots' matches. Archetype names come from the split's own clustering.
+Statistics within tolerance (of 15) per archetype of the split's own clustering. Contaminated is the train-split fit; seat and strict are the same split refit without the test bots' seats or matches.
 
-| archetype | contaminated fit | prior |
-|---|---|---|
-| A0-opener-aggro-shover | 10 | 8 |
-| A1-mixed-calm | 12 | 5 |
-| A2-station | 12 | 2 |
-| A3-opener-calm | 10 | 11 |
+| archetype | contaminated fit | seat prior | strict prior |
+|---|---|---|---|
+| A0-opener-aggro-shover | 10 | 7 | 8 |
+| A1-mixed-calm | 12 | 4 | 5 |
+| A2-station | 12 | 2 | 2 |
+| A3-opener-calm | 10 | 7 | 11 |
 
-Reading: dropping every match of the 10 test bots leaves 60 matches and 2,524 hands, and the 10 bots
-are the high-volume ones, so the prior is close to one pooled table. Only A5-opener-calm (2,862 seats,
-mean change 3.3 pp) and, less so, A2-opener-aggro-shover (1,133 seats, 8.2 pp) keep their character.
-A0, A3 and A4 move 16 to 21 pp on average and A1 becomes the pooled table (about 40 pp), so those
-four no longer behave like their archetypes (for example A0 limps 29% instead of 79%). Held-out
-pass counts fall accordingly (A1 12 to 5, A2 12 to 2 in the split's naming). Use the prior to
-check that a trained agent does not depend on the test bots, not as a stand-in for the field.
-Dropping only the test bots' own seats (keeping their opponents' seats) would leave more data
-except for the station, which has no clean data under any rule; that variant was not built.
+Reading: the seat variant keeps all 7,598 hands but drops the test bots' own 10 seats, which leaves
+A5-opener-calm almost unchanged (2.9 pp mean change) and A2 close (9.1 pp), while A0, A3 and A4 still
+move 13 to 14 pp because the test bots were a large share of them (986, 707 and 463 seats remain
+against 321, 142 and 126 for strict). A1 is the pooled table in both files. Held-out pass counts drop
+against the contaminated fit (the test bots' own behaviour is what the held-out matches measure), by
+3 to 10 statistics for three archetypes and less for the opener-calm one; the seat variant is not
+better than strict on that count, which says the loss comes from the missing bots, not from the
+amount of data. Use the prior to check that a trained agent does not depend on the test bots, not as a
+stand-in for the field.

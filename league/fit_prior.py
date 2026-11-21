@@ -1,8 +1,9 @@
 """Refit the archetype action tables without the held-out bots (an uncontaminated prior).
 
 The per-bot clones are the league's held-out test opponents.  Anything trained against the
-archetypes (RL, a decision model) must not have seen those bots, so this refit drops every
-match that involves one of them.  Archetype definitions (cluster labels, weights, member lists)
+archetypes (RL, a decision model) must not have seen those bots.  ``--mode seat`` (default)
+drops only those bots' own seats and keeps their opponents' seats; ``--mode match`` is the
+strict variant that drops every match involving one of them.  Archetype definitions (cluster labels, weights, member lists)
 are copied from the base model unchanged, so archetype ids stay comparable; only the action
 tables and size samples are refit.  The per-bot tables are copied as they are.
 
@@ -27,7 +28,7 @@ K_PRIOR = 30.0
 
 
 def fit_prior(base_path, data_dir, out_path, holdout=0.0, seed=1, k_prior=K_PRIOR, iters=8,
-              min_seats=400):
+              min_seats=400, mode="seat"):
     d = np.load(base_path, allow_pickle=False)
     meta = json.loads(str(d["meta"]))
     held = set(meta["bots"])
@@ -37,11 +38,11 @@ def fit_prior(base_path, data_dir, out_path, holdout=0.0, seed=1, k_prior=K_PRIO
     if holdout:
         test_ids = {m["id"] for m, _ in ms if split_of(m["id"], holdout, seed)}
     keep = [(m, hs) for m, hs in ms if m["id"] not in test_ids
-            and not any(p["name"] in held for p in m["participants"])]
+            and (mode == "seat" or not any(p["name"] in held for p in m["participants"]))]
     hands = [h for _, hs in keep for h in hs]
     by_arch = {j: [] for j in range(meta["k"])}
     for name, rec in seat_records(hands):
-        if name in lab:
+        if name in lab and name not in held:  # the test bots' own seats never enter a table
             by_arch[lab[name]].append(rec)
     pooled_recs = [r for rs in by_arch.values() for r in rs]
     pooled, _ = fit_table(pooled_recs, iters)
@@ -62,9 +63,11 @@ def fit_prior(base_path, data_dir, out_path, holdout=0.0, seed=1, k_prior=K_PRIO
     meta["prior"] = {
         "base": str(base_path), "excluded_bots": sorted(held), "k_prior": k_prior,
         "min_seats": min_seats, "matches_kept": len(keep), "matches_total": len(ms),
-        "hands_kept": len(hands), "seats_per_archetype": seats,
+        "hands_kept": len(hands), "seats_per_archetype": seats, "mode": mode,
+        "pooled_archetypes": [j for j, n in enumerate(seats) if n == 0],
         "thin_archetypes": [j for j, n in enumerate(seats) if n < min_seats],
     }
+    meta["pooled_archetypes"] = meta["prior"]["pooled_archetypes"]  # no clean data: pooled table
     meta["test_match_ids"] = sorted(test_ids)
     save(out_path, meta, np.array(arch_theta), d["bot_theta"].astype(np.float64),
          np.array(arch_naive))
@@ -79,9 +82,11 @@ def main(argv=None):
     ap.add_argument("--holdout", type=float, default=0.0)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--min-seats", type=int, default=400)
+    ap.add_argument("--mode", choices=("seat", "match"), default="seat",
+                    help="seat: drop only the test bots' own seats; match: drop their whole matches")
     args = ap.parse_args(argv)
     info = fit_prior(args.base, args.data, args.out, args.holdout, args.seed,
-                     min_seats=args.min_seats)
+                     min_seats=args.min_seats, mode=args.mode)
     print(json.dumps(info, indent=1))
 
 
