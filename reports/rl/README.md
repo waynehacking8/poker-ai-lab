@@ -269,3 +269,12 @@ Proving chunk (7.5 minutes, 4 processes, from distill1, `rl/models/heur1.npz`, a
 SDK arena vs the heuristic, 400 matches, seed 11: heur1 0.5175 (CI 0.469 to 0.566), distill1 0.4675 (0.419 to 0.516).
 The difference is inside the noise of one 400 match run; the long run is what has to move it. Launch script:
 `tools/rl_heur_long.sh`.
+
+Deadlock fix (2026-11-22): the learner used to push parameters (about 650 KB) through each SDK worker's pipe while a
+worker could be blocked sending a finished match, so both sides waited forever once 10 workers ran. Parameters now go
+through an atomically replaced file `ckpt/<run>/sdk_params.npz` (`publish_params`, temp file plus `os.replace`); each
+worker reloads it between matches when its mtime changes; the pipe carries only worker to learner batches and the stop
+`None`. Proof at 3 C workers plus 10 SDK workers (7.2 minutes): 9.0 iterations per minute, about 956 heuristic matches per
+minute (about 1.6 per second per worker), 22,300 samples per iteration of which 45 percent heuristic (`--heur-batch`
+10,000 = 1,000 per SDK worker), training time win rate against the heuristic 0.552 over 6,886 matches. The C workers
+idle most of each iteration waiting for the heuristic samples.

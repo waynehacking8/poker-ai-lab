@@ -12,6 +12,6 @@ OUT=${1:-heur2}; NC=${2:-1}; NSDK=${3:-3}; MIN=${4:-360}; INIT=${5:-ckpt/heur1/l
 mkdir -p ckpt/$OUT logs pool_fixed
 [ -f pool_fixed/a_ablA.npz ] || cp ckpt/ablA/latest.npz pool_fixed/a_ablA.npz
 [ -f pool_fixed/b_distill1.npz ] || cp ckpt/distill1/latest.npz pool_fixed/b_distill1.npz
-exec python -m rl.train --out ckpt/$OUT --init $INIT --workers $NC --sdk-workers $NSDK --heur-batch $((800 * NSDK)) \
+exec python -m rl.train --out ckpt/$OUT --init $INIT --workers $NC --sdk-workers $NSDK --heur-batch $((1000 * NSDK)) \
   --envs 96 --steps 4000 --max-minutes $MIN --lr 1.5e-4 --clip 0.1 --floor 0.15 --snap-w 0.3 \
   --clones $CLONES --pool-dir pool_fixed --distill data/maniac_labels.npz --distill-w 0.5 >> logs/$OUT.out 2>&1

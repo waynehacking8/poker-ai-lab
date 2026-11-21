@@ -315,12 +315,14 @@ def main():
         pr = ctx.Process(target=worker_main, args=(b, args.envs, args.seed * 100 + w + 1, args.clones, args.bot_clones), daemon=True)
         pr.start()
         conns.append(a); procs.append(pr)
-    sdk = []
+    sdk, sdk_path = [], None
     if args.sdk_workers:
-        from rl.sdk_rollout import sdk_worker_main
+        from rl.sdk_rollout import publish_params, sdk_worker_main
+        sdk_path = os.path.join(args.out, "sdk_params.npz")
+        publish_params(params, sdk_path)
         for w in range(args.sdk_workers):
             a, b = ctx.Pipe()
-            pr = ctx.Process(target=sdk_worker_main, args=(b, args.seed * 100 + 50 + w), daemon=True)
+            pr = ctx.Process(target=sdk_worker_main, args=(b, args.seed * 100 + 50 + w, sdk_path), daemon=True)
             pr.start()
             sdk.append(a)
             procs.append(pr)
@@ -368,8 +370,8 @@ def main():
                 weights[f"snap:{j}"] = pf(f"snap:{j}", args.snap_w) * 4
         for c in conns:
             c.send((params, opp_models, weights, args.steps))
-        for c in sdk:
-            c.send(params)
+        if sdk:
+            publish_params(params, sdk_path)
         batches = [local.collect(params, opp_models, weights, args.steps)]
         batches += [c.recv() for c in conns]
         if sdk:

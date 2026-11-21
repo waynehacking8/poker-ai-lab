@@ -104,16 +104,35 @@ def play_one(params, seed, seat):
     return hero.batch(won), won, res.hands
 
 
-def sdk_worker_main(conn, seed):
-    """Loop: take the newest parameters, play one match, send (batch, won, hands). None stops the worker."""
-    params = None
+def publish_params(params, path):
+    """Atomically publish the newest parameters (the learner never writes into a worker pipe)."""
+    import os
+    tmp = path[:-4] + ".tmp.npz"
+    np.savez(tmp, **params)
+    os.replace(tmp, path)
+
+
+def sdk_worker_main(conn, seed, params_path):
+    """Loop: reload the parameter file when it changed, play one match, send (batch, won, hands).
+
+    The pipe carries worker to learner batches only; the learner sends a single ``None`` to stop the worker.
+    """
+    import os
+    params, stamp = None, None
     k = 0
     while True:
-        while conn.poll(0 if params is not None else None):
-            msg = conn.recv()
-            if msg is None:
+        if conn.poll(0):
+            if conn.recv() is None:
                 return
-            params = msg
+        try:
+            st = os.stat(params_path).st_mtime_ns
+            if st != stamp:
+                z = np.load(params_path)
+                params, stamp = {key: z[key] for key in z.files}, st
+        except OSError:
+            if params is None:
+                time.sleep(0.5)
+                continue
         k += 1
         batch, won, hands = play_one(params, seed * 1000003 + k, k % 2)
         conn.send((batch, won, hands))
