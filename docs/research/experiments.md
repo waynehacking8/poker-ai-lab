@@ -258,3 +258,33 @@ instead of taking the latest one. Its A5 margin is thin.
 The image passed the platform's review in minutes. Three warm-up matches on
 the real server against house bots (DeepStack, Kimiko, glambot) were all
 wins, and the bot is entered in Season 16.
+
+## 13. Real Chipzen bots with public code
+
+The evidence so far says the policy is strong against what it trained on
+and weaker elsewhere. The heuristic head to head went from 43% to 70% only
+after that bot joined training. The held-out per-bot clones scored 75.5% to
+86%. The clones themselves are rough: qwentom-leap matches only 5 of 13
+statistics, MercuryRetrograde 4 of 14. So I looked for the real bots. On
+2026-11-22, a GitHub repo and code search for "chipzen" (`gh search`,
+`gh api`) found these:
+
+| bot on Chipzen | repo | language, license | usable as an opponent |
+|---|---|---|---|
+| Blueprint (in our field) | matteo-psnt/poker-solver | Python, MIT | no: DCFR ladder of 8 stack depths, blueprints not published |
+| AutodidactInnovations (in our field) | autodidactinnovations-dev/poker-arena | Python, none | yes: Monte Carlo equity against pot odds, plays loose |
+| Ashwing_v2 | Shaurya-S0603/PokerBots | Python, none | yes: search plus a short-stack equity policy, several variants |
+| (unknown) wolfBot | mimaima699-ux/Chipzen-Poker-Bot | JavaScript, MIT | yes with node: range-aware Monte Carlo equity, opponent tracking |
+| G5 | Nemandza82/g5-poker-bot | C#, MIT | build needed: opponent modelling |
+| reference bot | chipzen-ai/chipzen-sdk | Python, Apache-2.0 | yes |
+| pkr-chipzen-bot, cham-chipzen | elcoosp/* | Rust | no: needs an unpublished engine or blueprint |
+
+robopoker (krukah) mentions a Chipzen tournament bot, but its blueprint is
+not public either.
+
+Wayne approved running the usable ones on gb10-d under these conditions:
+each source is pinned to a commit and read in full, and only stdlib and
+numpy imports are allowed (checked with an AST scan). Nothing contacts the
+network. Work is on branch `holdem-fieldbots`. Next comes the shipped
+policy's win rate against each of them, and then SDK-worker training
+against them.
