@@ -1,11 +1,11 @@
-"""League runner: every entrant plays the field, the per-bot clones, the baselines and
+"""League runner: every entrant plays every archetype, the per-bot clones, the baselines and
 every other external candidate in the real match format.
 
     python -m league.run --candidates candidates.json --out out/league \
         --field-pairs 150 --bot-pairs 20 --base-pairs 40 --h2h-pairs 60 --workers 4
 
 Matches come in duplicate pairs: one deal seed, both seat assignments.  Every entrant
-sees the same deal seeds and the same opponent draws (common random numbers).  Results
+sees the same deal seeds against each opponent (common random numbers).  Results
 append to ``<out>/results.jsonl`` and finished matches are skipped on a rerun.
 """
 
@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import argparse
 import atexit
-import bisect
 import json
 import time
 import zlib
@@ -27,7 +26,6 @@ from holdem.opponents import BASELINES, make_baseline
 from .clone import CloneBot, load_model
 from .hosting import RemoteBot
 
-GOLDEN = 0.6180339887498949
 MAX_HOSTS = 2
 
 _CFG = {}
@@ -47,15 +45,6 @@ def _close_hosts():
 
 def pair_seed(oppkey: str, p: int) -> int:
     return 1000 + zlib.crc32(f"{oppkey}|{p}".encode()) % 900_000
-
-
-def field_arch(p: int, weights) -> int:
-    """Low-discrepancy draw so any prefix of pairs matches the archetype weights."""
-    cum, acc = [], 0.0
-    for w in weights:
-        acc += w
-        cum.append(acc)
-    return min(bisect.bisect(cum, (p * GOLDEN) % 1.0 * acc), len(weights) - 1)
 
 
 def get_remote(name: str, seed: int) -> RemoteBot:
@@ -108,24 +97,28 @@ def run_task(task):
 
 
 def make_tasks(entrants, externals, meta, args):
-    """Yield every match task; entrants are spec strings ('cand:x' or 'base:y')."""
-    weights = meta["weights_rated"]
+    """Yield every match task; entrants are spec strings ('cand:x' or 'base:y').
+
+    Candidates play ``--pairs`` duplicate pairs against every archetype, every per-bot clone
+    and every baseline; baseline entrants play ``--small-pairs``.  A candidate plays each
+    candidate registered before it (so adding one never reruns older rows).
+    """
     for a in entrants:
-        groups = []  # (opponent spec, seed key, pair index)
-        for p in range(args.field_pairs):
-            groups.append((f"arch:{field_arch(p, weights)}", "field", p))
+        n = args.pairs if a in externals else args.small_pairs
+        groups = []  # (opponent spec, pair index)
+        for k in range(meta["k"]):
+            groups += [(f"arch:{k}", p) for p in range(n)]
         for name in meta["bots"]:
-            groups += [(f"bot:{name}", f"bot:{name}", p) for p in range(args.bot_pairs)]
+            groups += [(f"bot:{name}", p) for p in range(n)]
         for name in BASELINES:
             if a != f"base:{name}":
-                groups += [(f"base:{name}", f"base:{name}", p) for p in range(args.base_pairs)]
+                groups += [(f"base:{name}", p) for p in range(n)]
         if a in externals:
-            for e in externals[externals.index(a) + 1:]:
-                if e in entrants:
-                    groups += [(e, e, p) for p in range(args.h2h_pairs)]
-        for opp, oppkey, p in groups:
+            for e in externals[:externals.index(a)]:
+                groups += [(e, p) for p in range(args.h2h_pairs)]
+        for opp, p in groups:
             for seat in (0, 1):
-                yield {"a": a, "opp": opp, "oppkey": oppkey, "pair": p, "seat": seat,
+                yield {"a": a, "opp": opp, "oppkey": opp, "pair": p, "seat": seat,
                        "key": f"{a}|{opp}|{p}|{seat}"}
 
 
@@ -134,14 +127,15 @@ def main(argv=None):
     ap.add_argument("--candidates", default=None, help="json {name: {root, module, class}}")
     ap.add_argument("--model", default=str(Path(__file__).parent / "data" / "clones.npz"))
     ap.add_argument("--out", default="out/league")
-    ap.add_argument("--field-pairs", type=int, default=150)
-    ap.add_argument("--bot-pairs", type=int, default=20)
-    ap.add_argument("--base-pairs", type=int, default=40)
-    ap.add_argument("--h2h-pairs", type=int, default=60)
+    ap.add_argument("--pairs", type=int, default=200,
+                    help="duplicate pairs per opponent for a candidate (2 matches each)")
+    ap.add_argument("--small-pairs", type=int, default=30, help="same, for baseline entrants")
+    ap.add_argument("--h2h-pairs", type=int, default=100)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--decision-timeout", type=float, default=10.0)
     ap.add_argument("--no-baseline-entrants", action="store_true")
-    ap.add_argument("--only", default=None, help="comma list of entrant names to run")
+    ap.add_argument("--only", default=None,
+                    help="comma list of candidate names to play (baselines always included)")
     args = ap.parse_args(argv)
 
     cands = json.loads(Path(args.candidates).read_text()) if args.candidates else {}
@@ -152,8 +146,8 @@ def main(argv=None):
     if not args.no_baseline_entrants:
         entrants += [f"base:{n}" for n in BASELINES]
     if args.only:
-        keep = {s.strip() for s in args.only.split(",")}
-        entrants = [e for e in entrants if e.split(":", 1)[1] in keep]
+        keep = {f"cand:{s.strip()}" for s in args.only.split(",")}
+        entrants = [e for e in entrants if e.startswith("base:") or e in keep]
     meta = load_model(args.model).meta
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)

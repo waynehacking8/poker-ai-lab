@@ -101,11 +101,21 @@ def test_clone_match_is_deterministic():
     assert (a.hands, a.stacks) == (b.hands, b.stacks)
 
 
-def test_field_archetype_prefix_matches_weights():
-    w = load_model().meta["weights_rated"]
-    draws = [league_run.field_arch(p, w) for p in range(300)]
-    for k, wk in enumerate(w):
-        assert abs(draws.count(k) / 300 - wk) < 0.03
+def test_task_plan_pairs_and_head_to_head_direction():
+    from types import SimpleNamespace
+    meta = load_model().meta
+    args = SimpleNamespace(pairs=3, small_pairs=1, h2h_pairs=2)
+    externals = ["cand:old", "cand:new"]
+    tasks = list(league_run.make_tasks(["cand:new", "base:nit"], externals, meta, args))
+    new = [t for t in tasks if t["a"] == "cand:new"]
+    opps = {t["opp"] for t in new}
+    assert {f"arch:{k}" for k in range(meta["k"])} <= opps and "cand:old" in opps
+    assert "cand:new" not in opps  # never plays itself
+    per = {o: sum(1 for t in new if t["opp"] == o) for o in opps}
+    assert per["arch:0"] == 6 and per["cand:old"] == 4  # pairs * 2 seats
+    nit = [t for t in tasks if t["a"] == "base:nit"]
+    assert all(t["opp"] != "base:nit" and not t["opp"].startswith("cand:") for t in nit)
+    assert sum(1 for t in nit if t["opp"] == "arch:0") == 2
 
 
 def test_remote_candidate_plays_and_counts_errors(tmp_path):
@@ -148,11 +158,14 @@ def test_legal_matrix_shape():
     assert LEGAL.shape == (10, 5)
 
 
-def test_gate_requires_every_opponent_separately():
+def test_gate_needs_80_percent_over_400_matches():
     from league.report import gate
     meta = {"k": 1, "arch_names": ["A0"], "bots": []}
-    rows = ([{"opp": "base:nit", "a_win": 1.0}] * 50
-            + [{"opp": "arch:0", "a_win": 1.0}] * 30 + [{"opp": "arch:0", "a_win": 0.0}] * 20)
+    rows = ([{"opp": "base:nit", "a_win": 1.0}] * 400
+            + [{"opp": "base:lag", "a_win": 1.0}] * 100
+            + [{"opp": "arch:0", "a_win": 1.0}] * 240 + [{"opp": "arch:0", "a_win": 0.0}] * 160)
     g = gate(rows, meta)
-    assert g["baseline nit"][4] and g["baseline nit"][5]
-    assert not g["archetype A0"][4]  # 60% < 80%
+    assert g["baseline nit"][4]
+    assert not g["baseline lag"][4]  # perfect record but only 100 matches
+    assert not g["archetype A0"][4]  # 60% over 400
+    assert g["baseline nit"][1] > 0.99  # Wilson lower bound is reported alongside

@@ -188,23 +188,23 @@ Cells are real / clone; `*` marks a miss of the tolerance, `.` an unmeasurable c
 
 | statistic | Kimiko | Blueprint | SolvencyCheck | InfernalMonarch | AutodidactInnovations | WSmithSimLab | qwentom-leap | Fabulous | PoetAndCoder | MercuryRetrograde |
 |---|---|---|---|---|---|---|---|---|---|---|
-| btn_open | 0.09 / 0.11 | 0.60 / 0.58 | 0.03 / 0.14 * | . | 0.20 / 0.22 | . | 0.00 / 0.14 * | 0.71 / 0.74 | 0.28 / 0.23 | 0.06 / 0.15 * |
-| btn_limp | 0.91 / 0.89 | 0.31 / 0.26 | 0.38 / 0.46 | . | 0.80 / 0.71 * | . | 1.00 / 0.79 * | 0.00 / 0.01 | 0.70 / 0.69 | 0.94 / 0.77 * |
-| bb_fold_vs_open | 0.00 / 0.00 | 0.45 / 0.47 | 0.62 / 0.41 * | . | 0.67 / 0.44 * | . | 0.00 / 0.25 * | 0.00 / 0.27 * | 0.08 / 0.26 * | 0.00 / 0.26 * |
-| bb_3bet | 0.25 / 0.22 | 0.13 / 0.10 | 0.07 / 0.07 | . | 0.06 / 0.07 | . | 0.00 / 0.06 * | 0.29 / 0.18 | 0.38 / 0.08 * | 0.00 / 0.07 * |
-| btn_fold_vs_3bet | 0.00 / 0.03 | 0.31 / 0.65 * | . | . | 0.25 / 0.13 | . | . | 0.00 / 0.41 * | 0.00 / 0.09 * | . |
-| pf_allin_short | 0.00 / 0.01 | 0.09 / 0.04 | 0.00 / 0.02 | . | 0.00 / 0.03 | . | 0.00 / 0.02 | 1.00 / 0.12 * | 0.00 / 0.02 | 0.00 / 0.03 |
+| btn_open | 0.09 / 0.08 | 0.60 / 0.56 | 0.03 / 0.09 * | . | 0.20 / 0.23 | . | 0.00 / 0.09 * | 0.71 / 0.73 | 0.28 / 0.25 | 0.06 / 0.11 |
+| btn_limp | 0.91 / 0.92 | 0.31 / 0.31 | 0.38 / 0.38 | . | 0.80 / 0.73 * | . | 1.00 / 0.88 * | 0.00 / 0.01 | 0.70 / 0.71 | 0.94 / 0.84 * |
+| bb_fold_vs_open | 0.00 / 0.00 | 0.45 / 0.47 | 0.62 / 0.50 | . | 0.67 / 0.56 * | . | 0.00 / 0.18 * | 0.00 / 0.25 * | 0.08 / 0.18 | 0.00 / 0.20 * |
+| bb_3bet | 0.25 / 0.17 | 0.13 / 0.10 | 0.07 / 0.07 | . | 0.06 / 0.07 | . | 0.00 / 0.06 * | 0.29 / 0.16 | 0.38 / 0.09 * | 0.00 / 0.06 * |
+| btn_fold_vs_3bet | 0.00 / 0.04 | 0.31 / 0.69 * | . | . | 0.25 / 0.13 | . | . | 0.00 / 0.31 * | 0.00 / 0.05 | . |
+| pf_allin_short | 0.00 / 0.01 | 0.09 / 0.05 | 0.00 / 0.02 | . | 0.00 / 0.02 | . | 0.00 / 0.02 | 1.00 / 0.13 * | 0.00 / 0.01 | 0.00 / 0.02 |
 | pf_allin_deep | 0.00 / 0.00 | 0.01 / 0.01 | 0.01 / 0.00 | . | 0.00 / 0.00 | . | 0.00 / 0.00 | 0.00 / 0.01 | 0.00 / 0.00 | 0.00 / 0.00 |
-| flop_bet | 0.00 / 0.00 | 0.32 / 0.35 | 0.44 / 0.32 * | . | 0.18 / 0.26 * | . | 0.23 / 0.28 | 0.60 / 0.57 | 0.64 / 0.39 * | 0.31 / 0.28 |
-| turn_bet | 0.00 / 0.00 | 0.35 / 0.34 | 0.46 / 0.33 * | . | 0.23 / 0.30 | . | 0.17 / 0.30 * | 0.48 / 0.43 | 0.68 / 0.40 * | 0.43 / 0.31 * |
-| river_bet | 0.00 / 0.00 | 0.43 / 0.34 * | 0.51 / 0.34 * | . | 0.22 / 0.32 | . | 0.32 / 0.35 | 0.42 / 0.37 | 0.62 / 0.42 * | 0.46 / 0.34 * |
-| fold_to_bet | 0.00 / 0.03 | 0.43 / 0.50 * | 0.17 / 0.26 | . | 0.38 / 0.27 * | . | 0.10 / 0.24 * | 0.50 / 0.51 | 0.30 / 0.28 | 0.00 / 0.23 * |
-| post_agg | 0.00 / 0.04 | 0.64 / 0.73 * | 0.91 / 0.63 * | . | 0.49 / 0.63 * | . | 0.39 / 0.63 * | 0.95 / 0.83 * | 0.87 / 0.70 * | 0.90 / 0.61 * |
-| wtsd | 1.00 / 0.97 | 0.44 / 0.49 | 0.91 / 0.63 * | . | 0.36 / 0.66 * | . | 0.77 / 0.69 | 0.93 / 0.45 * | 0.79 / 0.61 * | 0.98 / 0.67 * |
-| fold_end | 0.00 / 0.02 | 0.41 / 0.39 | 0.49 / 0.38 * | . | 0.49 / 0.26 * | . | 0.10 / 0.21 * | 0.17 / 0.35 * | 0.14 / 0.23 * | 0.00 / 0.22 * |
-| open_size_bb | 2.50 / 2.50 | 2.29 / 2.25 | 2.20 / 2.26 | . | 4.00 / 3.97 | . | . | 2.60 / 2.60 | 2.95 / 2.93 | 2.00 / 2.71 * |
+| flop_bet | 0.00 / 0.00 | 0.32 / 0.31 | 0.44 / 0.36 | . | 0.18 / 0.24 | . | 0.23 / 0.26 | 0.60 / 0.55 | 0.64 / 0.46 * | 0.31 / 0.30 |
+| turn_bet | 0.00 / 0.00 | 0.35 / 0.33 | 0.46 / 0.35 * | . | 0.23 / 0.26 | . | 0.17 / 0.29 * | 0.48 / 0.42 | 0.68 / 0.48 * | 0.43 / 0.32 * |
+| river_bet | 0.00 / 0.00 | 0.43 / 0.37 | 0.51 / 0.36 * | . | 0.22 / 0.30 | . | 0.32 / 0.37 | 0.42 / 0.37 | 0.62 / 0.48 * | 0.46 / 0.34 * |
+| fold_to_bet | 0.00 / 0.03 | 0.43 / 0.49 | 0.17 / 0.25 | . | 0.38 / 0.30 * | . | 0.10 / 0.24 * | 0.50 / 0.50 | 0.30 / 0.29 | 0.00 / 0.20 * |
+| post_agg | 0.00 / 0.04 | 0.64 / 0.72 * | 0.91 / 0.66 * | . | 0.49 / 0.62 * | . | 0.39 / 0.60 * | 0.95 / 0.83 * | 0.87 / 0.74 * | 0.90 / 0.62 * |
+| wtsd | 1.00 / 0.97 | 0.44 / 0.49 | 0.91 / 0.61 * | . | 0.36 / 0.66 * | . | 0.77 / 0.67 | 0.93 / 0.47 * | 0.79 / 0.57 * | 0.98 / 0.68 * |
+| fold_end | 0.00 / 0.02 | 0.41 / 0.39 | 0.49 / 0.45 | . | 0.49 / 0.29 * | . | 0.10 / 0.19 * | 0.17 / 0.34 * | 0.14 / 0.20 | 0.00 / 0.18 * |
+| open_size_bb | 2.50 / 2.51 | 2.29 / 2.25 | 2.20 / 2.26 | . | 4.00 / 3.97 | . | . | 2.60 / 2.60 | 2.95 / 2.93 | 2.00 / 2.71 * |
 
-Within tolerance per bot: Kimiko 15/15, Blueprint 11/15, SolvencyCheck 6/14, InfernalMonarch 0/0, AutodidactInnovations 8/15, WSmithSimLab 0/0, qwentom-leap 5/13, Fabulous 9/15, PoetAndCoder 6/15, MercuryRetrograde 3/14
+Within tolerance per bot: Kimiko 15/15, Blueprint 13/15, SolvencyCheck 9/14, InfernalMonarch 0/0, AutodidactInnovations 9/15, WSmithSimLab 0/0, qwentom-leap 5/13, Fabulous 9/15, PoetAndCoder 9/15, MercuryRetrograde 4/14
 
 ## Censoring effect
 
@@ -219,14 +219,21 @@ Statistics within tolerance (of 15) per archetype with the EM de-censored fit: [
   with a rough draw bonus postflop) and the context is coarse (street, position, facing class, four
   stack bands). Board texture, blockers, bet history beyond the facing class and exact pot odds are
   invisible, so clones are blunter than the bots they imitate, especially in raised pots.
-* Cluster membership of low-data bots comes from shrunk statistics, so an archetype mixes bots with
-  different habits. The station archetype is the clearest case: the held-out real rate of folding
-  to a button open and to bets is far above what the two high-volume stations it was fitted on do.
-* The per-bot clones use only 150 to 1,400 hand-seats each, shrunk toward their archetype
-  (pseudo-count 12); frequencies that are exactly 0 or 1 for a real bot (never folds the big blind)
-  come out at 0.2 to 0.3. A lighter shrink (pseudo-count 3, `--k-bot 3`) raised the in-tolerance
-  counts of the weaker clones by two to three statistics in a spot check, so treat per-bot results
-  as a sensitivity check, not as a stand-in for that bot.
+* The station archetype is only two bots (Kimiko and DeepStack). Both never fold, in training and
+  in the held-out matches, and the clone matches that (fold to a button open 0.00 against 0.00, fold
+  to a bet 0.03 against 0.00). Its misses are the preflop mix: the two bots differ (Kimiko limps,
+  DeepStack raises about 64% of buttons), the clone averages them, and the held-out sample for that
+  split is only 219 button decisions. Two bots cannot support a split, so it stays one archetype.
+* The folding gap is in the mixed archetype, not the station: held-out real bots fold to a button
+  open 43% of the time against 32% for the clone, and end 32% of hands by folding against 26%. The
+  archetype mixes bots with different habits (cluster membership of low-data bots comes from shrunk
+  statistics), and the pooled table lands in between.
+* The per-bot clones use only 150 to 1,400 hand-seats each, shrunk toward their archetype with
+  pseudo-count 3 (`--k-bot`, default since the second refit; it was 12 before). Against pseudo-count
+  12 the in-tolerance counts moved Blueprint 11 to 13, SolvencyCheck 6 to 9, Autodidact 8 to 9,
+  PoetAndCoder 6 to 9, MercuryRetrograde 3 to 4 of about 15, others unchanged. Exact 0 or 1
+  frequencies of a real bot (never folds the big blind) still come out above 0 for the thinner
+  bots, so treat per-bot results as a sensitivity check, not as a stand-in for that bot.
 * Held-out sets are small (61 matches, 1,930 hands), so per-bot and rare-spot comparisons are noisy.
   The archetype count was chosen by silhouette on the training set, and the field weights come from
   how often each archetype appears among rated participants (a participant count, not hands).

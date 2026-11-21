@@ -79,10 +79,11 @@ def num(x, fmt="{:.1f}"):
 
 
 GATE = 0.80
+GATE_MIN_MATCHES = 400
 
 
 def gate(rows, meta):
-    """Per-opponent results against the 80% gate: {label: (rate, lo, hi, n, pass_point, pass_lb)}."""
+    """Per-opponent gate: {label: (rate, lo, hi, n, passed)}; pass = rate >= 80% over >= 400 matches."""
     out = {}
     labels = [(f"base:{n}", f"baseline {n}") for n in sorted({r["opp"][5:] for r in rows
                                                               if r["opp"].startswith("base:")})]
@@ -93,7 +94,7 @@ def gate(rows, meta):
         if not rs:
             continue
         rate, lo, hi, n = pooled(rs)
-        out[label] = (rate, lo, hi, n, rate >= GATE, lo >= GATE)
+        out[label] = (rate, lo, hi, n, rate >= GATE and n >= GATE_MIN_MATCHES)
     return out
 
 
@@ -145,33 +146,38 @@ def markdown(meta, board, matrix, names, title="League leaderboard"):
              "pairs; ties broken by mean hands per won match (fewer is better).  Win rate is "
              "percent of matches, a tied hand cap counts half.")
     L.append("")
-    L.append("| # | entrant | gate (point) | gate (lower bound) | field win % [95% CI] | hands/win "
+    L.append("| # | entrant | gate | field win % [95% CI] | hands/win "
              "| bot-clone win % [95% CI] | baseline win % [95% CI] | field matches "
              "| decide ms mean/max | errors |")
-    L.append("|---|---|---|---|---|---|---|---|---|---|---|")
+    L.append("|---|---|---|---|---|---|---|---|---|---|")
     for i, b in enumerate(board, 1):
         bc = ci(b["botclone"][:3]) if b["botclone"] else "-"
         bs = ci(b["baseline"][:3]) if b["baseline"] else "-"
         g = b["gate"]
-        npt, nlb = sum(v[4] for v in g.values()), sum(v[5] for v in g.values())
-        gp = ("PASS " if npt == len(g) else "FAIL ") + f"{npt}/{len(g)}"
-        gl = ("PASS " if nlb == len(g) else "FAIL ") + f"{nlb}/{len(g)}"
-        L.append(f"| {i} | {b['entrant']} | {gp} | {gl} | {ci(b['field'])} | "
+        npt = sum(v[4] for v in g.values())
+        if any(v[3] < GATE_MIN_MATCHES for v in g.values()):
+            gp = f"n/a (under {GATE_MIN_MATCHES} matches) {npt}/{len(g)}"
+        else:
+            gp = ("PASS " if npt == len(g) else "FAIL ") + f"{npt}/{len(g)}"
+        L.append(f"| {i} | {b['entrant']} | {gp} | {ci(b['field'])} | "
                  f"{num(b['hands_per_win'])} | "
                  f"{bc} | {bs} | {b['field_matches']} | "
                  f"{num(b['ms_mean'])}/{b['ms_max']:.0f} | {b['errors']} |")
-    L += ["", f"## Gate: at least {100 * GATE:.0f}% of matches against each opponent separately", "",
-          "An entrant passes only if its win rate is at least 80% against every baseline, every "
-          "archetype clone and every per-bot clone on its own; the field-weighted average does not "
-          "count. The point estimate is the plain match win rate; the lower bound is the 95% Wilson "
-          "lower bound over matches. An entrant never plays itself.", ""]
+    L += ["", f"## Gate: at least {100 * GATE:.0f}% over at least {GATE_MIN_MATCHES} matches, per opponent",
+          "",
+          "An entrant passes an opponent when its win rate against that opponent alone is at least "
+          f"{100 * GATE:.0f}% over at least {GATE_MIN_MATCHES} matches ({GATE_MIN_MATCHES // 2} "
+          "duplicate pairs); it passes the gate only if it passes every baseline, every archetype "
+          "clone and every per-bot clone. The 95% Wilson lower bound over matches is shown next "
+          "to the point estimate. Baseline entrants play fewer matches, so their rows read n/a. "
+          "An entrant never plays itself.", ""]
     for b in board:
         L += [f"### {b['entrant']}", "",
-              "| opponent | win % | 95% lower bound | matches | pass (point) | pass (lower bound) |",
-              "|---|---|---|---|---|---|"]
-        for label, (rate, lo, hi, n, pp, pl) in b["gate"].items():
-            L.append(f"| {label} | {pct(rate)} | {pct(lo)} | {n} | "
-                     f"{'PASS' if pp else 'FAIL'} | {'PASS' if pl else 'FAIL'} |")
+              "| opponent | win % | 95% lower bound | matches | result |",
+              "|---|---|---|---|---|"]
+        for label, (rate, lo, hi, n, ok) in b["gate"].items():
+            res = "PASS" if ok else ("n/a" if n < GATE_MIN_MATCHES else "FAIL")
+            L.append(f"| {label} | {pct(rate)} | {pct(lo)} | {n} | {res} |")
         L.append("")
     L += ["## Field population", "",
           "Archetype shares (rated participants): " + ", ".join(

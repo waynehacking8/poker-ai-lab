@@ -81,14 +81,21 @@ WEAKNESSES = """## Weaknesses of the clones
   with a rough draw bonus postflop) and the context is coarse (street, position, facing class, four
   stack bands). Board texture, blockers, bet history beyond the facing class and exact pot odds are
   invisible, so clones are blunter than the bots they imitate, especially in raised pots.
-* Cluster membership of low-data bots comes from shrunk statistics, so an archetype mixes bots with
-  different habits. The station archetype is the clearest case: the held-out real rate of folding
-  to a button open and to bets is far above what the two high-volume stations it was fitted on do.
-* The per-bot clones use only 150 to 1,400 hand-seats each, shrunk toward their archetype
-  (pseudo-count 12); frequencies that are exactly 0 or 1 for a real bot (never folds the big blind)
-  come out at 0.2 to 0.3. A lighter shrink (pseudo-count 3, `--k-bot 3`) raised the in-tolerance
-  counts of the weaker clones by two to three statistics in a spot check, so treat per-bot results
-  as a sensitivity check, not as a stand-in for that bot.
+* The station archetype is only two bots (Kimiko and DeepStack). Both never fold, in training and
+  in the held-out matches, and the clone matches that (fold to a button open 0.00 against 0.00, fold
+  to a bet 0.03 against 0.00). Its misses are the preflop mix: the two bots differ (Kimiko limps,
+  DeepStack raises about 64% of buttons), the clone averages them, and the held-out sample for that
+  split is only 219 button decisions. Two bots cannot support a split, so it stays one archetype.
+* The folding gap is in the mixed archetype, not the station: held-out real bots fold to a button
+  open 43% of the time against 32% for the clone, and end 32% of hands by folding against 26%. The
+  archetype mixes bots with different habits (cluster membership of low-data bots comes from shrunk
+  statistics), and the pooled table lands in between.
+* The per-bot clones use only 150 to 1,400 hand-seats each, shrunk toward their archetype with
+  pseudo-count 3 (`--k-bot`, default since the second refit; it was 12 before). Against pseudo-count
+  12 the in-tolerance counts moved Blueprint 11 to 13, SolvencyCheck 6 to 9, Autodidact 8 to 9,
+  PoetAndCoder 6 to 9, MercuryRetrograde 3 to 4 of about 15, others unchanged. Exact 0 or 1
+  frequencies of a real bot (never folds the big blind) still come out above 0 for the thinner
+  bots, so treat per-bot results as a sensitivity check, not as a stand-in for that bot.
 * Held-out sets are small (61 matches, 1,930 hands), so per-bot and rare-spot comparisons are noisy.
   The archetype count was chosen by silhouette on the training set, and the field weights come from
   how often each archetype appears among rated participants (a participant count, not hands).

@@ -27,7 +27,7 @@ from .stats import CLUSTER_STATS, add_hand, new_counter
 from .strength import NB, NCOMBO, PRE_BUCKETS, board_buckets, combo_index
 
 TABLE_SHAPE = (NSTREET, NPOS, NFCL, NSTK, NB, NA)
-K_G, K_P, K_F, K_BOT = 2.0, 8.0, 6.0, 12.0
+K_G, K_P, K_F, K_BOT = 2.0, 8.0, 6.0, 3.0
 FACING = (F_OPEN, F_VS_OPEN, F_VS_3BET, F_BET_S, F_BET_M, F_BET_L, F_BET_XL, F_RAISED)
 SIZE_CAP = 300
 
