@@ -214,3 +214,20 @@ clones and past snapshots. The 10 per-bot clones were never trained on.
 
 Next: retrain on archetype clones refit without the ten held-out bots, and
 distill the confirmed maniac best response (section 7) into the policy.
+
+## 11. Fresh-seed confirmation and the head-to-head gap
+
+An independent check replayed the distilled RL policy (section 10 plus
+distillation toward the maniac best response) against all 23 opponents on
+deal seeds the league never used, 400 matches per opponent. It won 92.1%
+overall, and every opponent's Wilson 95% lower bound was above 80%. The
+weakest were the qwentom-leap clone (84.8%), maniac (85.8%) and random
+(86.0%). It made 738,356 decisions with no errors and no illegal actions.
+Peak memory was 47 MB, and the slowest decision on one core was 3.2 ms.
+
+The same policy loses head to head to my earlier heuristic bot: 43.0% over
+200 matches. The adaptive decision model does worse there (29.5%). Both were
+trained or tuned against weak bots and replay clones of weak bots, and
+neither had met a competent equity-based player. Beating that bot head to
+head is now part of the ship gate, so the next RL round adds it to the
+training pool.
