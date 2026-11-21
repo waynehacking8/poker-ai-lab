@@ -227,3 +227,28 @@ python -m rl.eval_fast --model ckpt/ablA/latest.npz --matches 400 --clones data/
 python -m rl.export ckpt/ablA/latest.npz rl/models/best.npz
 python -m rl.eval_arena --model rl/models/best.npz --matches 400 --opp all --workers 6
 ```
+
+## Round 2: distillation toward the exact maniac best response
+
+Teacher: ManiacBR (`rl/teacher_br/`, vendored from `holdem-br`, exact best response to the maniac, 87.55 percent over 2000
+arena matches). `rl/teacher.py` plays 500 matches against the maniac in the SDK engine, where the teacher acts with
+probability 0.5 and the student otherwise (DAgger style), labels every visited state with the teacher's action (mapped to
+the nearest legal discrete action) and writes `data/maniac_labels.npz` (18,365 states). `rl.train --distill ... --distill-w W`
+adds W times a masked cross entropy toward those labels on a 1024 state minibatch every PPO minibatch.
+
+One 7.5 minute chunk from the `ablA` checkpoint (6 workers, distill weight 0.5, label accuracy 0.98 by the end),
+fast engine, 400 seat swapped matches, seed 21 (`reports/rl/data/eval_distill1.jsonl`, weights `rl/models/distill1.npz`):
+
+| model | temperature | maniac | random |
+|---|---|---|---|
+| ablA | 1.0 | 0.812 | 0.863 |
+| distill1 | 1.0 | 0.887 | 0.873 |
+| ablA | 0.5 | 0.792 | 0.848 |
+| distill1 | 0.5 | 0.873 | 0.860 |
+| ablA | 0 (argmax) | 0.833 | 0.845 |
+| distill1 | 0 (argmax) | 0.860 | 0.860 |
+
+Distillation lifts the maniac by 7.5 points without hurting random. Temperature 1.0 is at least as good as argmax for
+distill1 on both, so sampling at 1.0 stays the default. All 23 opponents for distill1 (temperature 1.0): minimum point
+estimate 0.828 (qwentom-leap), minimum Wilson lower bound 0.787; maniac 0.887, PoetAndCoder 0.887. Real-arena numbers for
+this checkpoint are not measured yet.

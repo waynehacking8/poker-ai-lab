@@ -268,6 +268,9 @@ def main():
     ap.add_argument("--snap-w", type=float, default=0.3, help="base weight of each past snapshot / pool entry")
     ap.add_argument("--no-hist", action="store_true", help="hide the in-match opponent statistics")
     ap.add_argument("--only", default=None, help="train against these opponent keys only (comma separated)")
+    ap.add_argument("--skip", default=None, help="drop these opponent keys from the PFSP pool (comma separated, e.g. arch:1)")
+    ap.add_argument("--distill", default=None, help="teacher labels npz from rl.teacher (obs, mask, label)")
+    ap.add_argument("--distill-w", type=float, default=0.0, help="weight of the cross entropy toward the teacher action")
     ap.add_argument("--bot-clones", action="store_true", help="also train on the per-bot clones (default: held out)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
@@ -316,6 +319,8 @@ def main():
     base_w = dict(BASE_W)
     for spec in CLONE_IDS:
         base_w[spec] = 1.5 if spec.startswith("arch") else 0.5
+    if args.skip:
+        base_w = {k: v for k, v in base_w.items() if k not in args.skip.split(",")}
     if args.only:
         keep_keys = args.only.split(",")
         base_w = {k: v for k, v in base_w.items() if k in keep_keys}
@@ -325,6 +330,11 @@ def main():
         wr = {}
     for k in list(BASE_W) + list(CLONE_IDS):
         wr.setdefault(k, 0.5)
+    dist = None
+    if args.distill and args.distill_w > 0:
+        z = np.load(args.distill)
+        dist = [torch.from_numpy(z[k]).to(dev) for k in ("obs", "mask", "label")]
+    dstat = [0.0, 0.0]
     t0 = time.time()
     log = open(os.path.join(args.out, "train.jsonl"), "a")
     from collections import defaultdict
@@ -377,6 +387,12 @@ def main():
                 ent = -(lsm.exp() * lsm.masked_fill(~mask[ix], 0)).sum(1).mean()
                 vl = ((vnet(obs[ix])[:, 0] - ret[ix]) ** 2).mean()
                 loss = pl + 0.5 * vl - args.ent * ent
+                if dist is not None:
+                    di = torch.randint(0, len(dist[0]), (1024,), device=dev)
+                    dl = pnet(dist[0][di]).masked_fill(~dist[1][di], -1e9)
+                    dce = nn.functional.cross_entropy(dl, dist[2][di])
+                    loss = loss + args.distill_w * dce
+                    dstat = [dce.item(), (dl.argmax(1) == dist[2][di]).float().mean().item()]
                 opt.zero_grad()
                 loss.backward()
                 nn.utils.clip_grad_norm_(list(pnet.parameters()) + list(vnet.parameters()), 0.5)
@@ -390,6 +406,8 @@ def main():
         if it % 5 == 0 or it == 1:
             row = {"it": it, "steps": total_steps, "min": round((time.time() - t0) / 60, 1),
                    "pl": round(stats[0], 4), "vl": round(stats[1], 4), "ent": round(stats[2], 3), "wr": {}}
+            if dist is not None:
+                row["distill_ce"], row["distill_acc"] = round(dstat[0], 3), round(dstat[1], 3)
             for k, (m, wn, h) in window.items():
                 if m:
                     row["wr"][k] = [m, round(wn / m, 3)]
