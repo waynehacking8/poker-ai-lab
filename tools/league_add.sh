@@ -22,7 +22,14 @@ tools/league_sync.sh
 tools/league_export.sh "$repo" "$ref" "$name"
 ssh gb10-d "$BOX && .venv/bin/python tools/league_register.py '$name' '$module' '$cls'"
 
-if ssh gb10-d "pgrep -f 'league.run.*--only $name' > /dev/null"; then
+# The [l] keeps pgrep from matching its own command line (and the ssh shell running it).
+# One league.run at a time: runs append to the same out/league results file.
+while ssh gb10-d "pgrep -f '[l]eague[.]run --candidates' > /dev/null" \
+    && ! ssh gb10-d "pgrep -f '[l]eague[.]run.*--only $name ' > /dev/null"; do
+  echo "another league.run is active on gb10-d; waiting"
+  sleep 60
+done
+if ssh gb10-d "pgrep -f '[l]eague[.]run.*--only $name ' > /dev/null"; then
   echo "league.run for $name is already running on gb10-d; waiting for it"
 else
   ssh -n gb10-d "$BOX && mkdir -p logs out/league && rm -f logs/add-$name.done && \
