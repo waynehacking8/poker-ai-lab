@@ -143,3 +143,26 @@ equity precision is not the limit. Remaining chip leaks by bucket: against lag a
 station_raiser the bot is stacked off at 25 to 50 BB in medium-strength pots and folds to
 re-raises after investing; against maniac and random the deficit is match variance, not
 chips. Next candidates are listed in HANDOFF.md.
+
+## Probe: does knowing the opponent's frequencies from hand 1 close the gap? (2026-11-21)
+
+`scripts/adapt_probe.py --opp lag,station_raiser,maniac --measure 200 --matches 400` on
+gb10-d. Phase 1 sums the raw counts the bot's opponent model collects over 200 matches;
+phase 2 replays the arena (seed 1) with every stat pinned to those true rates from hand 1.
+Raw output: `results/holdem/adapt_probe_seed1.jsonl`.
+
+| opponent | normal | oracle prior |
+|---|---|---|
+| station_raiser | 69.8% [65.1, 74.0] | 85.3% [81.4, 88.4] |
+| maniac | 71.8% [67.1, 75.9] | 75.3% [70.8, 79.2] |
+| lag | 71.5% [66.9, 75.7] | 62.8% [57.9, 67.3] |
+
+Reading: against station_raiser the limit is learning speed (a prior of 16 pseudo
+observations against a 30 to 44 hand match); exact knowledge clears the bar. Against the
+maniac knowledge helps a little and is not enough. Against lag exact frequencies make the
+bot worse: lag folds to bets over three quarters of the pot and calls smaller ones, while
+the model holds one fold rate for every size, so the decision rule bluffs at the wrong sizes
+once the measured 80% fold-to-bet is trusted. The rates are also conditional on the normal
+bot's own play, which shifts once the bot changes. Conclusion: a single strategy fed better
+statistics is not the fix; the bot needs per-opponent strategies and fast identification of
+which one applies, which is what branch `holdem-adapt` builds.
