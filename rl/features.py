@@ -118,6 +118,29 @@ class Tracker:
 
     def __init__(self):
         self.st = [0.0] * NST
+        self.dealer = None
+
+    def round_start(self, message):
+        """Remember the dealer seat the server announced for the hand now starting."""
+        d = (message.get("state", {}) or {}).get("dealer_seat")
+        self.dealer = int(d) if d is not None else None
+
+    def round_result(self, result):
+        """Update from a finished hand. Dealer: round_start announcement, else the small blind poster
+        in the history (the dealer posts the small blind heads up), else the engine's parity rule."""
+        hist = result.get("action_history")
+        if not hist:
+            return
+        d = self.dealer
+        if d is None:
+            for ev in hist:
+                if ev.get("action") == "post_small_blind" and ev.get("seat") is not None:
+                    d = int(ev["seat"])
+                    break
+        if d is None:
+            d = (int(result.get("hand_number", 1)) - 1) % 2
+        self.dealer = None
+        self.update(hist, d)
 
     def update(self, history, dealer):
         """history: engine action_history of the finished hand (blinds included)."""

@@ -268,6 +268,8 @@ def main():
     ap.add_argument("--snap-w", type=float, default=0.3, help="base weight of each past snapshot / pool entry")
     ap.add_argument("--no-hist", action="store_true", help="hide the in-match opponent statistics")
     ap.add_argument("--only", default=None, help="train against these opponent keys only (comma separated)")
+    ap.add_argument("--sdk-workers", type=int, default=0, help="extra busy processes playing the heuristic HoldemBot in the SDK engine")
+    ap.add_argument("--heur-batch", type=int, default=3000, help="heuristic samples to wait for before each PPO update")
     ap.add_argument("--skip", default=None, help="drop these opponent keys from the PFSP pool (comma separated, e.g. arch:1)")
     ap.add_argument("--distill", default=None, help="teacher labels npz from rl.teacher (obs, mask, label)")
     ap.add_argument("--distill-w", type=float, default=0.0, help="weight of the cross entropy toward the teacher action")
@@ -313,6 +315,15 @@ def main():
         pr = ctx.Process(target=worker_main, args=(b, args.envs, args.seed * 100 + w + 1, args.clones, args.bot_clones), daemon=True)
         pr.start()
         conns.append(a); procs.append(pr)
+    sdk = []
+    if args.sdk_workers:
+        from rl.sdk_rollout import sdk_worker_main
+        for w in range(args.sdk_workers):
+            a, b = ctx.Pipe()
+            pr = ctx.Process(target=sdk_worker_main, args=(b, args.seed * 100 + 50 + w), daemon=True)
+            pr.start()
+            sdk.append(a)
+            procs.append(pr)
     if args.clones:
         install_clones(args.clones, args.bot_clones)
     local = Collector(args.envs, args.seed * 100)
@@ -339,6 +350,7 @@ def main():
     log = open(os.path.join(args.out, "train.jsonl"), "a")
     from collections import defaultdict
     window = defaultdict(lambda: [0, 0, 0])
+    sdk_buf = []
     ext = []
     for it in range(it0 + 1, it0 + args.iters + 1):
         if args.pool_dir and (it == it0 + 1 or it % 10 == 0):
@@ -356,8 +368,24 @@ def main():
                 weights[f"snap:{j}"] = pf(f"snap:{j}", args.snap_w) * 4
         for c in conns:
             c.send((params, opp_models, weights, args.steps))
+        for c in sdk:
+            c.send(params)
         batches = [local.collect(params, opp_models, weights, args.steps)]
         batches += [c.recv() for c in conns]
+        if sdk:
+            nh = 0
+            while True:
+                for c in sdk:
+                    while c.poll():
+                        b, won, hands = c.recv()
+                        if b is not None:
+                            sdk_buf.append((b, [("heuristic", 1 if won else 0, int(hands))]))
+                            nh += len(b["obs"])
+                if nh >= args.heur_batch:
+                    break
+                time.sleep(0.2)
+            batches += sdk_buf
+            sdk_buf = []
         results = []
         data = []
         for bt, rs in batches:
@@ -427,7 +455,7 @@ def main():
     np.savez(os.path.join(args.out, "latest.npz"), **params)
     torch.save({"params": params, "snaps": snaps, "wr": wr, "steps": total_steps, "it": it,
                 "opt": opt.state_dict()}, state_path)
-    for c in conns:
+    for c in conns + sdk:
         c.send(None)
 
 

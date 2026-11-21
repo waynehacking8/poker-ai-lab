@@ -252,3 +252,20 @@ Distillation lifts the maniac by 7.5 points without hurting random. Temperature 
 distill1 on both, so sampling at 1.0 stays the default. All 23 opponents for distill1 (temperature 1.0): minimum point
 estimate 0.828 (qwentom-leap), minimum Wilson lower bound 0.787; maniac 0.887, PoetAndCoder 0.887. Real-arena numbers for
 this checkpoint are not measured yet.
+
+## Round 3: training against the heuristic HoldemBot (SDK engine workers)
+
+The heuristic bot (`chipzen_bot/bot.py`, 102b05e) costs about 8 ms per decision and has a 620 line strategy with a
+Monte Carlo equity step, so it was not ported to C. `rl/sdk_rollout.py` runs dedicated SDK engine workers that play the
+real bot with the newest policy parameters and stream finished matches (obs, mask, act, logp, GAE advantage, return,
+same potential shaped reward) to the learner (`rl.train --sdk-workers N --heur-batch K`); each PPO update waits for K
+heuristic samples and mixes them with the C env batch (23 opponents, past main agents `ablA` and `distill1` as fixed
+pool members via `--pool-dir`, ManiacBR distillation kept). Throughput: one SDK worker plays about 1.5 matches per
+second (about 130 decisions per second); 3 workers plus the C learner gave about 4.9 s per PPO iteration.
+Also: `Tracker` now takes the dealer from the `round_start` message (`state.dealer_seat`), falling back to the small
+blind poster in the action history, then to the parity rule (`tests/test_rl_runtime.py::test_tracker_dealer_follows_the_server`).
+
+Proving chunk (7.5 minutes, 4 processes, from distill1, `rl/models/heur1.npz`, about 1,900 heuristic matches):
+SDK arena vs the heuristic, 400 matches, seed 11: heur1 0.5175 (CI 0.469 to 0.566), distill1 0.4675 (0.419 to 0.516).
+The difference is inside the noise of one 400 match run; the long run is what has to move it. Launch script:
+`tools/rl_heur_long.sh`.

@@ -28,10 +28,10 @@ class RLBot(Bot):
         self.tracker.me = int(me or 0)
 
     def on_round_result(self, message):
-        r = message.get("result", {}) or {}
-        hist = r.get("action_history")
-        if hist:
-            self.tracker.update(hist, (int(r.get("hand_number", 1)) - 1) % 2)
+        self.tracker.round_result(message.get("result", {}) or {})
+
+    def on_round_start(self, message):
+        self.tracker.round_start(message)
 
     def decide(self, state):
         try:

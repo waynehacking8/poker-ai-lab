@@ -33,3 +33,52 @@ def test_specialists_are_legal(name):
     for seed in (1, 2):
         bots = [specialists.make(name, seed), make_baseline("lag", seed)]
         play_match(bots, seed, MatchConfig(), strict=True)
+
+
+def _record_hands(n_matches=3):
+    """Real engine hands as (round_start message, result) pairs, seen by seat 0."""
+    from chipzen import Action, Bot
+
+    class Rec(Bot):
+        def __init__(self):
+            super().__init__()
+            self.starts, self.results = [], []
+
+        def on_round_start(self, message):
+            self.starts.append(message)
+
+        def on_round_result(self, message):
+            self.results.append(message["result"])
+
+        def decide(self, state):
+            valid = state.valid_actions
+            return Action.check() if "check" in valid else Action.call()
+
+    out = []
+    for seed in range(1, n_matches + 1):
+        rec = Rec()
+        play_match([rec, make_baseline("lag", seed)], seed, MatchConfig())
+        out += list(zip(rec.starts, rec.results))
+    return out
+
+
+def test_tracker_dealer_follows_the_server():
+    from rl.features import Tracker
+
+    hands = _record_hands()
+    assert len(hands) > 20
+    for flip in (0, 1):
+        by_msg, by_hist, by_parity, forced = Tracker(), Tracker(), Tracker(), Tracker()
+        for t in (by_msg, by_hist, by_parity, forced):
+            t.me = 0
+        for start, res in hands:
+            true_d = start["state"]["dealer_seat"]
+            d = true_d ^ flip  # flip=1 simulates a server whose first dealer differs from ours
+            msg = {"state": {**start["state"], "dealer_seat": d}}
+            by_msg.round_start(msg)
+            by_msg.round_result(res)
+            by_hist.round_result(res)      # no round_start: dealer from the small blind poster
+            by_parity.update(res["action_history"], (res["hand_number"] - 1) % 2)
+            forced.update(res["action_history"], d)
+        assert by_msg.st == forced.st                    # the announced dealer is used
+        assert by_hist.st == by_parity.st                # fallback agrees with the engine's own parity
