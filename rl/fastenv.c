@@ -10,10 +10,10 @@
 #include <string.h>
 #include <math.h>
 
-#define D_OBS 54
+#define D_OBS 56
 #define NACT 6
 #define MAXH 48
-#define NST 11
+#define NST 15
 
 typedef struct { signed char seat, kind, phase; int amt; } Ev;
 /* kinds: 0 post_sb 1 post_bb 2 fold 3 check 4 call 5 raise */
@@ -161,15 +161,17 @@ static int nboard_for(int phase) { return phase == 0 ? 0 : phase + 2; }
 
 /* ---- stats from a finished hand (mirrors rl/features.py:update_stats) ---- */
 static void update_stats(Env *e) {
-    int bet[2] = {0, 0}, level = 0, cur = 0, vol = 0, raised_pre = 0;
+    int bet[2] = {0, 0}, level = 0, cur = 0, vol = 0, raised_pre = 0, seen_pre[2] = {0, 0}, folded_hand = 0;
     for (int i = 0; i < e->nh; i++) {
         Ev *v = &e->hist[i];
+        if (v->kind == 2) folded_hand = 1;
         if (v->phase != cur) { cur = v->phase; bet[0] = bet[1] = 0; level = 0; }
         if (v->kind <= 1) { bet[(int)v->seat] += v->amt; if (bet[(int)v->seat] > level) level = bet[(int)v->seat]; continue; }
         int s = v->seat, o = 1 - s;
         double *st = e->stats[o];
         int facing = level > bet[s];
         if (cur == 0) {
+            if (!seen_pre[s]) { seen_pre[s] = 1; st[11] += 1; if (v->kind >= 4) st[12] += 1; }
             if (!vol && s == e->dealer) { st[0] += 1; if (v->kind == 5) st[1] += 1; }
             vol = 1;
             if (raised_pre && facing) {
@@ -189,6 +191,7 @@ static void update_stats(Env *e) {
         if (v->kind == 5) { bet[s] = v->amt; level = v->amt; if (cur == 0) raised_pre = 1; }
     }
     e->stats[0][10] += 1; e->stats[1][10] += 1;
+    if (!folded_hand) { e->stats[0][13] += 1; e->stats[1][13] += 1; }
 }
 
 /* ---- hand lifecycle ---- */
@@ -754,6 +757,8 @@ static void features(Env *e, int seat, float *f) {
     f[51] = (float)((st[9] + 1) / (st[8] + 2));
     f[52] = (float)(fmin(st[10], 40.0) / 40.0);
     f[53] = e->can_rs;
+    f[54] = (float)((st[12] + 1) / (st[11] + 2));
+    f[55] = (float)((st[13] + 1) / (st[10] + 2));
 }
 
 /* ---- public API ---- */
@@ -780,7 +785,7 @@ void env_reset_stacks(Pool *p, int i, uint64_t seed, int ctrl0, int ctrl1, int h
     int *inj = e->inj, inj_n = e->inj_n; double *ur = e->urand; int urn = e->urand_n;
     memset(e, 0, sizeof(Env));
     e->inj = inj; e->inj_n = inj_n; e->urand = ur; e->urand_n = urn;
-    e->rs = seed * 0x9E3779B97F4A7C15ULL + 12345;
+    { uint64_t m = seed + 0x1234567ULL; e->rs = splitmix(&m); e->rs = splitmix(&e->rs) ^ seed; }  /* hashed: neighbouring seeds must not give shifted streams */
     e->ctrl[0] = ctrl0; e->ctrl[1] = ctrl1; e->hero = hero;
     e->start_stack = start_stack; e->max_hands = max_hands;
     e->stacks[0] = s0; e->stacks[1] = s1; e->phi = 0.5;

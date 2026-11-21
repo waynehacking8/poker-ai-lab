@@ -16,9 +16,9 @@ from nlhe import preflop as pf
 from nlhe.cards import cards_from, hand_class
 from nlhe.evaluator import category, evaluate
 
-D_OBS = 54
+D_OBS = 56
 NACT = 6
-NST = 11
+NST = 15
 FRACS = (0.5, 1.0, 2.0)
 PHASES = ("preflop", "flop", "turn", "river")
 _SCHED = ((20, 100), (40, 150), (60, 200), (80, 300), (100, 400))
@@ -128,6 +128,9 @@ class Tracker:
         cur = "preflop"
         vol = False
         raised_pre = False
+        seen_pre = False
+        if not any(ev["action"] == "fold" for ev in history):
+            st[13] += 1
         for ev in history:
             if ev["phase"] != cur:
                 cur = ev["phase"]
@@ -154,6 +157,11 @@ class Tracker:
             facing = level > bet[s]
             is_raise = k in ("raise", "all_in")
             if cur == "preflop":
+                if not seen_pre:
+                    seen_pre = True
+                    st[11] += 1
+                    if k in ("call", "raise", "all_in"):
+                        st[12] += 1
                 if not vol and s == dealer:
                     st[0] += 1
                     if is_raise:
@@ -315,5 +323,7 @@ def build(state, tracker):
     f[51] = (st[9] + 1) / (st[8] + 2)
     f[52] = min(st[10], 40.0) / 40.0
     f[53] = 1.0 if "raise" in state.valid_actions else 0.0
+    f[54] = (st[12] + 1) / (st[11] + 2)
+    f[55] = (st[13] + 1) / (st[10] + 2)
     mask, amt = action_table(state, bet[me])
     return f, mask, amt

@@ -28,14 +28,14 @@ SNAP_W = 3.0
 CLONE_IDS = {}   # spec -> controller id (200 + k), filled when --clones is given
 
 
-def install_clones(path):
+def install_clones(path, bots=False):
     from rl import clones
     CLONE_IDS.clear()
-    for k, spec in enumerate(clones.load(path)):
+    for k, spec in enumerate(clones.load(path, bots=None if bots else [])):
         CLONE_IDS[spec] = 200 + k
 
 
-def init_params(seed=0, hid=HID):
+def init_params(seed=0, hid=HID, no_hist=False):
     rng = np.random.default_rng(seed)
 
     def lin(i, o, gain):
@@ -47,10 +47,19 @@ def init_params(seed=0, hid=HID):
         p[pre + "w0"], p[pre + "b0"] = lin(D_OBS, hid, np.sqrt(2))
         p[pre + "w1"], p[pre + "b1"] = lin(hid, hid, np.sqrt(2))
         p[pre + "w2"], p[pre + "b2"] = lin(hid, out, g)
+    if no_hist:
+        keep = np.ones(D_OBS, np.float32)
+        keep[STAT_COLS] = 0
+        p["keep"] = keep
     return p
 
 
+STAT_COLS = list(range(46, 53)) + [54, 55]
+
+
 def np_forward(p, obs, value=True):
+    if "keep" in p:
+        obs = obs * p["keep"]
     h = np.maximum(obs @ p["pw0"] + p["pb0"], 0)
     h = np.maximum(h @ p["pw1"] + p["pb1"], 0)
     logits = h @ p["pw2"] + p["pb2"]
@@ -93,9 +102,8 @@ class Collector:
         w = np.array([weights[k] for k in keys], dtype=np.float64)
         k = keys[self.rng.choice(len(keys), p=w / w.sum())]
         hero = int(self.rng.integers(2))
-        if k == "snap":
-            slot = int(self.rng.integers(1, n_snaps + 1))
-            oc = EXT + slot
+        if k.startswith("snap:"):
+            oc = EXT + int(k[5:])
         elif k in CLONE_IDS:
             oc = CLONE_IDS[k]
         else:
@@ -108,6 +116,12 @@ class Collector:
         self.opp[i] = k
         self.has_prev[i] = False
         self.phi_prev[i] = 0.5
+
+    def _obs(self, idx, pol):
+        obs, mask, meta, amts = self.pool.obs(idx)
+        if "keep" in pol:
+            obs = obs * pol["keep"]
+        return obs, mask, meta, amts
 
     def collect(self, params, snaps, weights, T, greedy=False):
         pol = params
@@ -162,7 +176,7 @@ class Collector:
             return acts
 
         while collected < T:
-            obs, mask, meta, _ = self.pool.obs(allidx)
+            obs, mask, meta, _ = self._obs(allidx, pol)
             acts = act_all(obs, mask, meta, True)
             self.pool.step(allidx, acts)
             finish_done(self.pool.info(allidx))
@@ -170,7 +184,7 @@ class Collector:
         # bring every env to a hero decision so each open step gets reward + bootstrap
         boot = {}
         for _ in range(200):
-            obs, mask, meta, _ = self.pool.obs(allidx)
+            obs, mask, meta, _ = self._obs(allidx, pol)
             non_hero = np.nonzero(meta[:, 1] != EXT)[0]
             if len(non_hero) == 0:
                 break
@@ -183,7 +197,7 @@ class Collector:
                 acts[rows] = a
             self.pool.step(non_hero.astype(np.int32), acts[non_hero])
             finish_done(self.pool.info(allidx))
-        obs, mask, meta, _ = self.pool.obs(allidx)
+        obs, mask, meta, _ = self._obs(allidx, pol)
         info = self.pool.info(allidx)
         hero_rows = np.nonzero(meta[:, 1] == EXT)[0]
         if len(hero_rows):
@@ -219,9 +233,9 @@ class Collector:
         return dict(obs=cat(O), mask=cat(M), act=cat(A), lp=cat(LP), adv=cat(ADV), ret=cat(RET)), results
 
 
-def worker_main(conn, n_envs, seed, clones_path=None):
+def worker_main(conn, n_envs, seed, clones_path=None, bots=False):
     if clones_path:
-        install_clones(clones_path)
+        install_clones(clones_path, bots)
     col = Collector(n_envs, seed)
     while True:
         msg = conn.recv()
@@ -247,15 +261,20 @@ def main():
     ap.add_argument("--max-minutes", type=float, default=1e9)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--clones", default=None)
+    ap.add_argument("--pool-dir", default=None, help="extra opponents (exploiter checkpoints, *.npz)")
+    ap.add_argument("--fixed-opp", default=None, help="exploiter mode: train only against this model (re-read every 20 its)")
+    ap.add_argument("--no-hist", action="store_true", help="hide the in-match opponent statistics")
+    ap.add_argument("--only", default=None, help="train against these opponent keys only (comma separated)")
+    ap.add_argument("--bot-clones", action="store_true", help="also train on the per-bot clones (default: held out)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     torch.set_num_threads(1)
 
-    params = init_params(args.seed)
+    params = init_params(args.seed, no_hist=args.no_hist)
     if args.init:
         z = np.load(args.init)
-        params = {k: z[k] for k in params}
+        params = {k: z[k] for k in z.files}
     pnet = nn.Sequential(nn.Linear(D_OBS, HID), nn.ReLU(), nn.Linear(HID, HID), nn.ReLU(), nn.Linear(HID, NACT)).to(dev)
     vnet = nn.Sequential(nn.Linear(D_OBS, HID), nn.ReLU(), nn.Linear(HID, HID), nn.ReLU(), nn.Linear(HID, 1)).to(dev)
 
@@ -285,30 +304,46 @@ def main():
     conns, procs = [], []
     for w in range(args.workers - 1):
         a, b = ctx.Pipe()
-        pr = ctx.Process(target=worker_main, args=(b, args.envs, args.seed * 100 + w + 1, args.clones), daemon=True)
+        pr = ctx.Process(target=worker_main, args=(b, args.envs, args.seed * 100 + w + 1, args.clones, args.bot_clones), daemon=True)
         pr.start()
         conns.append(a); procs.append(pr)
     if args.clones:
-        install_clones(args.clones)
+        install_clones(args.clones, args.bot_clones)
     local = Collector(args.envs, args.seed * 100)
     base_w = dict(BASE_W)
     for spec in CLONE_IDS:
         base_w[spec] = 1.5 if spec.startswith("arch") else 0.5
+    if args.only:
+        keep_keys = args.only.split(",")
+        base_w = {k: v for k, v in base_w.items() if k in keep_keys}
 
+    import glob
     if wr is None:
         wr = {}
-    for k in list(BASE_W) + list(CLONE_IDS) + ["snap"]:
+    for k in list(BASE_W) + list(CLONE_IDS):
         wr.setdefault(k, 0.5)
     t0 = time.time()
     log = open(os.path.join(args.out, "train.jsonl"), "a")
-    window = {k: [0, 0, 0] for k in wr}
+    from collections import defaultdict
+    window = defaultdict(lambda: [0, 0, 0])
+    ext = []
     for it in range(it0 + 1, it0 + args.iters + 1):
-        weights = {k: w0 * (1 + 2 * max(0.0, 0.9 - wr[k])) for k, w0 in base_w.items()}
-        if snaps:
-            weights["snap"] = SNAP_W
+        if args.pool_dir and (it == it0 + 1 or it % 10 == 0):
+            ext = [dict(np.load(f)) for f in sorted(glob.glob(os.path.join(args.pool_dir, "*.npz")))][-4:]
+        if args.fixed_opp and (it == it0 + 1 or it % 20 == 0):
+            ext = [dict(np.load(args.fixed_opp))]
+        opp_models = ([] if args.fixed_opp else snaps) + ext
+        # league sampling: prioritized fictitious self-play, opponents that beat us more are drawn more
+        pf = lambda k, w0: w0 * max(0.05, 1.0 - wr.setdefault(k, 0.5)) ** 2  # noqa: E731
+        if args.fixed_opp:
+            weights = {"snap:1": 1.0}
+        else:
+            weights = {k: pf(k, w0) * 4 for k, w0 in base_w.items()}
+            for j in range(1, len(opp_models) + 1):
+                weights[f"snap:{j}"] = pf(f"snap:{j}", SNAP_W / 3) * 4
         for c in conns:
-            c.send((params, snaps, weights, args.steps))
-        batches = [local.collect(params, snaps, weights, args.steps)]
+            c.send((params, opp_models, weights, args.steps))
+        batches = [local.collect(params, opp_models, weights, args.steps)]
         batches += [c.recv() for c in conns]
         results = []
         data = []

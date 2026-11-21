@@ -13,11 +13,14 @@ class Policy:
     def __init__(self, path=DEFAULT_MODEL, temperature=1.0, seed=None):
         z = np.load(path)
         self.w = [(z[f"pw{i}"].astype(np.float32), z[f"pb{i}"].astype(np.float32)) for i in range(3)]
+        self.keep = z["keep"].astype(np.float32) if "keep" in z.files else None
         self.temperature = temperature
         self.rng = np.random.default_rng(seed)
 
     def logits(self, obs):
         h = np.asarray(obs, dtype=np.float32)
+        if self.keep is not None:
+            h = h * self.keep
         for i, (w, b) in enumerate(self.w):
             h = h @ w + b
             if i < 2:
