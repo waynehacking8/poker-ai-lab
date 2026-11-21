@@ -263,6 +263,9 @@ def main():
     ap.add_argument("--clones", default=None)
     ap.add_argument("--pool-dir", default=None, help="extra opponents (exploiter checkpoints, *.npz)")
     ap.add_argument("--fixed-opp", default=None, help="exploiter mode: train only against this model (re-read every 20 its)")
+    ap.add_argument("--clip", type=float, default=0.2, help="PPO clip range")
+    ap.add_argument("--floor", type=float, default=0.15, help="PFSP floor: weight = w0 * (floor + (1 - winrate)^2)")
+    ap.add_argument("--snap-w", type=float, default=0.3, help="base weight of each past snapshot / pool entry")
     ap.add_argument("--no-hist", action="store_true", help="hide the in-match opponent statistics")
     ap.add_argument("--only", default=None, help="train against these opponent keys only (comma separated)")
     ap.add_argument("--bot-clones", action="store_true", help="also train on the per-bot clones (default: held out)")
@@ -334,13 +337,13 @@ def main():
             ext = [dict(np.load(args.fixed_opp))]
         opp_models = ([] if args.fixed_opp else snaps) + ext
         # league sampling: prioritized fictitious self-play, opponents that beat us more are drawn more
-        pf = lambda k, w0: w0 * max(0.05, 1.0 - wr.setdefault(k, 0.5)) ** 2  # noqa: E731
+        pf = lambda k, w0: w0 * (args.floor + (1.0 - wr.setdefault(k, 0.5)) ** 2)  # noqa: E731
         if args.fixed_opp:
             weights = {"snap:1": 1.0}
         else:
             weights = {k: pf(k, w0) * 4 for k, w0 in base_w.items()}
             for j in range(1, len(opp_models) + 1):
-                weights[f"snap:{j}"] = pf(f"snap:{j}", SNAP_W / 3) * 4
+                weights[f"snap:{j}"] = pf(f"snap:{j}", args.snap_w) * 4
         for c in conns:
             c.send((params, opp_models, weights, args.steps))
         batches = [local.collect(params, opp_models, weights, args.steps)]
@@ -370,7 +373,7 @@ def main():
                 lp = lsm.gather(1, act[ix][:, None])[:, 0]
                 ratio = (lp - olp[ix]).exp()
                 a = adv[ix]
-                pl = -torch.min(ratio * a, ratio.clamp(0.8, 1.2) * a).mean()
+                pl = -torch.min(ratio * a, ratio.clamp(1 - args.clip, 1 + args.clip) * a).mean()
                 ent = -(lsm.exp() * lsm.masked_fill(~mask[ix], 0)).sum(1).mean()
                 vl = ((vnet(obs[ix])[:, 0] - ret[ix]) ** 2).mean()
                 loss = pl + 0.5 * vl - args.ent * ent
@@ -390,8 +393,8 @@ def main():
             for k, (m, wn, h) in window.items():
                 if m:
                     row["wr"][k] = [m, round(wn / m, 3)]
-                    wr[k] = 0.7 * wr[k] + 0.3 * wn / m
-            window = {k: [0, 0, 0] for k in window}
+                    wr[k] = 0.7 * wr.setdefault(k, 0.5) + 0.3 * wn / m
+            window = defaultdict(lambda: [0, 0, 0])
             print(json.dumps(row), flush=True)
             log.write(json.dumps(row) + "\n")
             log.flush()
