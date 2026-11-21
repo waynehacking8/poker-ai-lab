@@ -48,8 +48,9 @@ class Stats:
     three_bet: Counter2 = field(default_factory=lambda: Counter2(0.10))
     fold_to_3bet: Counter2 = field(default_factory=lambda: Counter2(0.55))
     fold_to_4bet: Counter2 = field(default_factory=lambda: Counter2(0.35))
+    iso_raise: Counter2 = field(default_factory=lambda: Counter2(0.25, 8.0))  # raises a limp
     shove_rate: Counter2 = field(default_factory=lambda: Counter2(0.06))
-    call_shove: Counter2 = field(default_factory=lambda: Counter2(0.40))
+    call_shove: Counter2 = field(default_factory=lambda: Counter2(0.50, 8.0))
     bet: Counter2 = field(default_factory=lambda: Counter2(0.60, 8.0))  # bets when checked to
     fold_to_bet: Counter2 = field(default_factory=lambda: Counter2(0.38, 8.0))  # post flop only
     fold_to_bet_all: Counter2 = field(default_factory=lambda: Counter2(0.40))  # incl. preflop
@@ -62,6 +63,18 @@ class Stats:
     def is_station(self) -> bool:
         """Calls too much: rarely folds to bets once enough is seen."""
         return self.fold_to_bet_all.opp >= 12 and self.fold_to_bet_all.rate() < 0.22
+
+    def fold_to_reraise(self, level: int) -> float:
+        """Fold rate against a 3-bet (level 1) or a 4-bet or jam (level 2+).
+
+        Starts from how often he folds to an ordinary raise (a lot more data) and moves
+        towards what he actually did when we re-raised him.
+        """
+        base = self.pre_fold_to_raise.rate()
+        counter = self.fold_to_3bet if level <= 1 else self.fold_to_4bet
+        prior = base if level <= 1 else base * 0.7
+        k = 8.0
+        return (counter.hit + prior * k) / (counter.opp + k)
 
     def aggression_floor(self, scale: float = 1.0) -> float:
         """Range width implied by raising a lot in general (0 for a normal opponent)."""
@@ -95,6 +108,8 @@ class OpponentModel:
             if pre:
                 if ev.first_action and ev.raises_before == 0:
                     s.open_raise.add(ev.kind == "raise")
+                if not ev.facing and ev.raises_before == 0 and ev.kind in ("check", "raise"):
+                    s.iso_raise.add(ev.kind == "raise")  # big blind option after a limp
                 if ev.facing and ev.raises_before == 1:
                     s.pre_fold_to_raise.add(ev.kind == "fold")
                     s.three_bet.add(ev.kind == "raise")

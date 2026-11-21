@@ -259,6 +259,16 @@ class Brain:
         raised = max(cont, u(S - tm))
         return f * u(S + pot) + r_re * raised + (1 - f - r_re) * called - u(S)
 
+    def _limp_gain(self, ctx, cls, stats) -> float:
+        """Utility of completing the small blind (versus folding) against his raise rate."""
+        if "call" not in ctx["valid"] or ctx["to_call"] >= ctx["my_stack"]:
+            return -1.0
+        iso = _clamp(stats.iso_raise.rate(), 0.03, 0.9) if stats else 0.25
+        e = pf.VS_RANDOM[cls] * (0.97 if ctx["ip"] else 0.9)
+        u, S = ctx["u"], ctx["my_stack"]
+        lost = u(S - ctx["to_call"]) - u(S)
+        return (1 - iso) * self._call_gain(ctx, e) + iso * lost
+
     def _preflop(self, ctx, state) -> Action:
         c1, c2 = ctx["hole"]
         cls = hand_class(c1, c2)
@@ -306,8 +316,7 @@ class Brain:
         raise_ok = "raise" in ctx["valid"] and ctx["opp_behind"] > 0 and not multiway
 
         if raise_ok and eff <= JAM_ZONE_MAX_BB:
-            counter = stats.fold_to_3bet if n_raises == 1 else stats.fold_to_4bet
-            f = _clamp(counter.rate(), 0.1, 0.9)
+            f = _clamp(stats.fold_to_reraise(n_raises), 0.05, 0.9)
             eq_c = pf.equity_vs_range(cls, self._continuing(cls_w, 1.0 - f))
             tm = min(my_stack, to_call + ctx["opp_behind"])
             g_jam = self._aggr_gain(ctx, f, eq_c, tm)
@@ -319,7 +328,7 @@ class Brain:
             if n_raises >= 2:
                 size = 2.3 * (to_call + ctx["my_street"])
             value = eq >= 0.60 and pct >= 0.85
-            f = _clamp(stats.fold_to_3bet.rate(), 0.1, 0.9)
+            f = _clamp(stats.fold_to_reraise(1), 0.05, 0.9)
             suited_or_ace = (c1 & 3) == (c2 & 3) or (c1 >> 2) == 12 or (c2 >> 2) == 12
             bluff = (
                 n_raises == 1 and f > 0.5 and 0.3 <= pct <= 0.7 and suited_or_ace
@@ -344,13 +353,18 @@ class Brain:
         if eff <= SHOVE_FOLD_MAX_BB and "raise" in ctx["valid"]:
             nash = pf.nash_call(eff)
             obs = pf.top_range(_clamp(stats.call_shove.rate(), 0.05, 0.95))
-            mix = stats.call_shove.opp / (stats.call_shove.opp + 20.0)
+            # the field defends looser than Nash, so start part way towards the observed rate
+            mix = (stats.call_shove.opp + 3.0) / (stats.call_shove.opp + 10.0)
             call_w = pf.blend(nash, obs, mix)
             p_call = pf.mean_weight(call_w)
             eq = pf.equity_vs_range(cls, call_w)
             tm = min(my_stack, ctx["to_call"] + ctx["opp_behind"])
-            if self._aggr_gain(ctx, 1 - p_call, eq, tm) > 1e-4:
+            g_push = self._aggr_gain(ctx, 1 - p_call, eq, tm)
+            g_limp = self._limp_gain(ctx, cls, stats)
+            if g_push > max(g_limp, 1e-4):
                 return self._raise_to(ctx, sb_post + my_stack, state)
+            if g_limp > 1e-4:
+                return self._call(ctx)
             return self._fold(ctx)
         ftr = stats.pre_fold_to_raise.rate() if stats else 0.4
         tb = stats.three_bet.rate() if stats else 0.1
@@ -360,6 +374,8 @@ class Brain:
             th = max(th, 0.30)
         if pct >= th:
             return self._raise_to(ctx, (2.3 if eff < 30 else 2.5) * bb, state)
+        if self._limp_gain(ctx, cls, stats) > 1e-4:
+            return self._call(ctx)
         return self._fold(ctx)
 
     # ------------------------------------------------------------------
@@ -396,7 +412,7 @@ class Brain:
         if river and not multiway:
             eq = made
         else:
-            eq = mc_equity(hole, board, ranges, self.rng, n=500 if not multiway else 400)
+            eq = mc_equity(hole, board, ranges, self.rng, n=800 if not multiway else 500, budget_s=0.3)
         draw = (not river) and (eq - made) > 0.10
         self.last_debug = {"eq": eq, "made": made, "draw": draw}
 
@@ -429,7 +445,7 @@ class Brain:
         top = self._top_fraction(weights, tab, frac)
         if river:
             return weighted_win_fraction(evaluate(ctx["hole"] + ctx["board"]), tab, top)
-        return mc_equity(ctx["hole"], ctx["board"], [top], self.rng, n=250)
+        return mc_equity(ctx["hole"], ctx["board"], [top], self.rng, n=400)
 
     @staticmethod
     def _fold_prob(f0: float, x: float, xref: float, observed: int) -> float:

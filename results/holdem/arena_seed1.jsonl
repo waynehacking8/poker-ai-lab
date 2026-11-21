@@ -1,0 +1,7 @@
+{"opponent": "station", "matches": 400, "wins": 384, "win_rate": 0.96, "ci95": [0.936, 0.975], "mean_hands_all": 26.3, "mean_hands_per_win": 26.7, "ties_or_caps": 0, "seed": 1, "seconds": 48.3}
+{"opponent": "maniac", "matches": 400, "wins": 289, "win_rate": 0.7225, "ci95": [0.677, 0.764], "mean_hands_all": 10.0, "mean_hands_per_win": 10.1, "ties_or_caps": 0, "seed": 1, "seconds": 9.6}
+{"opponent": "nit", "matches": 400, "wins": 355, "win_rate": 0.8875, "ci95": [0.853, 0.915], "mean_hands_all": 84.9, "mean_hands_per_win": 86.7, "ties_or_caps": 0, "seed": 1, "seconds": 28.7}
+{"opponent": "random", "matches": 400, "wins": 332, "win_rate": 0.83, "ci95": [0.79, 0.864], "mean_hands_all": 22.8, "mean_hands_per_win": 23.7, "ties_or_caps": 0, "seed": 1, "seconds": 11.2}
+{"opponent": "reference", "matches": 400, "wins": 363, "win_rate": 0.9075, "ci95": [0.875, 0.932], "mean_hands_all": 85.7, "mean_hands_per_win": 88.4, "ties_or_caps": 0, "seed": 1, "seconds": 33.0}
+{"opponent": "lag", "matches": 400, "wins": 286, "win_rate": 0.715, "ci95": [0.669, 0.757], "mean_hands_all": 39.0, "mean_hands_per_win": 43.7, "ties_or_caps": 0, "seed": 1, "seconds": 28.3}
+{"opponent": "station_raiser", "matches": 400, "wins": 278, "win_rate": 0.695, "ci95": [0.648, 0.738], "mean_hands_all": 30.8, "mean_hands_per_win": 32.4, "ties_or_caps": 0, "seed": 1, "seconds": 36.6}

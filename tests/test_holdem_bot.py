@@ -132,7 +132,7 @@ def test_parse_history_amounts():
 
 
 def test_shoves_premium_and_folds_trash_short_stacked():
-    """At 8 bb the small blind shoves AA and folds 72o against the Nash call range."""
+    """At 8 bb the small blind shoves AA and does not shove 72o against the Nash call range."""
     def state(c1, c2):
         h = hist((0, "post_small_blind", 400, "preflop"), (1, "post_big_blind", 800, "preflop"))
         return GameState(
@@ -142,7 +142,7 @@ def test_shoves_premium_and_folds_trash_short_stacked():
             action_history=h)
     bot = HoldemBot(3)
     assert bot.decide(state("Ah", "Ad")).action == "raise"
-    assert bot.decide(state("7h", "2d")).action == "fold"
+    assert bot.decide(state("7h", "2d")).action in ("fold", "call")  # never a shove; may complete
 
 
 @pytest.mark.slow
