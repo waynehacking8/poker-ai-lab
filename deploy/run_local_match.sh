@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 docker network inspect rlnet >/dev/null 2>&1 || docker network create rlnet
 docker rm -f rlsrv rlbot >/dev/null 2>&1
 mkdir -p res; rm -f res/$OPP-$SEED.json
-docker run -d --name rlsrv --network rlnet -v "$PWD/repo:/repo" -v "$PWD/res:/res" -w /repo python:3.12-slim \
+docker run -d --name rlsrv --network rlnet -e PYTHONDONTWRITEBYTECODE=1 -v "$PWD/repo:/repo" -v "$PWD/res:/res" -w /repo python:3.12-slim \
   sh -c "pip install -q chipzen-bot==0.7.0 websockets numpy >/dev/null 2>&1 && python deploy/localmatch.py --opp $OPP --seed $SEED --out /res/$OPP-$SEED.json" >/dev/null
 until docker exec rlsrv sh -c 'python -c "import socket;socket.create_connection((\"127.0.0.1\",8765),1)"' 2>/dev/null; do sleep 1; done
 T0=$(date +%s.%N)
