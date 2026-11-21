@@ -116,7 +116,9 @@ class Brain:
             starts[s] = st + info.contrib.get(s, 0)
         info = parse_history(state.action_history, starts)
         live = [s for s in others if s not in info.folded and (s in info.seats or opp_stack[s] > 0)]
-        bb = info.big_blind or max(state.min_raise // 2, 1)
+        # A short all-in big blind posts less than the real level; the small blind's post
+        # (half the level) is the other number the protocol exposes, so take the larger.
+        bb = max(info.big_blind, 2 * info.small_blind) or max(state.min_raise // 2, 1)
         n_live = len(live) + 1
         seats_live = sorted([me, *live, state.dealer_seat])
         seats_live = sorted(set(seats_live))
@@ -259,6 +261,16 @@ class Brain:
         raised = max(cont, u(S - tm))
         return f * u(S + pot) + r_re * raised + (1 - f - r_re) * called - u(S)
 
+    def _limp_gain(self, ctx, cls, stats) -> float:
+        """Utility of completing the small blind (versus folding) against his raise rate."""
+        if "call" not in ctx["valid"] or ctx["to_call"] >= ctx["my_stack"]:
+            return -1.0
+        iso = _clamp(stats.iso_raise.rate(), 0.03, 0.9) if stats else 0.25
+        e = pf.VS_RANDOM[cls] * (0.97 if ctx["ip"] else 0.9)
+        u, S = ctx["u"], ctx["my_stack"]
+        lost = u(S - ctx["to_call"]) - u(S)
+        return (1 - iso) * self._call_gain(ctx, e) + iso * lost
+
     def _preflop(self, ctx, state) -> Action:
         c1, c2 = ctx["hole"]
         cls = hand_class(c1, c2)
@@ -274,6 +286,18 @@ class Brain:
         seat = live[0] if live else None
         stats = self.model.get(seat) if seat is not None else None
         multiway = ctx["n_live"] > 2
+
+        # He is all in and only fold or call remains: no later street, so the price is
+        # plain pot odds.  A forced short big blind all-in has a random range.
+        if (to_call > 0 and ctx["opp_behind"] == 0 and "raise" not in ctx["valid"]
+                and not multiway and seat is not None
+                and (n_raises == 0 or to_call < my_stack)):
+            if n_raises == 0:
+                eq = pf.VS_RANDOM[cls]
+            else:
+                eq = pf.equity_vs_range(cls, self._opp_class_weights(ctx, seat))
+            cost = min(to_call, my_stack)
+            return self._call(ctx) if eq >= cost / (pot + cost) else self._fold(ctx)
 
         if n_raises == 0:
             if to_call > 0:  # first to act (button / small blind): open, limp-fold or shove
@@ -306,8 +330,7 @@ class Brain:
         raise_ok = "raise" in ctx["valid"] and ctx["opp_behind"] > 0 and not multiway
 
         if raise_ok and eff <= JAM_ZONE_MAX_BB:
-            counter = stats.fold_to_3bet if n_raises == 1 else stats.fold_to_4bet
-            f = _clamp(counter.rate(), 0.1, 0.9)
+            f = _clamp(stats.fold_to_reraise(n_raises), 0.05, 0.9)
             eq_c = pf.equity_vs_range(cls, self._continuing(cls_w, 1.0 - f))
             tm = min(my_stack, to_call + ctx["opp_behind"])
             g_jam = self._aggr_gain(ctx, f, eq_c, tm)
@@ -319,7 +342,7 @@ class Brain:
             if n_raises >= 2:
                 size = 2.3 * (to_call + ctx["my_street"])
             value = eq >= 0.60 and pct >= 0.85
-            f = _clamp(stats.fold_to_3bet.rate(), 0.1, 0.9)
+            f = _clamp(stats.fold_to_reraise(1), 0.05, 0.9)
             suited_or_ace = (c1 & 3) == (c2 & 3) or (c1 >> 2) == 12 or (c2 >> 2) == 12
             bluff = (
                 n_raises == 1 and f > 0.5 and 0.3 <= pct <= 0.7 and suited_or_ace
@@ -344,13 +367,18 @@ class Brain:
         if eff <= SHOVE_FOLD_MAX_BB and "raise" in ctx["valid"]:
             nash = pf.nash_call(eff)
             obs = pf.top_range(_clamp(stats.call_shove.rate(), 0.05, 0.95))
-            mix = stats.call_shove.opp / (stats.call_shove.opp + 20.0)
+            # the field defends looser than Nash, so start part way towards the observed rate
+            mix = (stats.call_shove.opp + 3.0) / (stats.call_shove.opp + 10.0)
             call_w = pf.blend(nash, obs, mix)
             p_call = pf.mean_weight(call_w)
             eq = pf.equity_vs_range(cls, call_w)
             tm = min(my_stack, ctx["to_call"] + ctx["opp_behind"])
-            if self._aggr_gain(ctx, 1 - p_call, eq, tm) > 1e-4:
+            g_push = self._aggr_gain(ctx, 1 - p_call, eq, tm)
+            g_limp = self._limp_gain(ctx, cls, stats)
+            if g_push > max(g_limp, 1e-4):
                 return self._raise_to(ctx, sb_post + my_stack, state)
+            if g_limp > 1e-4:
+                return self._call(ctx)
             return self._fold(ctx)
         ftr = stats.pre_fold_to_raise.rate() if stats else 0.4
         tb = stats.three_bet.rate() if stats else 0.1
@@ -360,6 +388,8 @@ class Brain:
             th = max(th, 0.30)
         if pct >= th:
             return self._raise_to(ctx, (2.3 if eff < 30 else 2.5) * bb, state)
+        if self._limp_gain(ctx, cls, stats) > 1e-4:
+            return self._call(ctx)
         return self._fold(ctx)
 
     # ------------------------------------------------------------------
@@ -396,7 +426,7 @@ class Brain:
         if river and not multiway:
             eq = made
         else:
-            eq = mc_equity(hole, board, ranges, self.rng, n=500 if not multiway else 400)
+            eq = mc_equity(hole, board, ranges, self.rng, n=800 if not multiway else 500, budget_s=0.3)
         draw = (not river) and (eq - made) > 0.10
         self.last_debug = {"eq": eq, "made": made, "draw": draw}
 
@@ -429,7 +459,7 @@ class Brain:
         top = self._top_fraction(weights, tab, frac)
         if river:
             return weighted_win_fraction(evaluate(ctx["hole"] + ctx["board"]), tab, top)
-        return mc_equity(ctx["hole"], ctx["board"], [top], self.rng, n=250)
+        return mc_equity(ctx["hole"], ctx["board"], [top], self.rng, n=400)
 
     @staticmethod
     def _fold_prob(f0: float, x: float, xref: float, observed: int) -> float:

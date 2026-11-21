@@ -1,0 +1,6 @@
+decisions: 2778
+all      n=  2778  wall ms p50=   5.3 p99=  19.3 max=  39.9   cpu ms p50=   5.3 p99=  19.0 max=  21.0
+preflop  n=  1323  wall ms p50=   0.1 p99=   0.6 max=   3.6   cpu ms p50=   0.1 p99=   0.6 max=   0.7
+flop     n=   684  wall ms p50=  18.1 p99=  36.6 max=  39.9   cpu ms p50=  18.1 p99=  19.1 max=  19.2
+turn     n=   418  wall ms p50=  18.2 p99=  36.5 max=  37.4   cpu ms p50=  18.2 p99=  19.4 max=  21.0
+river    n=   353  wall ms p50=   5.7 p99=  11.7 max=  12.1   cpu ms p50=   5.7 p99=   7.6 max=   7.9

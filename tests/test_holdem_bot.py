@@ -132,7 +132,7 @@ def test_parse_history_amounts():
 
 
 def test_shoves_premium_and_folds_trash_short_stacked():
-    """At 8 bb the small blind shoves AA and folds 72o against the Nash call range."""
+    """At 8 bb the small blind shoves AA and does not shove 72o against the Nash call range."""
     def state(c1, c2):
         h = hist((0, "post_small_blind", 400, "preflop"), (1, "post_big_blind", 800, "preflop"))
         return GameState(
@@ -142,7 +142,47 @@ def test_shoves_premium_and_folds_trash_short_stacked():
             action_history=h)
     bot = HoldemBot(3)
     assert bot.decide(state("Ah", "Ad")).action == "raise"
-    assert bot.decide(state("7h", "2d")).action == "fold"
+    assert bot.decide(state("7h", "2d")).action in ("fold", "call")  # never a shove; may complete
+
+
+def _short_bb_state(c1, c2, post=93):
+    """Small blind (seat 0) facing a big blind that is all in for ``post`` < 100."""
+    h = hist((0, "post_small_blind", 50, "preflop"), (1, "post_big_blind", post, "preflop"))
+    return GameState(
+        hand_number=9, phase="preflop", hole_cards=cards(c1, c2), board=[], pot=50 + post,
+        your_stack=9950, opponent_stacks=[0], your_seat=0, dealer_seat=0,
+        to_call=post - 50, min_raise=300, max_raise=9950, valid_actions=["fold", "call"],
+        action_history=h)
+
+
+def test_short_big_blind_all_in_is_priced_by_pot_odds_not_the_short_post():
+    """Facing 43 to win 186, call exactly when equity against a random hand covers the price."""
+    from nlhe import preflop as pf
+    from nlhe.cards import card_from_str, hand_class
+
+    thr = 43 / (143 + 43)
+    bot = HoldemBot(1)
+    ranks = "23456789TJQKA"
+    seen = set()
+    for i, r1 in enumerate(ranks):
+        for r2 in ranks[: i + 1]:
+            for suited in (True, False):
+                if r1 == r2 and suited:
+                    continue
+                c1, c2 = r1 + "c", r2 + ("c" if suited else "d")
+                cls = hand_class(card_from_str(c1), card_from_str(c2))
+                seen.add(cls)
+                act = bot.decide(_short_bb_state(c1, c2)).action
+                eq = pf.VS_RANDOM[cls]
+                assert act == ("call" if eq >= thr else "fold"), (c1, c2, eq, act)
+    assert len(seen) == 169
+    assert bot.decide(_short_bb_state("3c", "2d")).action == "call"  # 32o folded before the fix
+
+
+def test_big_blind_context_uses_the_real_level_not_a_short_post():
+    bot = HoldemBot(1)
+    ctx = bot.brain._context(_short_bb_state("3c", "2d"))
+    assert ctx["bb"] == 100
 
 
 @pytest.mark.slow

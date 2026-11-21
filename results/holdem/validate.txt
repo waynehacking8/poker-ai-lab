@@ -1,0 +1,24 @@
+
+Chipzen Bot Validation
+==================================================
+  [PASS] size: Size OK (0.4MB uncompressed / 250MB limit)
+  [PASS] file_structure: Entry point found: bot.py
+  [PASS] syntax: Valid Python syntax
+  [WARN] imports: Potentially restricted imports: os. Some functionality may be blocked in the sandbox.
+  [PASS] bot_class: Found bot class: HoldemBot
+  [PASS] decide_method: HoldemBot.decide() implemented
+  [PASS] requirements: All requirements are in the allowed package list
+  [PASS] dockerfile: Dockerfile starts the bot with: python -c from bot import main; main()
+  [PASS] entry_main: bot.py defines main()
+  [PASS] smoke_test: decide() returned raise successfully
+  [PASS] timeout: decide() completed in 0.1ms
+  [PASS] connectivity_full_match: completed handshake + 1 hand + match_end; sent turn_action: action='raise'
+  [PASS] multi_turn_request_id_echo: all 3 turn_actions echoed request_id correctly across preflop/flop/turn
+  [PASS] action_rejected_recovery: action_rejected handled cleanly: original action sent, retry sent 'check' with original request_id
+  [PASS] retry_storm_bounded: SDK responded to all 3 action_rejected messages with safe-fallback retries (4 turn_actions total) and exited cleanly on match_end
+
+All checks passed (1 warning)
+Action rejected (invalid_action): action not in valid_actions -- 4000ms remaining, retrying with safe fallback (valid=['check', 'fold'])
+Action rejected (invalid_action): action not in valid_actions -- 4000ms remaining, retrying with safe fallback (valid=['check', 'fold'])
+Action rejected (invalid_action): action not in valid_actions -- 4000ms remaining, retrying with safe fallback (valid=['check', 'fold'])
+Action rejected (invalid_action): action not in valid_actions -- 4000ms remaining, retrying with safe fallback (valid=['check', 'fold'])

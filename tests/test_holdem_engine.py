@@ -46,7 +46,12 @@ def test_blind_schedule():
     assert blinds_for_hand(21) == (75, 150)
     assert blinds_for_hand(61) == (150, 300)
     assert blinds_for_hand(101) == (300, 600)
-    assert blinds_for_hand(900) == (300, 600)
+    assert blinds_for_hand(120) == (300, 600)
+    # past 600 the levels are inferred from OFC replays (nothing past hand 146 observed)
+    assert blinds_for_hand(121) == (400, 800)
+    assert blinds_for_hand(140) == (400, 800)
+    assert blinds_for_hand(141) == (500, 1000)
+    assert blinds_for_hand(900) == (500, 1000)
 
 
 def test_showdown_winner_and_conservation():
@@ -146,3 +151,39 @@ def test_random_bots_random_seeds_conserve_chips():
         s = rng.randrange(10**6)
         res = play_match([RandomLegal(s), RandomLegal(s + 1)], s, MatchConfig(max_hands=80))
         assert sum(res.stacks) == 20000
+
+
+class FoldIfPossible:
+    def __init__(self):
+        self.states = []
+
+    def decide(self, state):
+        self.states.append(state)
+        return Action.fold() if "fold" in state.valid_actions else Action.check()
+
+
+def test_small_blind_not_prompted_when_big_blind_all_in_for_no_more_than_the_small_blind():
+    """Real server (match 53990391 hand 9): BB all in for 20 under a 50 small blind, no prompt."""
+    deck = deck_of(["Ah", "Ad"], ["7c", "2d"], ["Ks", "9h", "4c", "Jd", "3s"])
+    bots = [FoldIfPossible(), FoldIfPossible()]
+    h = Hand(bots, [10000, 20], 0, 9, 50, 100, deck)
+    result = h.play()
+    assert bots[0].states == [] and bots[1].states == []  # nobody is asked
+    assert result["showdown"]  # straight to showdown
+    assert h.stack == [10020, 0]  # seat 0 wins the 40 contested and its 30 comes back
+    assert sum(h.stack) == 10020
+    # the same spot with seat 0 losing: it still gets the 30 back
+    deck = deck_of(["7c", "2d"], ["Ah", "Ad"], ["Ks", "9h", "4c", "Jd", "3s"])
+    h = Hand([FoldIfPossible(), FoldIfPossible()], [10000, 20], 0, 9, 50, 100, deck)
+    h.play()
+    assert h.stack == [9980, 40]
+
+
+def test_small_blind_prompted_when_short_big_blind_post_exceeds_the_small_blind():
+    """Real server (554b8185 hand 13): BB posts 93 under a 100 big blind, SB owes 43."""
+    bots = [FoldIfPossible(), FoldIfPossible()]
+    h = Hand(bots, [10000, 93], 0, 13, 50, 100, list(range(52)))
+    h.play()
+    assert len(bots[0].states) == 1
+    st = bots[0].states[0]
+    assert st.valid_actions == ["fold", "call"] and st.to_call == 43
