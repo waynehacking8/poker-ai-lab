@@ -30,6 +30,7 @@ typedef struct {
     int actor, to_call, min_raise, max_raise, can_rs;
     double stats[2][NST];
     double hs[2][4]; int hs_ok[2][4];
+    int bk[2][4], bk_ok[2][4];
     int *inj; int inj_n;          /* injected decks, 52 ints per hand */
     double *urand; int urand_n, urand_i;  /* injected uniform stream */
     double phi;
@@ -45,9 +46,13 @@ static int tables_ready = 0;
 static const int SCHED_END[5] = {20, 40, 60, 80, 100};
 static const int SCHED_BB[5] = {100, 150, 200, 300, 400};
 
+static int RULES_V2 = 1;  /* 1: Chipzen server rules (short big blind, 800/1000 levels) */
+void fe_set_rules(int v2) { RULES_V2 = v2; }
+
 static int bb_for(int hand) {
     for (int i = 0; i < 5; i++) if (hand <= SCHED_END[i]) return SCHED_BB[i];
-    return 600;
+    if (!RULES_V2) return 600;
+    return hand <= 120 ? 600 : hand <= 140 ? 800 : 1000;
 }
 
 static void init_tables(void) {
@@ -206,7 +211,7 @@ static void start_hand(Env *e) {
     e->hole[0][0] = deck[0]; e->hole[0][1] = deck[1]; e->hole[1][0] = deck[2]; e->hole[1][1] = deck[3];
     for (int i = 0; i < 5; i++) e->fboard[i] = deck[4 + i];
     for (int s = 0; s < 2; s++) { e->stack[s] = e->stacks[s]; e->bet[s] = 0; e->contrib[s] = 0; e->folded[s] = 0; }
-    e->pot = 0; e->nh = 0; memset(e->hs_ok, 0, sizeof(e->hs_ok));
+    e->pot = 0; e->nh = 0; memset(e->hs_ok, 0, sizeof(e->hs_ok)); memset(e->bk_ok, 0, sizeof(e->bk_ok));
     post(e, e->dealer, e->sb, 0);
     int d = e->dealer, n = 1 - d;
     int before = e->stack[n];
@@ -218,7 +223,7 @@ static void start_hand(Env *e) {
 static void begin_street(Env *e) {
     if (e->phase > 0) { e->bet[0] = e->bet[1] = 0; }
     int first = e->phase == 0 ? e->dealer : 1 - e->dealer;
-    e->level = e->phase == 0 ? e->bb : 0;
+    e->level = e->phase == 0 ? (RULES_V2 ? (e->bet[0] > e->bet[1] ? e->bet[0] : e->bet[1]) : e->bb) : 0;
     e->last_raise = e->bb;
     e->npend = 0;
     int order[2] = {first, 1 - first};
@@ -510,6 +515,112 @@ static Act baseline_act(Env *e, int id) {
     }
 }
 
+/* ---- replay clones (mirror league/clone.py; tables come from Python) ---- */
+#define NCL_MAX 80
+#define NBK 8
+#define SZ_CAP 300
+static double CL_THETA[NCL_MAX][4][2][10][4][NBK][5];
+static double CL_SZ[NCL_MAX][2][10][SZ_CAP];
+static int CL_SZN[NCL_MAX][2][10];
+static int cl_ready = 0;
+
+void fe_set_clones(int n, const double *theta, const double *sz, const int *szn) {
+    if (n > NCL_MAX) n = NCL_MAX;
+    memcpy(CL_THETA, theta, sizeof(double) * (size_t)n * 4 * 2 * 10 * 4 * NBK * 5);
+    memcpy(CL_SZ, sz, sizeof(double) * (size_t)n * 2 * 10 * SZ_CAP);
+    memcpy(CL_SZN, szn, sizeof(int) * (size_t)n * 2 * 10);
+    cl_ready = n;
+}
+
+static int bucket_of(double p) {
+    static const double EDG[7] = {0.25, 0.45, 0.60, 0.72, 0.82, 0.90, 0.96};
+    int b = 0;
+    for (int i = 0; i < 7; i++) if (p >= EDG[i]) b++;
+    return b;
+}
+
+static int clone_bucket(Env *e, int seat) {
+    int ph = e->phase;
+    if (ph == 0) return bucket_of(PCT[hand_class(e->hole[seat][0], e->hole[seat][1])]);
+    int nb = nboard_for(ph);
+    int used[52] = {0};
+    int me[7], op[7];
+    me[0] = e->hole[seat][0]; me[1] = e->hole[seat][1];
+    for (int i = 0; i < nb; i++) { me[2 + i] = op[2 + i] = e->fboard[i]; used[e->fboard[i]] = 1; }
+    int ms = evaluate(me, 2 + nb);
+    long lo = 0, tie = 0, total = 0;
+    for (int a = 0; a < 52; a++) {
+        if (used[a]) continue;
+        for (int b = a + 1; b < 52; b++) {
+            if (used[b]) continue;
+            op[0] = a; op[1] = b;
+            int s = evaluate(op, 2 + nb);
+            if (s < ms) lo++; else if (s == ms) tie++;
+            total++;
+        }
+    }
+    double p = (lo + 0.5 * tie) / total;
+    if (nb < 5 && p < 0.85) {
+        int fd, outs; draw_info(e->hole[seat], e->fboard, nb, &fd, &outs);
+        double bonus = 0.0;
+        if (fd) bonus += 0.14;
+        if (outs >= 2) bonus += 0.11; else if (outs == 1) bonus += 0.05;
+        p = p + bonus; if (p > 0.95) p = 0.95;
+    }
+    return bucket_of(p);
+}
+
+static Act clone_act(Env *e, int k) {
+    int seat = e->actor, other = 1 - seat, tc = e->to_call, pot = e->pot;
+    int street = e->phase, is_button = seat == e->dealer;
+    int n_raises = 0;
+    for (int i = 0; i < e->nh; i++) if (e->hist[i].phase == street && e->hist[i].kind == 5) n_raises++;
+    int bb = e->bbpost > 0 ? e->bbpost : 100;
+    double eff = (e->stack[seat] < e->stack[other] ? e->stack[seat] : e->stack[other]) / (double)bb;
+    int stk = (eff > 10) + (eff > 25) + (eff > 50);
+    int fcl;
+    if (street == 0) fcl = n_raises == 0 ? (is_button ? 0 : 1) : (n_raises == 1 ? 2 : 3);
+    else if (n_raises == 0) fcl = 4;
+    else if (n_raises >= 2) fcl = 9;
+    else {
+        int d = pot - tc; if (d < 1) d = 1;
+        double ratio = (double)tc / d;
+        fcl = 5 + (ratio >= 0.4) + (ratio >= 0.8) + (ratio >= 1.6);
+    }
+    int bk;
+    if (e->bk_ok[seat][street]) bk = e->bk[seat][street];
+    else { bk = clone_bucket(e, seat); e->bk[seat][street] = bk; e->bk_ok[seat][street] = 1; }
+    double p[5];
+    memcpy(p, CL_THETA[k][street][is_button][fcl][stk][bk], sizeof(p));
+    if (tc == 0) p[0] = 0;
+    if (tc <= 0) p[2] = 0;
+    if (tc > 0) p[1] = 0;
+    if (!e->can_rs) { p[3] = p[4] = 0; }
+    else if (e->min_raise > e->max_raise) { p[4] += p[3]; p[3] = 0; }
+    double tot = p[0] + p[1] + p[2] + p[3] + p[4];
+    if (tot <= 0) return tc > 0 ? A_call() : A_check();
+    double x = urnd(e) * 1.0, cum = 0; int code = 4;
+    for (int i = 0; i < 5; i++) { cum += p[i] / tot; if (cum > x) { code = i; break; } }
+    if (code == 0) return A_fold();
+    if (code == 1) return A_check();
+    if (code == 2) return A_call();
+    if (code == 4) { Act a = {3, e->max_raise}; return a; }
+    int sk = street == 0 ? 0 : 1, n = CL_SZN[k][sk][fcl];
+    double frac = 0.75;
+    if (n >= 8) {
+        double v = CL_SZ[k][sk][fcl][(int)(urnd(e) * n)];
+        frac = v * (0.93 + (1.07 - 0.93) * urnd(e));
+        if (frac < 0.05) frac = 0.05;
+    }
+    double target = e->bet[seat] + tc + frac * (pot + tc);
+    int lo = e->min_raise < e->max_raise ? e->min_raise : e->max_raise;
+    int t = (int)rint(target);
+    if (t > e->max_raise) t = e->max_raise;
+    if (t < lo) t = lo;
+    if (t >= 0.8 * e->max_raise) t = e->max_raise;
+    Act a = {3, t}; return a;
+}
+
 /* ---- main loop: runs until an external seat must act or the match ends ---- */
 static void run(Env *e) {
     for (;;) {
@@ -524,8 +635,9 @@ static void run(Env *e) {
             e->phase++;
             continue;
         }
-        if (e->ctrl[e->actor] >= 100) return;
-        Act a = baseline_act(e, e->ctrl[e->actor]);
+        int c = e->ctrl[e->actor];
+        if (c >= 100 && c < 200) return;
+        Act a = c >= 200 ? clone_act(e, c - 200) : baseline_act(e, c);
         apply(e, a.kind, a.amt);
     }
 }
@@ -620,8 +732,8 @@ static void features(Env *e, int seat, float *f) {
     f[36] = (float)((my + e->contrib[seat]) / (my + opp + pot));
     f[37] = (float)(log2(bb / 100.0) / 3.0);
     int h = e->hand_no, hl = 0;
-    if (h <= 100) hl = ((h - 1) / 20 + 1) * 20 - h;
-    f[38] = hl / 20.0f; f[39] = (float)(h < 150 ? h : 150) / 100.0f; f[40] = h > 100;
+    if (h <= (RULES_V2 ? 140 : 100)) hl = ((h - 1) / 20 + 1) * 20 - h;
+    f[38] = hl / 20.0f; f[39] = (float)(h < 200 ? h : 200) / 100.0f; f[40] = h > 100;
     int rh = 0, ors = 0, mrs = 0, orp = 0, lastopp = 0;
     for (int i = 0; i < e->nh; i++) {
         Ev *v = &e->hist[i];
@@ -658,7 +770,12 @@ Pool *pool_new(int n) {
 }
 void pool_free(Pool *p) { free(p->e); free(p); }
 
+void env_reset_stacks(Pool *p, int i, uint64_t seed, int ctrl0, int ctrl1, int hero, int s0, int s1, int max_hands);
 void env_reset(Pool *p, int i, uint64_t seed, int ctrl0, int ctrl1, int hero, int start_stack, int max_hands) {
+    env_reset_stacks(p, i, seed, ctrl0, ctrl1, hero, start_stack, start_stack, max_hands);
+}
+void env_reset_stacks(Pool *p, int i, uint64_t seed, int ctrl0, int ctrl1, int hero, int s0, int s1, int max_hands) {
+    int start_stack = (s0 + s1) / 2;
     Env *e = &p->e[i];
     int *inj = e->inj, inj_n = e->inj_n; double *ur = e->urand; int urn = e->urand_n;
     memset(e, 0, sizeof(Env));
@@ -666,7 +783,7 @@ void env_reset(Pool *p, int i, uint64_t seed, int ctrl0, int ctrl1, int hero, in
     e->rs = seed * 0x9E3779B97F4A7C15ULL + 12345;
     e->ctrl[0] = ctrl0; e->ctrl[1] = ctrl1; e->hero = hero;
     e->start_stack = start_stack; e->max_hands = max_hands;
-    e->stacks[0] = e->stacks[1] = start_stack; e->phi = 0.5;
+    e->stacks[0] = s0; e->stacks[1] = s1; e->phi = 0.5;
     start_hand(e);
     run(e);
 }

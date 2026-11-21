@@ -35,11 +35,23 @@ for _m in range(8192):
             _STRAIGHT[_m] = 3
 
 
+RULES_V2 = True  # Chipzen server rules; tests flip it to compare with the legacy engine
+
+
+def set_rules(v2: bool):
+    global RULES_V2
+    RULES_V2 = v2
+    from rl import fastenv
+    fastenv.set_rules(v2)
+
+
 def bb_for(hand_no: int) -> int:
     for last, bb in _SCHED:
         if hand_no <= last:
             return bb
-    return 600
+    if not RULES_V2:
+        return 600
+    return 600 if hand_no <= 120 else 800 if hand_no <= 140 else 1000
 
 
 def draw_info(hole, board):
@@ -281,9 +293,9 @@ def build(state, tracker):
     f[36] = (my + contrib[me]) / (my + opp + pot)
     f[37] = math.log2(bb / 100.0) / 3.0
     h = state.hand_number
-    hl = ((h - 1) // 20 + 1) * 20 - h if h <= 100 else 0
+    hl = ((h - 1) // 20 + 1) * 20 - h if h <= (140 if RULES_V2 else 100) else 0
     f[38] = hl / 20.0
-    f[39] = min(h, 150) / 100.0
+    f[39] = min(h, 200) / 100.0
     f[40] = 1.0 if h > 100 else 0.0
     rh = len(raises)
     ors = sum(1 for s, p in raises if s != me and p == phase)

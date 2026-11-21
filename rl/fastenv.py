@@ -31,6 +31,8 @@ _i = C.POINTER(C.c_int)
 _f = C.POINTER(C.c_float)
 _d = C.POINTER(C.c_double)
 _u8 = C.POINTER(C.c_ubyte)
+_lib.fe_set_rules.argtypes = [C.c_int]
+_lib.env_reset_stacks.argtypes = [C.c_void_p, C.c_int, C.c_uint64, C.c_int, C.c_int, C.c_int, C.c_int, C.c_int, C.c_int]
 _lib.pool_new.restype = C.c_void_p
 _lib.pool_new.argtypes = [C.c_int]
 _lib.pool_free.argtypes = [C.c_void_p]
@@ -50,6 +52,10 @@ _lib.env_stats.argtypes = [C.c_void_p, C.c_int, C.c_int, _d]
 _VSR = np.ascontiguousarray(pf.VS_RANDOM, dtype=np.float64)
 _PCT = np.ascontiguousarray(pf.PCT, dtype=np.float64)
 _lib.fe_set_tables(_VSR.ctypes.data_as(_d), _PCT.ctypes.data_as(_d))
+
+
+def set_rules(v2):
+    _lib.fe_set_rules(1 if v2 else 0)
 
 
 def evaluate(cards) -> int:
@@ -77,6 +83,9 @@ class Pool:
 
     def reset(self, i, seed, ctrl0, ctrl1, hero, start_stack=10000, max_hands=1000):
         _lib.env_reset(self.h, i, seed, ctrl0, ctrl1, hero, start_stack, max_hands)
+
+    def reset_stacks(self, i, seed, ctrl0, ctrl1, hero, s0, s1, max_hands=1000):
+        _lib.env_reset_stacks(self.h, i, seed, ctrl0, ctrl1, hero, s0, s1, max_hands)
 
     def inject(self, i, decks=None, urand=None):
         decks = None if decks is None else np.ascontiguousarray(decks, dtype=np.int32)
@@ -129,3 +138,18 @@ class Pool:
         out = np.zeros(NST, dtype=np.float64)
         _lib.env_stats(self.h, i, seat, _p(out, _d))
         return out
+
+
+NCL_MAX = 80
+SZ_CAP = 300
+_lib.fe_set_clones.argtypes = [C.c_int, _d, _d, _i]
+_clone_keep = []
+
+
+def set_clones(theta, sizes, counts):
+    """theta (n,4,2,10,4,8,5), sizes (n,2,10,300), counts (n,2,10)."""
+    theta = np.ascontiguousarray(theta, dtype=np.float64)
+    sizes = np.ascontiguousarray(sizes, dtype=np.float64)
+    counts = np.ascontiguousarray(counts, dtype=np.int32)
+    _clone_keep[:] = [theta, sizes, counts]
+    _lib.fe_set_clones(len(theta), _p(theta, _d), _p(sizes, _d), _p(counts, _i))

@@ -23,3 +23,13 @@ def deterministic_numpy():
     helpers, keeping test runs reproducible end-to-end.
     """
     np.random.seed(0)
+
+
+@pytest.fixture
+def rl_legacy():
+    """Compare the C engine with the pre-fix SDK engine (old schedule, old short-blind rule)."""
+    pytest.importorskip("chipzen")
+    import rl.features as F
+    F.set_rules(False)
+    yield
+    F.set_rules(True)

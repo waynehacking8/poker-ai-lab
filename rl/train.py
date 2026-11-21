@@ -25,6 +25,14 @@ NAMES = {v: k for k, v in BASELINE_IDS.items()}
 BASE_W = {"station": 1.0, "maniac": 3.0, "nit": 1.0, "random": 0.5, "reference": 1.0,
           "lag": 3.0, "station_raiser": 3.0}
 SNAP_W = 3.0
+CLONE_IDS = {}   # spec -> controller id (200 + k), filled when --clones is given
+
+
+def install_clones(path):
+    from rl import clones
+    CLONE_IDS.clear()
+    for k, spec in enumerate(clones.load(path)):
+        CLONE_IDS[spec] = 200 + k
 
 
 def init_params(seed=0, hid=HID):
@@ -88,6 +96,8 @@ class Collector:
         if k == "snap":
             slot = int(self.rng.integers(1, n_snaps + 1))
             oc = EXT + slot
+        elif k in CLONE_IDS:
+            oc = CLONE_IDS[k]
         else:
             oc = BASELINE_IDS[k]
         ctrl = [0, 0]
@@ -209,7 +219,9 @@ class Collector:
         return dict(obs=cat(O), mask=cat(M), act=cat(A), lp=cat(LP), adv=cat(ADV), ret=cat(RET)), results
 
 
-def worker_main(conn, n_envs, seed):
+def worker_main(conn, n_envs, seed, clones_path=None):
+    if clones_path:
+        install_clones(clones_path)
     col = Collector(n_envs, seed)
     while True:
         msg = conn.recv()
@@ -234,6 +246,7 @@ def main():
     ap.add_argument("--snap-every", type=int, default=25)
     ap.add_argument("--max-minutes", type=float, default=1e9)
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--clones", default=None)
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     dev = "cuda" if torch.cuda.is_available() else "cpu"
@@ -272,19 +285,25 @@ def main():
     conns, procs = [], []
     for w in range(args.workers - 1):
         a, b = ctx.Pipe()
-        pr = ctx.Process(target=worker_main, args=(b, args.envs, args.seed * 100 + w + 1), daemon=True)
+        pr = ctx.Process(target=worker_main, args=(b, args.envs, args.seed * 100 + w + 1, args.clones), daemon=True)
         pr.start()
         conns.append(a); procs.append(pr)
+    if args.clones:
+        install_clones(args.clones)
     local = Collector(args.envs, args.seed * 100)
+    base_w = dict(BASE_W)
+    for spec in CLONE_IDS:
+        base_w[spec] = 1.5 if spec.startswith("arch") else 0.5
 
     if wr is None:
-        wr = {k: 0.5 for k in BASE_W}
-        wr["snap"] = 0.5
+        wr = {}
+    for k in list(BASE_W) + list(CLONE_IDS) + ["snap"]:
+        wr.setdefault(k, 0.5)
     t0 = time.time()
     log = open(os.path.join(args.out, "train.jsonl"), "a")
-    window = {k: [0, 0, 0] for k in list(BASE_W) + ["snap"]}
+    window = {k: [0, 0, 0] for k in wr}
     for it in range(it0 + 1, it0 + args.iters + 1):
-        weights = {k: BASE_W[k] * (1 + 2 * max(0.0, 0.9 - wr[k])) for k in BASE_W}
+        weights = {k: w0 * (1 + 2 * max(0.0, 0.9 - wr[k])) for k, w0 in base_w.items()}
         if snaps:
             weights["snap"] = SNAP_W
         for c in conns:
