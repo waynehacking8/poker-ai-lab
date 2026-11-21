@@ -1,0 +1,1 @@
+{"bb_per_hand_by_5_hands": [6.139, 6.697, 5.984, 5.105, 4.656, 3.811, 3.792, 3.271, null, null, null, null], "chip_leader_after": {"5": 0.457, "10": 0.565, "20": 0.529, "40": null}, "matches": 400, "wins": 344, "win_rate": 0.86, "ci95": [0.823, 0.891], "hands_per_win": 11.4, "opponent": "maniac"}

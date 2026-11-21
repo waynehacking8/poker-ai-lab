@@ -1,0 +1,1 @@
+{"bb_per_hand_by_5_hands": [6.64, 6.244, 6.334, 8.159, 1.622, 3.426, 4.0, 4.081, 3.366, 2.889, null, null], "chip_leader_after": {"5": 0.443, "10": 0.531, "20": 0.656, "40": null}, "matches": 400, "wins": 368, "win_rate": 0.92, "ci95": [0.889, 0.943], "hands_per_win": 13.6, "opponent": "arch:3"}

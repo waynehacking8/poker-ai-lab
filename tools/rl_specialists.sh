@@ -7,9 +7,11 @@ M=$1; shift
 for t in "$@"; do
   d=ckpt/spec_${t//:/_}
   mkdir -p $d
-  [ -f $d/state.pt ] || cp ckpt/adapt/latest.npz $d/init.npz
+  [ -f $d/state.pt ] || cp ${INIT_SRC:-ckpt/ablA/latest.npz} $d/init.npz
   INIT=""; [ -f $d/state.pt ] || INIT="--init $d/init.npz"
   python -m rl.train --out $d $INIT --workers 4 --envs 96 --steps 16000 --max-minutes $M \
     --clones data/clones.npz --only "$t" --lr 1e-4 --ent 0.003 > logs/spec_${t//:/_}.out 2>&1
-  echo "$t: $(tail -n 1 $d/train.jsonl | cut -c1-300)"
+  mkdir -p rl/models && python -m rl.export $d/latest.npz rl/models/spec_${t//:/_}.npz > /dev/null
+  python -m rl.eval_fast --model $d/latest.npz --matches 400 --clones data/clones.npz --only "$t" > $d/eval.jsonl
+  echo "$t: $(python -m rl.show_eval $d/eval.jsonl | tail -n 1)"
 done
