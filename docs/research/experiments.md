@@ -98,7 +98,26 @@ archetypes. A naive showdown-only fit matched 5, 5, 12 and 5.
 
 First leaderboard (older bot commit and older engine, so only indicative): a
 field-weighted 77.8% match-win rate [75.1, 80.6], passing 9 of 23 opponents on
-the point estimate. A rerun on the corrected engine is in progress.
+the point estimate.
+
+Leaderboard on the corrected engine, 400 seat-swapped matches per opponent
+(`reports/league/leaderboard.md` on `holdem-league`, commit 955a021). The gate
+counts an opponent as passed when the point estimate is at least 80%.
+
+| entrant | method | opponents passed | field win % [95% CI] | lowest opponent |
+|---|---|---|---|---|
+| rl-17cf03f | PPO policy, section 10 | 22 of 23 | 89.4 [88.2, 90.7] | PoetAndCoder clone 79.5 |
+| adapt-v1 | decision model, first version | 22 of 23 | 86.0 [84.5, 87.4] | maniac 74.5 |
+| chipzen-102b05e | heuristic bot, section 4 | 8 of 23 | 76.0 [74.3, 77.7] | archetype A5 64.0 |
+
+Head to head, the RL policy beat adapt-v1 57.5% and was even with the
+heuristic bot (48.0%) over 200 matches each. The heuristic bot beat adapt-v1
+61.0%. Beating the field and beating each other are different skills here.
+
+One caveat applies to both learned entrants. The six archetype clones they
+trained against were fitted on replays that include the ten bots whose
+per-bot clones are the held-out test, so their per-bot clone numbers are
+somewhat optimistic. A refit without those ten bots is in progress.
 
 ## 6. Does knowing the opponent fix it? (oracle-prior probe)
 
@@ -129,9 +148,10 @@ A single strategy with better statistics is not enough.
 * Full best response against the maniac: an expectimax over the real betting
   tree inside an outer DP over hand number, stack and position. Hand strength
   is bucketed into 25 equity buckets per street. The computed match-win value
-  is 87.4% at 10000 stacks. A first 12 matches went 11 to 1; the arena
-  confirmation over 2000 matches is running. Until it agrees I treat 87.4% as
-  unconfirmed.
+  is 87.4% at 10000 stacks. The bot that plays this table won 1751 of 2000
+  arena matches, 87.55% [86.0, 88.9], 16.7 hands per won match. The DP value
+  and the arena agree, so 80% against the maniac is reachable. The current
+  heuristic bot gets 72% and the first decision model 74.5%.
 
 ## 8. River search and safe exploitation
 
@@ -144,3 +164,53 @@ Ganzfried-Sandholm safe exploitation.
   the safe gadget.
 * A river resolve costs about 0.5 s median on the x86 estimate, which just
   fits. Turn solving does not fit (3.7 s).
+
+## 9. Chip-EV blueprint
+
+`blueprint/` on branch `holdem-blueprint`: external-sampling MCCFR with RM+
+and linear averaging, tables at 15, 25, 40, 60 and 100 bb. Cards use 169
+preflop classes and 64 equity buckets per street. Preflop actions are
+open to 2 or 3 bb, 3-bet, 4-bet and all-in; postflop bets are 0.33, 0.66 and
+1 pot plus all-in. The tables total 17.9 MB. A lookup takes about 1 ms
+postflop in pure Python.
+
+* As a bot on its own it wins 56 to 78% of matches against most opponents
+  and passes 1 of 23 (reference, 95%). It is a chip-EV equilibrium
+  approximation, and short winner-take-all matches against weak bots reward
+  exploitation, not balance.
+* Exploiting a known type from this base, measured against station_raiser
+  with a counter solve capped in total variation from the blueprint, gave
+  58.8% (blueprint), 67.5% (cap 0.3), 70.5% (cap 0.6) and 71.3% (uncapped),
+  400 matches each. Exploitation from an equilibrium base is worth 10 to 12
+  points, not enough on its own.
+* A match-value DP says that with a real edge the bot should decline all-in
+  flips under about 54 to 60% equity, at every blind level. With zero edge
+  the match-win value equals the chip share.
+
+Its role is the safety anchor and the opening-range model.
+
+## 10. Reinforcement learning against the population
+
+`rl/` on branch `holdem-rl`: PPO with numpy-only inference (330 KB of
+weights, 1.4 ms mean per decision in the league). The reward is shaped by
+a match-win potential and telescopes to the match result under the real
+blind schedule. The input has 56 features, 9 of them opponent statistics
+gathered within the current match, so the policy is conditioned on the
+opponent it faces. Training ran in a fast C engine checked against the SDK
+engine (rules, evaluator, baselines, clones, features), against a
+prioritized fictitious self-play league of the 7 baselines, the 6 archetype
+clones and past snapshots. The 10 per-bot clones were never trained on.
+
+* League result: 22 of 23, field 89.4%. The weakest are the PoetAndCoder
+  clone (79.5%), the Blueprint clone (81.5%), maniac (82.0%) and random
+  (82.8%).
+* Adding exploiter agents to the league did not help: minimum 0.807 without
+  them against 0.775 with them, one seed each.
+* Opponent conditioning against no opponent features, same training:
+  baselines 87.9% against 83.5%, held-out bot clones 83.1% against 80.8%.
+  The gain is real but modest.
+* A PFSP floor of 0.05 caused forgetting (lag fell from 0.94 to 0.73);
+  0.15 did not.
+
+Next: retrain on archetype clones refit without the ten held-out bots, and
+distill the confirmed maniac best response (section 7) into the policy.
