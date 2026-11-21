@@ -311,13 +311,16 @@ def save(path, meta, arch_theta, bot_theta, arch_naive):
 
 
 def main(argv=None):
+    global K_BOT
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default="data")
     ap.add_argument("--out", default="out/clones.npz")
     ap.add_argument("--holdout", type=float, default=0.0)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--iters", type=int, default=8)
+    ap.add_argument("--k-bot", type=float, default=K_BOT, help="shrink of a bot clone toward its archetype")
     args = ap.parse_args(argv)
+    K_BOT = args.k_bot
     ms = load_dir(args.data)
     train = [(m, hs) for m, hs in ms if not split_of(m["id"], args.holdout, args.seed)]
     test_ids = [m["id"] for m, _ in ms if split_of(m["id"], args.holdout, args.seed)]

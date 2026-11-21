@@ -78,6 +78,25 @@ def num(x, fmt="{:.1f}"):
     return "-" if x is None else fmt.format(x)
 
 
+GATE = 0.80
+
+
+def gate(rows, meta):
+    """Per-opponent results against the 80% gate: {label: (rate, lo, hi, n, pass_point, pass_lb)}."""
+    out = {}
+    labels = [(f"base:{n}", f"baseline {n}") for n in sorted({r["opp"][5:] for r in rows
+                                                              if r["opp"].startswith("base:")})]
+    labels += [(f"arch:{k}", f"archetype {meta['arch_names'][k]}") for k in range(meta["k"])]
+    labels += [(f"bot:{b}", f"bot clone {b}") for b in meta["bots"]]
+    for key, label in labels:
+        rs = [r for r in rows if r["opp"] == key]
+        if not rs:
+            continue
+        rate, lo, hi, n = pooled(rs)
+        out[label] = (rate, lo, hi, n, rate >= GATE, lo >= GATE)
+    return out
+
+
 def build(results_path, model_path):
     meta = load_model(model_path).meta
     rows = [json.loads(x) for x in Path(results_path).read_text().splitlines() if x.strip()]
@@ -103,6 +122,7 @@ def build(results_path, model_path):
             "ms_max": max((r.get("a_ms_max", 0) for r in rs), default=0),
             "by_arch": {k: pooled([r for r in field if r["opp"] == f"arch:{k}"])
                         for k in range(meta["k"]) if any(r["opp"] == f"arch:{k}" for r in field)},
+            "gate": gate(rs, meta),
             "by_bot": {b: pooled([r for r in botc if r["opp"] == f"bot:{b}"])
                        for b in meta["bots"] if any(r["opp"] == f"bot:{b}" for r in botc)},
         })
@@ -125,16 +145,35 @@ def markdown(meta, board, matrix, names, title="League leaderboard"):
              "pairs; ties broken by mean hands per won match (fewer is better).  Win rate is "
              "percent of matches, a tied hand cap counts half.")
     L.append("")
-    L.append("| # | entrant | field win % [95% CI] | hands/win | bot-clone win % [95% CI] "
-             "| baseline win % [95% CI] | field matches | decide ms mean/max | errors |")
-    L.append("|---|---|---|---|---|---|---|---|---|")
+    L.append("| # | entrant | gate (point) | gate (lower bound) | field win % [95% CI] | hands/win "
+             "| bot-clone win % [95% CI] | baseline win % [95% CI] | field matches "
+             "| decide ms mean/max | errors |")
+    L.append("|---|---|---|---|---|---|---|---|---|---|---|")
     for i, b in enumerate(board, 1):
         bc = ci(b["botclone"][:3]) if b["botclone"] else "-"
         bs = ci(b["baseline"][:3]) if b["baseline"] else "-"
-        L.append(f"| {i} | {b['entrant']} | {ci(b['field'])} | {num(b['hands_per_win'])} | "
+        g = b["gate"]
+        npt, nlb = sum(v[4] for v in g.values()), sum(v[5] for v in g.values())
+        gp = ("PASS " if npt == len(g) else "FAIL ") + f"{npt}/{len(g)}"
+        gl = ("PASS " if nlb == len(g) else "FAIL ") + f"{nlb}/{len(g)}"
+        L.append(f"| {i} | {b['entrant']} | {gp} | {gl} | {ci(b['field'])} | "
+                 f"{num(b['hands_per_win'])} | "
                  f"{bc} | {bs} | {b['field_matches']} | "
                  f"{num(b['ms_mean'])}/{b['ms_max']:.0f} | {b['errors']} |")
-    L += ["", "## Field population", "",
+    L += ["", f"## Gate: at least {100 * GATE:.0f}% of matches against each opponent separately", "",
+          "An entrant passes only if its win rate is at least 80% against every baseline, every "
+          "archetype clone and every per-bot clone on its own; the field-weighted average does not "
+          "count. The point estimate is the plain match win rate; the lower bound is the 95% Wilson "
+          "lower bound over matches. An entrant never plays itself.", ""]
+    for b in board:
+        L += [f"### {b['entrant']}", "",
+              "| opponent | win % | 95% lower bound | matches | pass (point) | pass (lower bound) |",
+              "|---|---|---|---|---|---|"]
+        for label, (rate, lo, hi, n, pp, pl) in b["gate"].items():
+            L.append(f"| {label} | {pct(rate)} | {pct(lo)} | {n} | "
+                     f"{'PASS' if pp else 'FAIL'} | {'PASS' if pl else 'FAIL'} |")
+        L.append("")
+    L += ["## Field population", "",
           "Archetype shares (rated participants): " + ", ".join(
               f"{n} {100 * w:.0f}%" for n, w in zip(meta["arch_names"], meta["weights_rated"])), ""]
     L.append("| entrant | " + " | ".join(meta["arch_names"]) + " |")

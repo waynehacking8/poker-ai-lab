@@ -146,3 +146,13 @@ def test_stratified_estimate_uses_weights():
 
 def test_legal_matrix_shape():
     assert LEGAL.shape == (10, 5)
+
+
+def test_gate_requires_every_opponent_separately():
+    from league.report import gate
+    meta = {"k": 1, "arch_names": ["A0"], "bots": []}
+    rows = ([{"opp": "base:nit", "a_win": 1.0}] * 50
+            + [{"opp": "arch:0", "a_win": 1.0}] * 30 + [{"opp": "arch:0", "a_win": 0.0}] * 20)
+    g = gate(rows, meta)
+    assert g["baseline nit"][4] and g["baseline nit"][5]
+    assert not g["archetype A0"][4]  # 60% < 80%
