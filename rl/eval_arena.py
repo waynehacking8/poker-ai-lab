@@ -2,6 +2,7 @@
 
     python -m rl.eval_arena --model rl/models/best.npz --matches 400 --opp all --workers 4
     python -m rl.eval_arena --model ... --opp chipzen     # head-to-head vs the current bot
+    python -m rl.eval_arena --model ... --opp model:rl/models/h4_it000300.npz   # vs another policy
 """
 
 from __future__ import annotations
@@ -42,7 +43,10 @@ def main():
     hero = functools.partial(make_hero, os.path.abspath(args.model), args.temperature)
     names = list(BASELINES) + ["chipzen"] if args.opp == "all" else args.opp.split(",")
     for name in names:
-        opp = make_chipzen if name == "chipzen" else name
+        if name.startswith("model:"):
+            opp = functools.partial(make_hero, os.path.abspath(name[6:]), 1.0, None)
+        else:
+            opp = make_chipzen if name == "chipzen" else name
         out = run_arena(opp, args.matches, args.seed, args.workers, hero_factory=hero)
         out["opponent"] = name
         print(json.dumps(out), flush=True)
