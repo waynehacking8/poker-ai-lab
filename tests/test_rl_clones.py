@@ -23,7 +23,7 @@ from rl import clones, fastenv  # noqa: E402
 from tests.test_rl_env import KIND, Scripted, Stub, check_state, decks_for  # noqa: E402
 
 
-pytestmark = pytest.mark.usefixtures("rl_legacy")
+
 
 
 def synth(path, rng):
@@ -52,14 +52,27 @@ class CStub(Stub):
         return a + (b - a) * self.random()
 
 
+REAL = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "clones.npz")
+
+
 @pytest.mark.parametrize("spec_i", range(4))
 def test_clone_matches_python(tmp_path, spec_i):
     rng = np.random.default_rng(3)
     p = tmp_path / "c.npz"
     synth(p, rng)
-    specs = clones.load(str(p))
+    check_clone(str(p), spec_i)
+
+
+@pytest.mark.skipif(not os.path.exists(REAL), reason="data/clones.npz missing")
+@pytest.mark.parametrize("spec_i", range(16))
+def test_real_clones_match_python(spec_i):
+    check_clone(REAL, spec_i)
+
+
+def check_clone(p, spec_i):
+    specs = clones.load(p)
     pool = fastenv.Pool(1)
-    model = league.CloneModel(str(p))
+    model = league.CloneModel(p)
     for seed in range(1, 31):
         stream = np.random.default_rng(seed).random(4000)
         bot = league.CloneBot(specs[spec_i], model=model)

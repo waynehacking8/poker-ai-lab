@@ -18,7 +18,7 @@ from nlhe.evaluator import evaluate as py_eval  # noqa: E402
 from rl import fastenv  # noqa: E402
 from rl.features import Tracker, build  # noqa: E402
 
-pytestmark = pytest.mark.usefixtures("rl_legacy")
+
 KIND = {"fold": 0, "check": 1, "call": 2, "raise": 3}
 
 
