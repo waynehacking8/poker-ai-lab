@@ -231,3 +231,30 @@ trained or tuned against weak bots and replay clones of weak bots, and
 neither had met a competent equity-based player. Beating that bot head to
 head is now part of the ship gate, so the next RL round adds it to the
 training pool.
+
+## 12. Beating the heuristic bot, and the shipped candidate
+
+Adding the heuristic bot to the RL training pool fixed the head-to-head gap.
+SDK-engine worker processes play the real bot with the newest policy and
+stream their matches to the learner. Each update is about 45% heuristic
+samples and 55% from the C env (the 23 league opponents, the maniac
+distillation term and two fixed past policies).
+
+The checkpoint at iteration 300 of that run passed both gates twice:
+
+| measurement | lowest of 23 opponents | against the heuristic bot |
+|---|---|---|
+| league, pairs 0 to 199 | A5 83.2% | 69.8% over 400 |
+| fresh seeds, pairs 200 to 399 | A5 80.2% (321/400) | 67.5% over 400, CI [62.8, 71.9] |
+
+It made 732,747 decisions in the fresh-seed run with no errors, fallbacks or
+illegal actions. Peak memory was 47 MB, and the slowest decision on one core
+was 1.9 ms.
+
+Training further made A5 worse: iteration 600 won 74.8% against the
+heuristic, but A5 fell to 77.7%. So I picked the checkpoint by both gates
+instead of taking the latest one. Its A5 margin is thin.
+
+The image passed the platform's review in minutes. Three warm-up matches on
+the real server against house bots (DeepStack, Kimiko, glambot) were all
+wins, and the bot is entered in Season 16.
