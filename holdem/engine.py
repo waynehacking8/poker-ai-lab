@@ -264,7 +264,8 @@ class Hand:
         return result
 
 
-def play_match(bots, seed: int, config: MatchConfig | None = None, strict: bool = True):
+def play_match(bots, seed: int, config: MatchConfig | None = None, strict: bool = True,
+               on_hand=None):
     """Play one match between ``bots[0]`` and ``bots[1]`` until a bust or the hand cap."""
     cfg = config or MatchConfig()
     stacks = [cfg.starting_stack, cfg.starting_stack]
@@ -284,7 +285,9 @@ def play_match(bots, seed: int, config: MatchConfig | None = None, strict: bool 
         rng.shuffle(deck)
         dealer = (hands - 1) % 2
         hand = Hand(bots, stacks, dealer, hands, sb, bb, deck, strict)
-        hand.play()
+        result = hand.play()
+        if on_hand:
+            on_hand(hand, result)
         stacks = list(hand.stack)
     capped = min(stacks) > 0
     if stacks[0] == stacks[1]:
