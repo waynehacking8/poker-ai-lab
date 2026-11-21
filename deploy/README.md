@@ -1,0 +1,1 @@
+Chipzen image for Distill1Bot: stage the context with `git archive HEAD rl chipzen_bot/nlhe deploy | tar -x -C ctx`, then `docker buildx build --platform linux/amd64 --load -f ctx/deploy/Dockerfile -t holdem-rl-distill1 ctx`.
