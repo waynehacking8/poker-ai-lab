@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-21 22:25 UTC.
+Updated 2026-11-21 22:35 UTC.
 
 ## Goal and gate
 - Heads-up NLHE bot for Chipzen.ai Season 16. Registration closes Mon 23 Nov 23:59 UTC.
@@ -31,12 +31,13 @@ poker-ai-lab (holdem-chipzen), -league, -rl, -adapt, -br, -blueprint, -search, -
 ## Uploaded (2026-11-21 22:15 UTC)
 - Chipzen bot `poker-ai-lab`, image `.cache/images/holdem-rl-h4-300.tar.gz`,
   sha256 b6f08ac739d92dd283375c82b76c3e096d5dc0eeab96f2403a6a87c5f0efff92 (weights md5 cc78a8aa...).
-- Status after upload: UPLOADED / REVIEWING. Season 16 entry is possible only once review passes
-  (season page: "A bot becomes active once it passes review"). ego-browser space 7.
+- Review passed (ACTIVE). Warm-ups on the real server: won all 3 (DeepStack, Kimiko, glambot), no timeouts.
+- ENTERED in Season 16 at 22:32 UTC. The site allows swapping in another uploaded bot until
+  registration closes (Mon 23 Nov 23:59 UTC). Fixtures are published at the close.
 - Verifier (fresh seeds, pairs 200 to 399): CONFIRMED. Thin margin: A5 321/400 = 80.2% (LB 76.1).
 
 ## Open work
-1. Watch review; when active, enter it in Season 16 (Wayne does any attestation).
+1. Only if a candidate beats rl-h4-300 on both gates with margin (fresh seeds): upload it and swap the entry.
 2. heur4 long run on gb10-d (`ckpt/heur4`, screener `tools/heur_watch.sh`, summary in
    `logs/heur_watch/summary.jsonl`). it600 failed A5 (77.7). A5 is the weak spot as heuristic training grows.
 3. Optional round 4: widen the A5 margin without losing the heuristic head to head.
