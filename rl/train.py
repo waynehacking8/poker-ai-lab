@@ -274,6 +274,8 @@ def main():
     ap.add_argument("--distill", default=None, help="teacher labels npz from rl.teacher (obs, mask, label)")
     ap.add_argument("--distill-w", type=float, default=0.0, help="weight of the cross entropy toward the teacher action")
     ap.add_argument("--bot-clones", action="store_true", help="also train on the per-bot clones (default: held out)")
+    ap.add_argument("--gen-w", type=float, default=None,
+                    help="base weight of generated archetypes (arch:6 and up, from tools/gen_clones.py)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     dev = "cuda" if torch.cuda.is_available() else "cpu"
@@ -332,6 +334,8 @@ def main():
     base_w = dict(BASE_W)
     for spec in CLONE_IDS:
         base_w[spec] = 1.5 if spec.startswith("arch") else 0.5
+        if args.gen_w is not None and spec.startswith("arch:") and int(spec[5:]) >= 6:
+            base_w[spec] = args.gen_w
     if args.skip:
         base_w = {k: v for k, v in base_w.items() if k not in args.skip.split(",")}
     if args.only:
