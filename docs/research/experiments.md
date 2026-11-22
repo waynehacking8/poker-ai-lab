@@ -337,3 +337,28 @@ Then an A/B test from h4-300 with the same recipe and compute per arm:
 Hypothesis: diversity inside the training family raises the scores on the
 validation and test families. A side test averages heur4 checkpoints
 (`tools/avg_ckpt.py`, `ckpt/swa1`).
+
+### 14.1 Test opponent: the real Blueprint (100 bb release)
+
+The poker-solver v0.1.0 blueprint (commit 4ee3132, tar sha256 3406d6c9...)
+runs as an arena opponent from branch `holdem-bpopp`. It runs in Docker on
+gb10-d with `--network none --read-only --cap-drop ALL`, a non-root user,
+and the data mounted read-only. As in the live seat, the policy threshold
+is 0.35 and there is no resolver. Only the 100 bb rung is published, so it
+plays its 100 bb tree at every depth. Each line below is 400 matches, seed
+3; the blueprint samples with an unseeded RNG, so a rerun can move a few
+points.
+
+| hero | win rate | 95% CI |
+|---|---|---|
+| h4-300 (shipped) | 55.5% | 50.6 to 60.3 |
+| h4-900 | 55.0% | 50.1 to 59.8 |
+| heuristic bot | 50.0% | 45.1 to 54.9 |
+
+The same policy wins 81% to 88% against our replay clone of the field bot
+Blueprint, whose live version is a newer 8-depth ladder. Against the real
+blueprint it barely wins. That gap is the clone family's blind spot made
+concrete: an equilibrium-style player is far harder than its behavioral
+clone. The blueprint itself is weak against simple bots. In 100 matches
+it won 63% against random and 61% against lag, where h4-300 wins 92% and
+98%.
