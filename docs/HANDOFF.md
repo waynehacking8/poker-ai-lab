@@ -12,7 +12,7 @@ Updated 2026-11-22 06:35 UTC.
 - Design rule (Wayne): adaptation comes from a decision model (online opponent model plus a
   procedure that maximizes match-win probability plus a safety blend), not switched fixed strategies.
 
-## State (league on the corrected engine, `reports/league/leaderboard.md` on holdem-league 1c74fbd)
+## State (league on the corrected engine, `reports/league/leaderboard.md` on holdem-league f07923f)
 | entrant | branch / commit | passed | field | weakest |
 |---|---|---|---|---|
 | rl-fb1-900 (SWAP CANDIDATE) | holdem-rl 82b1921 | 23/23 | 89.8 | A5 83.8 (fresh seeds 86.0, LB 82.3); heuristic h2h 64.0 (fresh 69.0, LB 64.3); verifier CONFIRMED |
