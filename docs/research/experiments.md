@@ -567,3 +567,66 @@ Close to equilibrium, it rarely gives up much and rarely takes much. A 61% match
 * Add a solver-style opponent to training, keeping Blueprint held out: the holdem-blueprint MCCFR tables
   (section 9) are the candidate.
 * Its river shoves are value-heavy, which is the spot the training field never taught.
+
+### 14.7 Spamming all-in beat v3 (roadmap S0)
+
+Wayne found it online: an opponent that shoves every hand beats the entered bot. Measured with
+`rl.eval_arena`, 400 matches, seed 3: fb2-900 wins 49.0% [44.1, 53.9] against `jam` (shoves any two
+cards every hand).
+
+* **Why:** training never showed it an any-two shover. Facing a preflop shove it called about 16% of
+  hands, although nearly every hand with 60 to 70% equity against a random hand is a profitable call.
+* **Fix at play time** (`rl/allin.py`, holdem-rl 65ef2b7):
+  * An online estimate of the opponent's preflop shove frequency and of how wide it shoves (the weakest
+    shown shoving hand widens the range at once).
+  * Match-value tables over (hand number, stack) from backward induction (`tools/allin_tables.py`).
+  * Once the frequency reaches 0.7 (three shoves in three chances), a policy fold of a preflop all-in
+    becomes a call when calling has the higher match value. On the first small-blind decision, it also
+    folds trash instead of limping into the shove.
+  * The module only overrides those two spots, so it cannot change play against anyone who does not
+    shove most hands.
+* **Ceiling:** with the shove range known from hand 1 (`tools/allin_ceiling.py oracle jam`), 65.5% [60.7, 70.0].
+
+Gate (`tools/allin_gate.sh`, `RL_ALLIN=off` for the old behavior, same seeds):
+
+| opponent | off (v3) | on |
+|---|---|---|
+| jam | 49.0 | 62.75 [57.9, 67.3] |
+| jam_half, maniac | 85.0, 85.75 | 84.5, 85.5 |
+| jam_post, minraiser, station, nit, random, reference, lag, station_raiser | | identical |
+| 23-opponent league | 23/23, 91.2 | identical |
+| Wolf, Wolf v1, v2, v5, SDK reference | 96.0, 97.0, 96.5, 96.0, 98.5 | identical |
+| Blueprint (seeded bpopp:v011) | 59.0 | 59.0, rows byte identical |
+| head to head against v3 (seeded) | 45.0 | 45.0, rows byte identical |
+
+* **Fire counts** (`tools/allin_count.py`): the answer never fired in 400 head-to-head matches or in 2000
+  matches against the Ashwing family and autodidact. Against `jam` it fired 131 times in 20 matches.
+* **The unseeded bots differ by chance.** The Ashwing family and autodidact are not seeded, and on and off
+  differed in 1192 of 1600 rows, so their gaps (for example autodidact 75.25 off, 76.5 on) are noise. The
+  fire counts show the answer played no part.
+* **Seeding the policy opponents.** Before, `model:` and `policy:` opponents were unseeded, and two identical
+  head-to-head runs read 47.25% and 49.0%. They now have a set_seed hook (holdem-rl acb29e9), and runs repeat
+  byte for byte.
+* **E4 needs a paired baseline.** fb2-900 against itself on the seeded pairs of seed 3 reads 45.0%
+  [40.2, 49.9], so a flat 50% bar on one seed set would fail the incumbent itself. A candidate's head to head
+  is compared with this mirror on the same seeds.
+* **Image:** `holdem-rl-fb2-900-allin.tar.gz`, sha256 0291ee39..., ships `rl/allin.py` and the 1 MB tables.
+  A fresh-context verifier reran the tests, the jam result (251 of 400), ten on/off pairs and the image, and
+  fuzzed 200,000 states with no exception: CONFIRMED.
+
+### 14.8 The exploiter after 150 minutes
+
+ex1 (`tools/rl_exploit.sh`, started as fb2-900 and trained only against it in the C engine) ran its full
+150 minutes: 30,790 iterations, about 990M steps. In the C engine it ends at 98 to 99% against fb2-900.
+
+* **SDK engine, 400 matches, seed 3:** fb2-900 wins 1.0% [0.4, 2.5] with the all-in answer and 1.5%
+  [0.7, 3.2] without. At 400 iterations it was 3.5%. E3 at a fixed 400 iterations already sits near the top
+  for fb2-900, so it will separate candidates only once they are much more robust.
+* **How it wins** (`tools/chipflow.py`, 200 matches):
+  * fb2-900 folds after the flop 2374 times and loses 1.09M chips there. The exploiter bets into it.
+  * Preflop, the exploiter raises first 29.7% of the time and almost never folds (1.3%).
+  * fb2-900's preflop shoves are called 162 of 210 times at 40.5% mean equity (-114k expected). The
+    exploiter calls with the hands that beat the shove range.
+  * fb2-900's river shoves still fold it out 90% of the time, but the 54 calls come at 24% equity.
+* **Use:** the ex1 snapshots (every 25 iterations in `ckpt/ex1` on gb10-d) are the first pool members for S2,
+  the league with exploiters.

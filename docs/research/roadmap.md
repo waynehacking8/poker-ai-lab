@@ -22,7 +22,7 @@ not matter. The Season 16 entry stays `poker-ai-lab-v3` (rl-fb2-900).
 | E1 | field | 23-opponent league, fresh seed pairs 200 to 399 | at least 80% each, Wilson lower bound reported |
 | E2 | real bots | Ashwing family, Wolf family, autodidact, SDK reference, seeded Blueprint; win rate and all-in adjusted chip EV per hand (`tools/chipflow.py`) | no family below the previous king |
 | E3 | exploitability | a fresh exploiter from the candidate, 400 iterations in the C engine, then 400 SDK matches against the candidate | lower is better; fb2-900 is 96.5% |
-| E4 | lineage | head to head against fb2-900, 400 matches | at least 50% |
+| E4 | lineage | head to head against fb2-900, 400 seeded matches, seed 3 | at least the fb2-900 mirror on the same seeds (45.0%), with the Wilson interval reported |
 
 A new king must hold E1, E2 and E4 and improve E3, or improve E2 with E3 no worse.
 
@@ -37,6 +37,29 @@ A new king must hold E1, E2 and E4 and improve E3, or improve E2 with E3 no wors
 
 Each slice keeps the previous king as the rollback. Code lands on `holdem-rl`, results in experiments.md
 section 14.x, and state in HANDOFF.
+
+### S0. All-in fix (inserted 2026-11-22, before S1)
+
+Wayne found it online: spamming all-in beats v3. Measured: fb2-900 wins 49.0% [44.1, 53.9] against `jam`
+(shoves every hand), 400 matches, seed 3. Facing a preflop shove it called 16% of hands with 60 to 70%
+equity against a random hand, and took 2 of 533 profitable calls in the first five hands of a match.
+Training never showed it an opponent that shoves any two cards.
+
+* **Regression bots** (`holdem/opponents.py` EXTREMES, not in "all" or the league): `jam`, `jam_half` (any
+  two, half its decisions), `jam_post` (shoves after the flop only), `minraiser`.
+* **Decision at play time** (`rl/allin.py`, tables from `tools/allin_tables.py`): an online estimate of the
+  opponent's preflop shove frequency and range, and a backward induction over (hand, stack) that gives the
+  match value of calling and folding. Once the frequency reaches 0.7 (three shoves in three chances), a
+  policy fold of a preflop all-in becomes a call when calling has the higher match value, and the small
+  blind folds trash up front instead of limping into the shove.
+* **Gate:** at least 62% against `jam` (known-range ceiling 65.5%), the league unchanged, the real bots,
+  Blueprint and head to head no worse than fb2-900.
+* **Not done here:** training against the shover family. It goes into S2's opponent pool together with
+  the exploiters.
+* **Result (2026-11-23, experiments 14.7):** gate passed. jam 49.0 -> 62.75% [57.9, 67.3] (ceiling 65.5%).
+  The league, Wolf family, SDK reference, seeded Blueprint and the seeded head to head against v3 are
+  identical. The answer fired 0 times in 2400 matches against v3, the Ashwing family and autodidact. Fresh
+  verifier CONFIRMED. Image `holdem-rl-fb2-900-allin` is built; swapping it in as v4 waits for Wayne.
 
 ### S1. Measurement harness (step 1)
 
@@ -160,6 +183,6 @@ section 14.x, and state in HANDOFF.
 ## Order and parallelism
 
 1. S1 first, because every later slice is judged with it.
-2. The `ex1` exploiter run (started 2026-11-22 13:05 UTC, 150 minutes) already produces the first
-   pool members for S2.
+2. The `ex1` exploiter run finished (30,790 iterations): fb2-900 wins 1.0 to 1.5% against it
+   (experiments 14.8). Its snapshots are the first pool members for S2.
 3. S3 can be built while S2 trains, because both touch only their own files until S3's retrain.
