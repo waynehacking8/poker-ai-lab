@@ -366,11 +366,11 @@ it won 63% against random and 61% against lag, where h4-300 wins 92% and
 ### 14.2 Result of the generalization A/B: no gain from generated archetypes
 
 Both arms started from h4-300 with the same recipe and compute (180 minute
-budget, stopped at 02:10 UTC after about 1000 iterations). Screens every 100
+budget, stopped at 02:44 UTC after about 1000 iterations). Screens every 100
 iterations (`tools/sp_watch.sh`; league set on seed 21, the others 400
 matches each):
 
-| run | below 80% (of 23) | field | weakest (A5) | vs heuristic | vs h4-300 | vs rl-17cf03f |
+| run | below 80% (of 23) | field | weakest opponent | vs heuristic | vs h4-300 | vs rl-17cf03f |
 |---|---|---|---|---|---|---|
 | gen1, it100 to it900 | 0 to 1 | 90.2 to 90.8 | 79.2 to 82.5 | 64.8 to 75.3 | 48.8 to 57.0 | 49.0 to 55.5 |
 | ctl1, it100 to it1000 | 0 to 2 | 89.5 to 90.5 | 77.0 to 81.2 | 67.3 to 72.5 | 51.0 to 58.8 | 45.5 to 56.0 |
@@ -415,7 +415,7 @@ as well or better. Like the Blueprint in 14.1, the clone family is
 missing whatever these bots do. The 23-opponent league gate measures
 strength inside the clone family, not against the live field.
 
-**Next run, fb1** (`tools/rl_fb.sh`, started 02:12 UTC on gb10-d). It is
+**Next run, fb1** (`tools/rl_fb.sh`, started 02:44 UTC on gb10-d, 180 minutes). It is
 the ctl1 recipe from h4-300 with eight SDK workers cycling these opponents:
 * the heuristic bot (twice, as it is a ship gate);
 * four field bots: ext:ashwing_v2, ext:ashwing_value, ext:ashwing_adaptive
