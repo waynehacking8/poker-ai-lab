@@ -74,3 +74,47 @@ outside it (`../experiments.md` sections 14 and 14.1).
    heads-up filter, so it is a larger job.
 3. **Keep a test family that is never trained on or selected on**
    (population-based evaluation, VGC-Bench).
+
+## Cookbook and Deep RL Course (fetched 2026-11-22 via `gh api`)
+
+* **huggingface/cookbook** (2,776 stars, pushed 2026-11-17). It has 75
+  English recipes, nearly all about LLMs: RAG, agents, TRL fine-tuning and
+  GRPO (for example `grpo_agent_wordle_hf_jobs.ipynb`). None covers a
+  small-policy RL agent, self-play or opponent generalization, so nothing
+  in it transfers to a numpy PPO policy under 0.5 vCPU.
+* **huggingface/deep-rl-class** (5,099 stars, pushed 2026-11-17). Three
+  units are useful:
+  * **Unit 7, self-play (ML-Agents).** Four settings shape the opponent
+    pool: `window` (how many past selves are kept, for more behavioral
+    diversity), `save_steps` (spacing between snapshots, for a wider range
+    of skill and style), `swap_steps`, and `play_against_latest_model_ratio`.
+    Elo tracks progress because the raw reward depends on the opponent.
+    * Ours was a window of 6 at a spacing of 25 iterations, so the pool held
+      only the last 150 iterations of itself.
+    * Added `--snap-window` (holdem-rl 1d1b0a1 or later).
+  * **Bonus 3, curriculum learning.** It points to regret-based environment
+    design and to Prioritized Level Replay:
+    * **ACCEL**, "Evolving Curricula with Regret-Based Environment Design",
+      arXiv 2203.01302. It generates levels at random, edits the
+      high-regret ones, and curates a buffer by regret.
+    * **PLR**, arXiv 2010.03934. It replays levels by regret score, with a
+      staleness term.
+
+    These are the standard form of what `tools/adv_clones.py` does over
+    opponents: sample, mutate the hardest, keep a buffer. Our PFSP weighting
+    of (1 - win rate)^2 already acts like rank-prioritized replay.
+  * **Bonus 3, generalization.** It cites Kirk et al.'s survey of
+    generalization in RL. The main points are to split the training and test
+    environment distributions, and to use domain randomization,
+    regularization and ensembles.
+
+A diagnostic with `tools/adv_clones.py` on h4-300: 256 generated opponents,
+100 matches each. Spread of h4-300's win rate across them:
+
+| min | 5th percentile | 25th percentile | median |
+|---|---|---|---|
+| 70% | 76% | 82% | 87% |
+
+Inside the plausible family, a quarter of the variants hold it under 82%.
+The minimum is biased low, because it is the smallest of 256 noisy
+estimates.
