@@ -258,6 +258,7 @@ def main():
     ap.add_argument("--ent", type=float, default=0.01)
     ap.add_argument("--init", default=None)
     ap.add_argument("--snap-every", type=int, default=25)
+    ap.add_argument("--snap-window", type=int, default=6, help="past snapshots kept in the pool (ML-Agents window)")
     ap.add_argument("--max-minutes", type=float, default=1e9)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--clones", default=None)
@@ -455,7 +456,7 @@ def main():
             np.savez(os.path.join(args.out, f"it{it:06d}.npz"), **params)
         if it % args.snap_every == 0:
             snaps.append({k: v.copy() for k, v in params.items()})
-            snaps = snaps[-6:]
+            snaps = snaps[-args.snap_window:]
         if (time.time() - t0) / 60 > args.max_minutes:
             break
     np.savez(os.path.join(args.out, "latest.npz"), **params)
