@@ -91,7 +91,7 @@ outside it (`../experiments.md` sections 14 and 14.1).
     Elo tracks progress because the raw reward depends on the opponent.
     * Ours was a window of 6 at a spacing of 25 iterations, so the pool held
       only the last 150 iterations of itself.
-    * Added `--snap-window` (holdem-rl 1d1b0a1 or later).
+    * Added `--snap-window` (holdem-rl 81d69ed).
   * **Bonus 3, curriculum learning.** It points to regret-based environment
     design and to Prioritized Level Replay:
     * **ACCEL**, "Evolving Curricula with Regret-Based Environment Design",
