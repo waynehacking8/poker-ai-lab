@@ -288,3 +288,52 @@ numpy imports are allowed (checked with an AST scan). Nothing contacts the
 network. Work is on branch `holdem-fieldbots`. Next comes the shipped
 policy's win rate against each of them, and then SDK-worker training
 against them.
+
+## 14. Does the policy overfit? Generalization by opponent family
+
+Wayne asked whether the narrow gains are overfitting. I sorted the opponents
+by whether a run trained on them.
+
+**Inside the clone family the gap is small.** On the heur4 checkpoints
+(seed 21, 400 matches each), the 13 trained opponents (7 baselines and 6
+archetypes) score 90.1% to 90.9%. The 10 per-bot clones, never trained on,
+score 88.1% to 89.4%. The gap is 1 to 3 points, so the policy is not
+memorizing particular bots. The archetypes were fitted with those 10 bots
+included, so this gap is a lower bound.
+
+**Across families the gap is large.**
+* Before the heuristic bot joined training, the policy won 43% against it.
+* Against rl-17cf03f (another RL lineage, never in heur4's pool), heur4
+  checkpoints 600 to 1200 score 51.8% to 57.5%. Against their own ancestor
+  h4-300 they score 56% to 60.5%.
+
+So progress inside a run transfers poorly to families it has not seen.
+
+**Selection on the same seeds overstates.** heur4 checkpoint 900 screened at
+A5 81.2% on seed 21. It scored 79.8% in the league (holdem-league f5441a0)
+and failed the gate there; the league also shows 60.5% against h4-300 and
+72.0% against the heuristic. Its A5 sits on the 80% line, like h4-300's
+does.
+
+**The sp1 head-to-head gains are in distribution.** sp1 has h4-300 and
+rl-17cf03f in its fixed pool. Its 64% against h4-300 at iteration 300 is
+therefore a training score, not evidence of generalization. sp1 was stopped
+at iteration 400.
+
+**What I'm doing about it.** Three opponent sets split by family:
+
+| set | contents | use |
+|---|---|---|
+| train | baselines, archetypes, generated archetypes, heuristic, own snapshots | training |
+| validation | 10 per-bot clones, rl-17cf03f | checkpoint choice |
+| test | real Chipzen bots (Ashwing_v2, AutodidactInnovations, SDK reference, wolfBot), Blueprint 100bb | measured once, never trained on or selected on |
+
+Then an A/B test from h4-300 with the same recipe and compute per arm:
+* gen1 adds 48 generated archetypes (`tools/gen_clones.py`: mixes of two
+  fitted archetypes with random fold, aggression, shove and value-or-bluff
+  tilts and scaled sizes, weight 0.25 each).
+* ctl1 does not.
+
+Hypothesis: diversity inside the training family raises the scores on the
+validation and test families. A side test averages heur4 checkpoints
+(`tools/avg_ckpt.py`, `ckpt/swa1`).
