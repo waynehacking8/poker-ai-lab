@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-22 00:30 UTC.
+Updated 2026-11-22 00:45 UTC.
 
 ## Goal and gate
 - Heads-up NLHE bot for Chipzen.ai Season 16. Registration closes Mon 23 Nov 23:59 UTC.
@@ -38,11 +38,14 @@ poker-ai-lab (holdem-chipzen), -league, -rl, -adapt, -br, -blueprint, -search, -
 
 ## Open work
 1. Swap the Season 16 entry only if a candidate beats rl-h4-300 on both gates with margin, on fresh seeds.
-2. rl-h4-900 (holdem-rl 4500e65, heur4 checkpoint 900): screening 23/23 (A5 81.2), heuristic 75.25,
-   head to head vs h4-300 59.25 [54.4, 64.0]. League entry running (`tools/league_add.sh`); then fresh seeds.
-3. sp1 self-play test on gb10-d (`tools/rl_selfplay.sh`, snapshots weight 2.0 every 10 its, 240 min),
-   screener `tools/sp_watch.sh sp1 100` -> `logs/sp_watch_sp1/summary.jsonl`. Control: `logs/sp_watch_heur4/`.
-   heur4 was stopped at it1440 to free cores.
+2. rl-h4-900 (holdem-rl 4500e65): league FAIL 22/23 (A5 79.8; holdem-league f5441a0), h2h vs h4-300 60.5,
+   heuristic 72.0. Not a swap candidate. Lesson: A5 sits on the 80% line; same-seed screening overstates.
+3. Generalization A/B on gb10-d from h4-300, 180 min each, started 00:30 UTC: gen1 (48 generated archetypes,
+   `data/clones_gen.npz`, --gen-w 0.25) vs ctl1 (none); `tools/rl_gen.sh`, screens in logs/sp_watch_{gen1,ctl1}/.
+   Sets: train = baselines, archetypes, generated, heuristic, snapshots; validation = per-bot clones, rl-17cf03f;
+   test = real Chipzen bots + Blueprint 100bb (never trained or selected on). sp1 stopped at it400
+   (its pool contains h4-300 and rl-17cf03f, so its h2h numbers are in distribution). Averaged heur4
+   checkpoints screened in logs/sp_watch_swa1/.
 4. Real Chipzen bots as opponents (Wayne approved running them on gb10-d; read in full, stdlib+numpy only,
    no network): branch holdem-fieldbots (Ashwing_v2, AutodidactInnovations, SDK reference, wolfBot).
 5. Blueprint 100bb (matteo-psnt/poker-solver v0.1.0, 1.9 GB; Wayne approved, Docker with --network none
