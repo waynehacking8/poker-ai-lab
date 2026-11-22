@@ -479,3 +479,48 @@ Ship gate (holdem-league f07923f):
 Head to head against other policies (400 each): 47.2% against h4-300, 45.0% against h4-900, 60.0%
 against rl-17cf03f. fb1-900 is slightly worse than its ancestors in a direct match, but much
 stronger against every real bot we have. The ancestors are not in the field.
+
+### 14.5 fb2 and fb3: more field bot weight helps once, then overfits
+
+fb2 (`tools/rl_fb2.sh`, holdem-rl dc0e0c3) continued from fb1-900 for 180 minutes (about 965
+iterations), with two changes:
+* the field bots and the heuristic made up about 60% of each update, against 50% in fb1;
+* A5 and A2 were weighted up (`--opp-w arch:5=4,arch:2=3`).
+
+| checkpoint | held-out Ashwing mean | ashwing_v2 (trained) | weakest league screen | heuristic screen |
+|---|---|---|---|---|
+| fb1-900 (start) | 71.3 | 76.0 | 83.8 | 67.3 |
+| fb2 it100 | 73.1 | 79.8 | 82.0 | 63.5 |
+| fb2 it500 | 74.0 | 80.0 | 83.3 | 66.0 |
+| fb2 it700 | 75.3 | 85.3 | 83.0 | 68.3 |
+| fb2 it900 | 77.2 | 85.3 | 84.3 | 67.5 |
+
+The pick was fb2-900.
+
+Ship gate (holdem-league 1056c33):
+* **League screen, pairs 0 to 199:** PASS 23/23, field 91.2, A5 84.5. The heuristic head to head was 66.2% over 400.
+* **Fresh pairs 200 to 399** (verifier, `out/verify-fb2-900`, 0 errors):
+  * The weakest opponent is A5 at 84.75% (LB 80.9).
+  * The heuristic head to head is 70.25% (LB 65.6).
+  * On the same seeds fb1-900 scored 86.0% and 69.0%, and the matches won by only one of the two
+    split close to evenly, so on the gate the two are indistinguishable.
+  * A5's extra weight did not raise A5.
+
+Test, other families (seed 3, 400 each):
+
+| opponent | h4-300 | fb1-900 | fb2-900 |
+|---|---|---|---|
+| ext:wolf, v1, v2, v5 | 84.0 to 90.0 | 93.3 to 96.0 | 96.0 to 97.0 |
+| ext:sdkref | 98.0 | 98.8 | 98.5 |
+| ext:autodidact | 63.7 | 71.8 | 75.5 [71.1, 79.5] |
+| real Blueprint 100bb | 55.5 | 59.3 | 62.3 [57.4, 66.9] |
+
+Head to head, fb2-900 against fb1-900 is 49.2% over 400. That fits the pattern: each step against
+real bots shows up on every real bot, but not against our own lineage.
+
+fb3 ran the same recipe from fb2-900 and was stopped at iteration 300:
+* The held-out Ashwing mean went 75.5, 75.4, then 73.4.
+* A5 fell to 79.7% on the screen.
+
+A third round of the same signal overfits the training bots, so the next gain needs new opponents,
+not more iterations against these four.
