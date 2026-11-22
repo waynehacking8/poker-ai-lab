@@ -1,5 +1,5 @@
 // JSON-lines shim around the vendored Wolf engine (our code). One JSON object per stdin line, one reply line per
-// "decide". No fs, net or child_process: stdin and stdout only. Runs in a --network none container (rl/field_bots/wolf.py).
+// "decide". Stdin and stdout only, no filesystem, network or subprocess access. Runs in a --network none container (rl/field_bots/wolf.py).
 import { createInterface } from 'node:readline'
 import { TableTracker } from './tracker.js'
 import { decideAction } from './adapter.js'
