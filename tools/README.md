@@ -19,6 +19,7 @@ Scripts around the Chipzen replays. The replays themselves live in `.cache/chipz
 * `bash tools/allin_gate.sh [MODEL]` is the S0 gate on the box: each opponent group with and without the
   all-in answer (`RL_ALLIN=off`) on the same seeds, plus fire counts. `ALLIN_COUNT_LOG=F python
   tools/allin_count.py <rl.eval_arena args>` runs one evaluation and logs every decision the answer changed.
+  `python tools/allin_ceiling.py oracle jam` is the ceiling with the shove range known from hand 1.
 * `bash tools/rl_exploit.sh OUT TARGET [MINUTES]` trains an exploiter of one frozen policy in the C engine
   (`INIT=<full checkpoint>` when TARGET has no value weights).
 * `bash tools/exploit_probe.sh INIT_CKPT TARGET_NPZ NAME TRAIN_SEED EVAL_SEED [ITERS]` is the fixed-budget
