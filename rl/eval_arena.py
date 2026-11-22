@@ -29,6 +29,14 @@ def make_bare_policy(model, temperature, seed):
     return RLBot(seed=seed, model=model, temperature=temperature, allin=None)
 
 
+def make_policy_opp(model, temperature, bare):
+    """A policy opponent that holdem/arena.py seeds per match through set_seed, so runs repeat."""
+    import numpy as np
+    bot = (make_bare_policy if bare else make_hero)(model, temperature, None)
+    bot.set_seed = lambda s: setattr(bot.policy, "rng", np.random.default_rng(s))
+    return bot
+
+
 def make_chipzen():
     from bot import HoldemBot
     return HoldemBot(seed=None)
@@ -76,9 +84,9 @@ def main():
             from rl.field_bots import build
             opp = functools.partial(build, name)
         elif name.startswith("model:"):
-            opp = functools.partial(make_hero, os.path.abspath(name[6:]), 1.0, None)
+            opp = functools.partial(make_policy_opp, os.path.abspath(name[6:]), 1.0, False)
         elif name.startswith("policy:"):
-            opp = functools.partial(make_bare_policy, os.path.abspath(name[7:]), 1.0, None)
+            opp = functools.partial(make_policy_opp, os.path.abspath(name[7:]), 1.0, True)
         else:
             opp = make_chipzen if name == "chipzen" else make_bp100 if name == "bp100" else name
         rows = []

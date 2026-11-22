@@ -16,6 +16,9 @@ Scripts around the Chipzen replays. The replays themselves live in `.cache/chipz
   `--opp` also takes `model:<npz>` and the extreme bots (`jam`, `jam_half`, `jam_post`, `minraiser`).
 * `python tools/allin_tables.py rl/models/allin_v.npz` solves the match-value tables that `rl/allin.py`
   uses to answer a preflop all-in from a frequent shover (roadmap S0).
+* `bash tools/allin_gate.sh [MODEL]` is the S0 gate on the box: each opponent group with and without the
+  all-in answer (`RL_ALLIN=off`) on the same seeds, plus fire counts. `ALLIN_COUNT_LOG=F python
+  tools/allin_count.py <rl.eval_arena args>` runs one evaluation and logs every decision the answer changed.
 * `bash tools/rl_exploit.sh OUT TARGET [MINUTES]` trains an exploiter of one frozen policy in the C engine
   (`INIT=<full checkpoint>` when TARGET has no value weights).
 * `bash tools/exploit_probe.sh INIT_CKPT TARGET_NPZ NAME TRAIN_SEED EVAL_SEED [ITERS]` is the fixed-budget
