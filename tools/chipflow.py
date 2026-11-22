@@ -26,9 +26,9 @@ import rl  # noqa: E402,F401  (puts chipzen_bot on sys.path)
 from holdem.engine import MatchConfig, play_match  # noqa: E402
 from holdem.opponents import make_baseline  # noqa: E402
 from nlhe.cards import card_from_str, cards_from  # noqa: E402
-from nlhe.evaluator import evaluate  # noqa: E402
+from nlhe.evaluator import category_name, evaluate  # noqa: E402
 from rl.eval_arena import make_bp100, make_hero  # noqa: E402
-from rl.features import bb_for  # noqa: E402
+from rl.features import bb_for, draw_info  # noqa: E402
 
 
 def equity(h, o, board, rng, samples=4000):
@@ -92,6 +92,26 @@ class Logged:
                 row["eq"] = round(eq, 4)
                 row["street"] = ("preflop", "x", "x", "flop", "turn", "river")[len(self.board)]
                 row["ev_delta"] = round(eq * contested + max(0, inv[me] - inv[op]) - inv[me], 1)
+                if self.board:
+                    fd, outs = draw_info(hole[me], self.board)
+                    row["hero_hand"] = category_name(evaluate(hole[me] + self.board))
+                    row["hero_draw"] = bool(fd or outs >= 2) if len(self.board) < 5 else False
+        raises = [e["seat"] for e in hist if e["action"] in ("raise", "all_in")]
+        row["aggr"] = ("hero" if raises[-1] == me else "opp") if raises else "none"
+        # a shove is a hero raise that leaves no chips behind (the policy's all-in is a raise to the maximum)
+        left, bet, cur, row["hero_shove"] = list(before), [0, 0], "preflop", None
+        for e in hist:
+            if e["phase"] != cur:
+                cur, bet = e["phase"], [0, 0]
+            s, k = e["seat"], e["action"]
+            if k in ("post_small_blind", "post_big_blind", "call"):
+                left[s] -= e["amount"]
+                bet[s] += e["amount"]
+            elif k in ("raise", "all_in"):
+                left[s] -= e["amount"] - bet[s]
+                bet[s] = e["amount"]
+                if s == me and left[s] <= 0 and row["hero_shove"] is None:
+                    row["hero_shove"] = e["phase"]
         pre = [e for e in hist if e["phase"] == "preflop" and e["action"] not in ("post_small_blind", "post_big_blind")]
         for who, s in (("hero", me), ("opp", op)):
             first = next((e["action"] for e in pre if e["seat"] == s), None)
@@ -134,6 +154,11 @@ def summarize(matches):
         by[x["end"]].append(x["delta"])
     for k in sorted(by):
         print(f"  {k:18s} {len(by[k]):5d}  {sum(by[k]):+10.0f}")
+    sd = [x for x in rows if x["end"] == "showdown"]
+    for who in ("hero", "opp", "none"):
+        t = [x for x in sd if x["aggr"] == who]
+        if t:
+            print(f"    showdown, last raise by {who:4s} {len(t):5d}  {sum(x['delta'] for x in t):+10.0f}")
     ai = [x for x in rows if x["end"] == "allin"]
     if ai:
         act, ev = sum(x["delta"] for x in ai), sum(x["ev_delta"] for x in ai)
@@ -143,6 +168,22 @@ def summarize(matches):
             if s:
                 print(f"  {st:7s} {len(s):4d}  mean equity {sum(x['eq'] for x in s) / len(s):.3f}  "
                       f"expected {sum(x['ev_delta'] for x in s):+8.0f}  actual {sum(x['delta'] for x in s):+8.0f}")
+                for who in ("hero", "opp"):
+                    t = [x for x in s if x["aggr"] == who]
+                    if t:
+                        dr = sum(x.get("hero_draw", False) for x in t)
+                        print(f"    last raise by {who:4s} {len(t):4d}  mean equity {sum(x['eq'] for x in t) / len(t):.3f}  "
+                              f"expected {sum(x['ev_delta'] for x in t):+8.0f}  hero drawing {dr}")
+    print("\nhero shoves (net chips including the folds they win; called hands at expected value):")
+    for st in ("preflop", "flop", "turn", "river"):
+        t = [x for x in rows if x.get("hero_shove") == st]
+        if t:
+            fo = [x for x in t if x["end"] == "opp_folds_post" or x["end"] == "opp_folds_pre"]
+            ca = [x for x in t if x["end"] == "allin"]
+            won_f = sum(x["delta"] for x in fo)
+            ev_c = sum(x["ev_delta"] for x in ca)
+            print(f"  {st:7s} {len(t):5d}  folds {len(fo):5d} ({100 * len(fo) / len(t):.0f}%) {won_f:+9.0f}  "
+                  f"called {len(ca):4d} expected {ev_c:+9.0f}  net {won_f + ev_c:+9.0f}")
     lost = [m for m in matches if not m["won"]]
     last = [m["rows"][-1] for m in lost if m["rows"]]
     fav = [x for x in last if x["end"] == "allin" and x["eq"] >= 0.5]
