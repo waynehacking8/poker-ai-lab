@@ -362,3 +362,70 @@ concrete: an equilibrium-style player is far harder than its behavioral
 clone. The blueprint itself is weak against simple bots. In 100 matches
 it won 63% against random and 61% against lag, where h4-300 wins 92% and
 98%.
+
+### 14.2 Result of the generalization A/B: no gain from generated archetypes
+
+Both arms started from h4-300 with the same recipe and compute (180 minute
+budget, stopped at 02:10 UTC after about 1000 iterations). Screens every 100
+iterations (`tools/sp_watch.sh`; league set on seed 21, the others 400
+matches each):
+
+| run | below 80% (of 23) | field | weakest (A5) | vs heuristic | vs h4-300 | vs rl-17cf03f |
+|---|---|---|---|---|---|---|
+| gen1, it100 to it900 | 0 to 1 | 90.2 to 90.8 | 79.2 to 82.5 | 64.8 to 75.3 | 48.8 to 57.0 | 49.0 to 55.5 |
+| ctl1, it100 to it1000 | 0 to 2 | 89.5 to 90.5 | 77.0 to 81.2 | 67.3 to 72.5 | 51.0 to 58.8 | 45.5 to 56.0 |
+
+* Neither arm moves after the first 100 iterations. The field average stays
+  at 90%, and A5 wanders around the 80% line on noise.
+* gen1 is not better than ctl1 on any of the three sets. Widening the clone
+  family with random tilts did not raise the held-out scores, so the
+  hypothesis in section 14 fails at this scale.
+* Against rl-17cf03f, a lineage neither arm has seen, both stay at about
+  50%. The 53% to 59% against their own ancestor h4-300 is a family effect,
+  not general strength.
+
+### 14.3 The real field bots: the clone metric overstates by 20 to 30 points
+
+Branch `holdem-fieldbots` (merged into holdem-rl at 71cbb87) vendors 13
+public Chipzen bots as SDK-engine opponents `ext:<name>`.
+* All code was read in full and checked by `tools/check_vendor.py`: stdlib
+  and numpy only, no network, file or process access. Wolf is JavaScript
+  and runs in `docker run --network none --read-only --cap-drop ALL`.
+* All 13 played 400 matches with 0 exceptions and 0 illegal actions.
+
+Hero win rates, 400 matches each, seed 3, Wilson 95%:
+
+| field bot | h4-300 (shipped) | heuristic bot |
+|---|---|---|
+| ext:ashwing_v2 (the live Chipzen entry Ashwing_v2) | 63.0% [58.2, 67.6] | 58.2% [53.4, 63.0] |
+| ext:ashwing | 55.2% [50.4, 60.0] | 58.8% [53.9, 63.5] |
+| ext:ashwing_search | 49.2% [44.4, 54.1] | 57.0% [52.1, 61.8] |
+| ext:ashwing_hive | 58.8% [53.9, 63.5] | 59.0% [54.1, 63.7] |
+| ext:ashwing_adaptive | 59.8% [54.9, 64.4] | 57.8% [52.9, 62.5] |
+| ext:ashwing_value | 75.0% [70.5, 79.0] | 66.0% [61.2, 70.5] |
+| ext:autodidact (poker-arena, 2000 trials) | 63.7% [58.9, 68.3] | 63.7% [58.9, 68.3] |
+| ext:autodidact_fast (200 trials) | 58.8% [53.9, 63.5] | 64.8% [59.9, 69.3] |
+| ext:wolf, wolf_v5, wolf_v2, wolf_v1 | 84.0% to 90.0% | 67.8% to 73.2% |
+| ext:sdkref (SDK example) | 98.0% [96.1, 99.0] | 89.2% [85.8, 91.9] |
+
+The per-bot clones of the same entrants score 84% to 89% for h4-300 in the
+league (AutodidactInnovations clone about 85%). Against the real Ashwing and
+autodidact code the policy wins 49% to 64%, and the old heuristic bot does
+as well or better. Like the Blueprint in 14.1, the clone family is
+missing whatever these bots do. The 23-opponent league gate measures
+strength inside the clone family, not against the live field.
+
+**Next run, fb1** (`tools/rl_fb.sh`, started 02:12 UTC on gb10-d). It is
+the ctl1 recipe from h4-300 with eight SDK workers cycling these opponents:
+* the heuristic bot (twice, as it is a ship gate);
+* four field bots: ext:ashwing_v2, ext:ashwing_value, ext:ashwing_adaptive
+  and ext:autodidact_fast.
+
+The opponent splits:
+* **Validation, siblings of trained bots:** ext:ashwing, ext:ashwing_search,
+  ext:ashwing_hive and ext:autodidact. `tools/fb_watch.sh` screens them on
+  seed 5.
+* **Test, other families:** Wolf, the SDK reference, the real Blueprint and
+  rl-17cf03f.
+
+ctl1 is the control at equal iterations.
