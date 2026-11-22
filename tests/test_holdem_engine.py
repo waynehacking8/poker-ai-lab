@@ -12,7 +12,7 @@ from chipzen import Action  # noqa: E402
 
 from holdem.engine import Hand, IllegalAction, MatchConfig, blinds_for_hand, play_match  # noqa: E402
 from holdem.opponents import (  # noqa: E402
-    BASELINES, Maniac, RandomLegal, make_baseline,
+    BASELINES, EXTREMES, Maniac, RandomLegal, make_baseline,
 )
 from nlhe.cards import card_from_str as c  # noqa: E402
 
@@ -130,7 +130,7 @@ def test_illegal_action_rejected():
         play_hand([a, Script()], [10000, 10000], deck)
 
 
-@pytest.mark.parametrize("name", sorted(BASELINES))
+@pytest.mark.parametrize("name", sorted(BASELINES) + sorted(EXTREMES))
 def test_baselines_play_legal_matches_and_conserve_chips(name):
     for seed in range(3):
         bots = [make_baseline(name, seed), RandomLegal(seed)]

@@ -306,8 +306,74 @@ BASELINES = {
 }
 
 
+
+class Jam:
+    """Shoves whenever a raise is legal, otherwise calls. Regression bot for the all-in fix."""
+
+    name = "jam"
+
+    def __init__(self, seed=0):
+        pass
+
+    def decide(self, state):
+        if "raise" in state.valid_actions:
+            return Action.raise_to(state.max_raise)
+        return call_or_check(state)
+
+
+class JamHalf:
+    """Shoves any two cards on half of its decisions, otherwise calls or checks."""
+
+    name = "jam_half"
+
+    def __init__(self, seed=0):
+        self.rng = random.Random(seed)
+
+    def decide(self, state):
+        if "raise" in state.valid_actions and self.rng.random() < 0.5:
+            return Action.raise_to(state.max_raise)
+        return call_or_check(state)
+
+
+class JamPost:
+    """Calls or checks preflop, then shoves every later street."""
+
+    name = "jam_post"
+
+    def __init__(self, seed=0):
+        pass
+
+    def decide(self, state):
+        if state.phase != "preflop" and "raise" in state.valid_actions:
+            return Action.raise_to(state.max_raise)
+        return call_or_check(state)
+
+
+class MinRaiser:
+    """Min-raises whenever it can, otherwise calls."""
+
+    name = "minraiser"
+
+    def __init__(self, seed=0):
+        pass
+
+    def decide(self, state):
+        if "raise" in state.valid_actions:
+            return raise_to(state, state.min_raise)
+        return call_or_check(state)
+
+
+# Extreme strategies a human can play against us online; not part of "all" or the league.
+EXTREMES = {
+    "jam": Jam,
+    "jam_half": JamHalf,
+    "jam_post": JamPost,
+    "minraiser": MinRaiser,
+}
+
+
 def make_baseline(name: str, seed: int = 0):
-    cls = BASELINES[name]
+    cls = BASELINES[name] if name in BASELINES else EXTREMES[name]
     try:
         return cls(seed)
     except TypeError:
