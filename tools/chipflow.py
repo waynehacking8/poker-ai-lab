@@ -128,8 +128,12 @@ def run_one(job):
     elif opp_name.startswith("ext:"):
         from rl.field_bots import build
         opp = build(opp_name)
+    elif opp_name.startswith("model:"):
+        opp = make_hero(os.path.abspath(opp_name[6:]), 1.0, pair_seed * 13 + seat)
     else:
         opp = make_baseline(opp_name, pair_seed * 13 + seat)
+    if hasattr(opp, "set_seed"):
+        opp.set_seed(pair_seed * 13 + seat)
     bots = [None, None]
     bots[seat], bots[1 - seat] = hero, opp
     res = play_match(bots, pair_seed, MatchConfig())
@@ -202,7 +206,7 @@ def summarize(matches):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
-    ap.add_argument("--opp", required=True, help="bp100, ext:<field bot> or a baseline name")
+    ap.add_argument("--opp", required=True, help="bp100, ext:<field bot>, model:<npz> or a baseline name")
     ap.add_argument("--matches", type=int, default=400)
     ap.add_argument("--seed", type=int, default=3)
     ap.add_argument("--workers", type=int, default=2)

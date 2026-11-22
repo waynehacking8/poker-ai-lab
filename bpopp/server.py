@@ -70,6 +70,10 @@ def main():
         msg = json.loads(line)
         op = msg["op"]
         if op == "match_start":
+            if msg.get("seed") is not None:
+                # the blueprint samples with the global legacy np.random (mccfr/policy.py)
+                import numpy as np
+                np.random.seed(int(msg["seed"]) % 2**32)
             seat = BlueprintSeat.for_match(
                 blueprint, {"game_config": msg["game_config"]}, seat=int(msg["seat"]),
                 use_resolver=False)

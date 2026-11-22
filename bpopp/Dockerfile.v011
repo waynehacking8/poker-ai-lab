@@ -1,0 +1,5 @@
+# bpopp:v011 = bpopp:v010 plus the server that seeds the blueprint's sampling per match.
+# Only /srv/server.py changes; the poker-solver code, venv and base image are v010's.
+#   docker build -f bpopp/Dockerfile.v011 -t bpopp:v011 bpopp
+FROM bpopp:v010
+COPY server.py /srv/server.py

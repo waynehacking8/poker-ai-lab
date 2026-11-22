@@ -121,12 +121,17 @@ class BlueprintOpponent:
     def __init__(self):
         self.box = container()
         self.seat = 0
+        self.seed = None
+
+    def set_seed(self, seed):
+        """Seed the container's sampling for the next match (images before bpopp:v011 ignore it)."""
+        self.seed = int(seed)
 
     def on_match_start(self, match_info):
         self.seat = int(match_info["your_seat"])
         cfg = dict(match_info["game_config"])
         cfg.setdefault("variant", "nlhe")
-        self.box.call({"op": "match_start", "game_config": cfg, "seat": self.seat})
+        self.box.call({"op": "match_start", "game_config": cfg, "seat": self.seat, "seed": self.seed})
 
     def decide(self, state):
         t0 = time.perf_counter()

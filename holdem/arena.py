@@ -40,6 +40,8 @@ def run_one(job):
     opp_name, pair_seed, hero_seat, hero_factory = job
     hero = (hero_factory or _make_hero)(pair_seed * 7 + hero_seat)
     opp = make_baseline(opp_name, pair_seed * 13 + hero_seat) if isinstance(opp_name, str) else opp_name()
+    if hasattr(opp, "set_seed"):
+        opp.set_seed(pair_seed * 13 + hero_seat)
     bots = [None, None]
     bots[hero_seat] = hero
     bots[1 - hero_seat] = opp
@@ -49,7 +51,8 @@ def run_one(job):
             "capped": res.capped, "stacks": res.stacks}
 
 
-def run_arena(opp: str, matches: int, seed: int = 1, workers: int = 8, hero_factory=None):
+def run_arena(opp: str, matches: int, seed: int = 1, workers: int = 8, hero_factory=None, rows_out=None):
+    """Aggregate result of ``matches`` matches; per-match rows are appended to ``rows_out`` when given."""
     jobs = []
     for k in range(matches // 2):
         for seat in (0, 1):
@@ -60,6 +63,8 @@ def run_arena(opp: str, matches: int, seed: int = 1, workers: int = 8, hero_fact
     else:
         with Pool(workers) as pool:
             rows = pool.map(run_one, jobs, chunksize=2)
+    if rows_out is not None:
+        rows_out.extend(rows)
     n = len(rows)
     wins = sum(r["won"] for r in rows)
     lo, hi = wilson(wins, n)
