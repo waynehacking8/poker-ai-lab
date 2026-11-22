@@ -70,8 +70,13 @@ exploitability (E3) is a primary metric next to the league and the real bots.
 - ex1 exploiter finished (30,790 iterations): fb2-900 wins 1.0 to 1.5% against it (experiments 14.8).
 
 ## Open work
-0. Next: roadmap S1 (seeded harness acceptance, `tools/eval_card.sh`, probes, fb2-900 baseline card),
-   then S2 with the ex1 snapshots and the shover bots in the pool.
+0. S1 done (research 14.9, baseline card `logs/eval_card/fb2-900.json` on gb10-d; verifier CONFIRMED).
+   S2 running since 2026-11-22 19:47 UTC on gb10-d: `tools/rl_s2.sh s2 ckpt/fb2/it000900.npz 300` (holdem-rl
+   8739676), pool `pool_s2`, logs `logs/s2/` (screens at it 200/400/600, end reason in `logs/s2/end.txt`).
+   Verifier CONFIRMED the code; five non-breaking fixes wait until S2 ends (never edit a running script):
+   flush the PFSP window when the pool changes (rotation misattributes 4 of 5 iterations), read the arrays
+   in the target check, never overwrite an existing STOP, use exit 20 for stop 2 (python's own exit 2 is
+   ambiguous), keep restored pool win rates on resume.
 1. Swap again only if a candidate beats rl-fb2-900 on the real field bots and ties or beats it on both gates, on fresh seeds; ask Wayne first.
 2. rl-h4-900 (holdem-rl 4500e65): league FAIL 22/23 (A5 79.8; holdem-league f5441a0), h2h vs h4-300 60.5,
    heuristic 72.0. Not a swap candidate. Lesson: A5 sits on the 80% line; same-seed screening overstates.
@@ -103,6 +108,7 @@ exploitability (E3) is a primary metric next to the league and the real bots.
   `deploy/hf_package.sh`, or the image fails on import.
 - Live NLHE round_start `stacks` are post-blind; take hand-start stacks from the previous round_result.
 - ~/poker-ai-lab-rl on gb10-d is a copied tree (no git, CRLF files): sync every changed file, deploy/ included.
+  A CRLF shell script there fails at once (`.venv/bin/activate`): check `file x.sh` after syncing.
   Images are built from `git archive HEAD` by `deploy/build_on_box.sh`, not from that tree.
 - `ext:` field bots are unseeded, so on/off runs against them differ by chance; `model:`, `policy:` and
   bpopp:v011 are seeded per match (holdem-rl acb29e9) and repeat byte for byte.
