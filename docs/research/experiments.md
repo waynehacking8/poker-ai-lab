@@ -636,7 +636,7 @@ ex1 (`tools/rl_exploit.sh`, started as fb2-900 and trained only against it in th
 Everything later is judged with this, so it had to repeat exactly.
 
 * **Seeded Blueprint.** `bpopp:v011` is v010 plus one layer, a `server.py` that seeds the global NumPy RNG
-  on `match_start`. The two servers differ only by those four lines. fb2-900 against it, 400 matches, seed 3:
+  on `match_start`. Apart from line endings (v011's copy is CRLF), the two servers differ only by those four lines. fb2-900 against it, 400 matches, seed 3:
   * byte-identical rows across three runs, with 2 and 3 workers: 236 wins, 59.0%;
   * the unseeded v010 differs in 310 of 400 rows (57.5%), so the seed is what makes it repeat.
 * **Seeded policy opponents.** `model:` and `policy:` opponents now repeat byte for byte. The fb2-900 mirror
@@ -652,7 +652,9 @@ Everything later is judged with this, so it had to repeat exactly.
   | card, train seed 1 | 95.0 [92.4, 96.7] |
 
   The intervals overlap, so the probe is stable to about two points. Training is not deterministic across
-  runs; the eval is.
+  runs; the eval is. The two seed probes' JSON files were rewritten after the runs: their iteration field
+  first counted log lines (81), and now records the last logged iteration (400), which the probe script
+  also does since holdem-rl 2834f8d.
 * **Baseline card** `logs/eval_card/fb2-900.json` (`tools/eval_card.sh`), for the entered bot
   (fb2-900 plus the all-in answer):
 
