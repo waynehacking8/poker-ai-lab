@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-22 10:20 UTC.
+Updated 2026-11-22 16:30 UTC.
 
 ## Goal and gate
 - Heads-up NLHE bot for Chipzen.ai Season 16. Registration closes Mon 23 Nov 23:59 UTC.
@@ -15,6 +15,7 @@ Updated 2026-11-22 10:20 UTC.
 ## State (league on the corrected engine, `reports/league/leaderboard.md` on holdem-league f07923f)
 | entrant | branch / commit | passed | field | weakest |
 |---|---|---|---|---|
+| rl-fb2-900-allin (S0 candidate, not uploaded) | holdem-rl ad5ec3a | 23/23 | 91.2 | identical to fb2-900 everywhere except jam 49.0 -> 62.75; verifier CONFIRMED |
 | rl-fb2-900 (ENTERED as poker-ai-lab-v3) | holdem-rl 56c4419 | 23/23 | 91.2 | A5 84.5 (fresh 84.75, LB 80.9); heuristic h2h 66.2 (fresh 70.25, LB 65.6); verifier CONFIRMED |
 | rl-fb1-900 (uploaded as poker-ai-lab-v2) | holdem-rl 82b1921 | 23/23 | 89.8 | A5 83.8 (fresh seeds 86.0, LB 82.3); heuristic h2h 64.0 (fresh 69.0, LB 64.3); verifier CONFIRMED |
 | rl-h4-300 (previous entry, bot poker-ai-lab) | holdem-rl 5493fc6 | 23/23 | 88.8 | A5 83.2 (fresh seeds 80.2); heuristic h2h 69.8 (fresh 67.5) |
@@ -51,7 +52,20 @@ exploitability (E3) is a primary metric next to the league and the real bots.
   `deploy/hf_package.sh` (holdem-rl 4f8adde), uploaded through the web UI (no HF token on this PC), all 16
   files read back byte identical. Make it public in the repo Settings when Wayne wants.
 
+## S0 all-in fix (2026-11-22, research experiments 14.7)
+- Wayne found online that spamming all-in beats v3: fb2-900 wins 49.0% against `jam`. Fix: `rl/allin.py`
+  (holdem-rl 65ef2b7, deploy ad5ec3a), a play-time answer to a near-certain preflop shover from solved
+  match-value tables `rl/models/allin_v.npz`. jam 62.75% (ceiling 65.5%). League, Wolf family, seeded
+  Blueprint and seeded h2h vs v3 byte identical; 0 fires in 2400 matches against v3, Ashwing family, autodidact.
+- Image on gb10-d `~/build-rl/holdem-rl-fb2-900-allin.tar.gz`, sha256
+  0291ee39ca557a2fb60bfb397184328eff767c6ac324c42e141704c32ea44f53. League row holdem-league fcb34c0.
+- Gate tools: `tools/allin_gate.sh`, `tools/allin_count.py`, `tools/allin_ceiling.py`; logs in
+  `logs/allin/` on gb10-d. Upload as v4 and the swap wait for Wayne's yes.
+- ex1 exploiter finished (30,790 iterations): fb2-900 wins 1.0 to 1.5% against it (experiments 14.8).
+
 ## Open work
+0. Next: roadmap S1 (seeded harness acceptance, `tools/eval_card.sh`, probes, fb2-900 baseline card),
+   then S2 with the ex1 snapshots and the shover bots in the pool.
 1. Swap again only if a candidate beats rl-fb2-900 on the real field bots and ties or beats it on both gates, on fresh seeds; ask Wayne first.
 2. rl-h4-900 (holdem-rl 4500e65): league FAIL 22/23 (A5 79.8; holdem-league f5441a0), h2h vs h4-300 60.5,
    heuristic 72.0. Not a swap candidate. Lesson: A5 sits on the 80% line; same-seed screening overstates.
@@ -79,3 +93,10 @@ exploitability (E3) is a primary metric next to the league and the real bots.
 - numba is not deployable (pure Python plus numpy only on the host).
 - chipzen.ai: one fetcher, stop on the first 429 (900 s IP block).
 - gb10-d clock is UTC+8.
+- `deploy/Dockerfile` copies rl files by name: a new runtime module or table must be added there and in
+  `deploy/hf_package.sh`, or the image fails on import.
+- Live NLHE round_start `stacks` are post-blind; take hand-start stacks from the previous round_result.
+- ~/poker-ai-lab-rl on gb10-d is a copied tree (no git, CRLF files): sync every changed file, deploy/ included.
+  Images are built from `git archive HEAD` by `deploy/build_on_box.sh`, not from that tree.
+- `ext:` field bots are unseeded, so on/off runs against them differ by chance; `model:`, `policy:` and
+  bpopp:v011 are seeded per match (holdem-rl acb29e9) and repeat byte for byte.
