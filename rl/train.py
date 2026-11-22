@@ -272,6 +272,7 @@ def main():
     ap.add_argument("--sdk-workers", type=int, default=0, help="extra busy processes playing the heuristic HoldemBot in the SDK engine")
     ap.add_argument("--sdk-opps", default="chipzen", help="SDK opponents for the sdk workers, comma separated: chipzen (heuristic) and ext:<field bot>; round robin per worker")
     ap.add_argument("--heur-batch", type=int, default=3000, help="heuristic samples to wait for before each PPO update")
+    ap.add_argument("--opp-w", default=None, help="base weight overrides, comma separated key=w (e.g. arch:5=4)")
     ap.add_argument("--skip", default=None, help="drop these opponent keys from the PFSP pool (comma separated, e.g. arch:1)")
     ap.add_argument("--distill", default=None, help="teacher labels npz from rl.teacher (obs, mask, label)")
     ap.add_argument("--distill-w", type=float, default=0.0, help="weight of the cross entropy toward the teacher action")
@@ -338,6 +339,10 @@ def main():
         base_w[spec] = 1.5 if spec.startswith("arch") else 0.5
         if args.gen_w is not None and spec.startswith("arch:") and int(spec[5:]) >= 6:
             base_w[spec] = args.gen_w
+    if args.opp_w:
+        for kv in args.opp_w.split(","):
+            k, v = kv.rsplit("=", 1)
+            base_w[k] = float(v)
     if args.skip:
         base_w = {k: v for k, v in base_w.items() if k not in args.skip.split(",")}
     if args.only:
