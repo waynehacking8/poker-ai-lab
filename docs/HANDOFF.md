@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-22 16:30 UTC.
+Updated 2026-11-22 18:50 UTC.
 
 ## Goal and gate
 - Heads-up NLHE bot for Chipzen.ai Season 16. Registration closes Mon 23 Nov 23:59 UTC.
@@ -15,8 +15,8 @@ Updated 2026-11-22 16:30 UTC.
 ## State (league on the corrected engine, `reports/league/leaderboard.md` on holdem-league f07923f)
 | entrant | branch / commit | passed | field | weakest |
 |---|---|---|---|---|
-| rl-fb2-900-allin (S0 candidate, not uploaded) | holdem-rl ad5ec3a | 23/23 | 91.2 | identical to fb2-900 everywhere except jam 49.0 -> 62.75; verifier CONFIRMED |
-| rl-fb2-900 (ENTERED as poker-ai-lab-v3) | holdem-rl 56c4419 | 23/23 | 91.2 | A5 84.5 (fresh 84.75, LB 80.9); heuristic h2h 66.2 (fresh 70.25, LB 65.6); verifier CONFIRMED |
+| rl-fb2-900-allin (ENTERED as poker-ai-lab-v4) | holdem-rl ad5ec3a | 23/23 | 91.2 | identical to fb2-900 everywhere except jam 49.0 -> 62.75; verifier CONFIRMED |
+| rl-fb2-900 (uploaded as poker-ai-lab-v3) | holdem-rl 56c4419 | 23/23 | 91.2 | A5 84.5 (fresh 84.75, LB 80.9); heuristic h2h 66.2 (fresh 70.25, LB 65.6); verifier CONFIRMED |
 | rl-fb1-900 (uploaded as poker-ai-lab-v2) | holdem-rl 82b1921 | 23/23 | 89.8 | A5 83.8 (fresh seeds 86.0, LB 82.3); heuristic h2h 64.0 (fresh 69.0, LB 64.3); verifier CONFIRMED |
 | rl-h4-300 (previous entry, bot poker-ai-lab) | holdem-rl 5493fc6 | 23/23 | 88.8 | A5 83.2 (fresh seeds 80.2); heuristic h2h 69.8 (fresh 67.5) |
 | rl-distill1 | holdem-rl 22b46de | 23/23 | 91.5 | qwentom-leap clone 85.0; heuristic h2h 43.0 |
@@ -38,14 +38,20 @@ with exploiters, showdown memory, range belief, a wider bet set, river search, t
 an exploiter trained 2 minutes against fb2-900 beats it 96.5% (fb2-900 folds after the flop too often), so
 exploitability (E3) is a primary metric next to the league and the real bots.
 
-## Season 16 entry (swapped 2026-11-22 10:15 UTC, Wayne approved)
-- Entered: Chipzen bot `poker-ai-lab-v3` (id 116f047c-da11-4879-be63-136232ec7913) = rl-fb2-900, image
+## Season 16 entry (swapped 2026-11-22 18:45 UTC, Wayne approved)
+- Entered: Chipzen bot `poker-ai-lab-v4` (id dbdfde29-f098-4a79-9249-a4bdbe3157f3) = rl-fb2-900-allin, image
+  `.cache/images/holdem-rl-fb2-900-allin.tar.gz` sha256 0291ee39ca557a2fb60bfb397184328eff767c6ac324c42e141704c32ea44f53.
+  Review about 1 minute. Season page reads "poker-ai-lab-v4 is entered" after reload.
+- The account holds at most 3 bots and code cannot be replaced in place. To upload v4, `poker-ai-lab`
+  (rl-h4-300) was deleted (Wayne approved; its image stays in `.cache/images/holdem-rl-h4-300.tar.gz`).
+- Previous entry 10:15 to 18:45 UTC: Chipzen bot `poker-ai-lab-v3` (id 116f047c-da11-4879-be63-136232ec7913) = rl-fb2-900, image
   `.cache/images/holdem-rl-fb2-900.tar.gz` sha256 058280d4c18ae58d0efa8a8aef522d2412f9c452fcafffe9c612e781b28468c4
   (weights md5 4ad6e363). Review about 4 minutes; warm-up beat PluriBot. Season page reads
   "poker-ai-lab-v3 is entered" after reload.
-- Also uploaded and ACTIVE, for switching back until Mon 23 Nov 23:59 UTC (Season 16 page, Change bot):
-  `poker-ai-lab-v2` (rl-fb1-900, sha256 8b4b4a45...) and `poker-ai-lab` (rl-h4-300, sha256 b6f08ac7...).
-- Registered at 10:15 UTC: poker-ai-lab-v3, Shadow, bp_bot, 6BP9, allin_9-1, microholdem, Ashwing_v3.
+- Also uploaded, for switching back until Mon 23 Nov 23:59 UTC (Season 16 page, Change bot):
+  `poker-ai-lab-v3` (rl-fb2-900) and `poker-ai-lab-v2` (rl-fb1-900, sha256 8b4b4a45...).
+- Registered at 18:45 UTC (9): HRT, poker-ai-lab-v4, kangaroo, Shadow, bp_bot, 6BP9, allin_9-1, microholdem,
+  Ashwing_v3.
   House bots top up after the deadline.
 - Hugging Face (2026-11-22, PRIVATE): https://huggingface.co/waynehacking8/poker-ai-lab-hunl-ppo holds the
   fb2-900 package (model card, MIT, weights.npz plus model.safetensors, the image's runtime files). Built by
@@ -60,7 +66,7 @@ exploitability (E3) is a primary metric next to the league and the real bots.
 - Image on gb10-d `~/build-rl/holdem-rl-fb2-900-allin.tar.gz`, sha256
   0291ee39ca557a2fb60bfb397184328eff767c6ac324c42e141704c32ea44f53. League row holdem-league fcb34c0.
 - Gate tools: `tools/allin_gate.sh`, `tools/allin_count.py`, `tools/allin_ceiling.py`; logs in
-  `logs/allin/` on gb10-d. Upload as v4 and the swap wait for Wayne's yes.
+  `logs/allin/` on gb10-d. Uploaded and entered as poker-ai-lab-v4 (Wayne approved).
 - ex1 exploiter finished (30,790 iterations): fb2-900 wins 1.0 to 1.5% against it (experiments 14.8).
 
 ## Open work
