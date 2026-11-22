@@ -429,3 +429,50 @@ The opponent splits:
   rl-17cf03f.
 
 ctl1 is the control at equal iterations.
+
+### 14.4 fb1: training against real field bots generalizes, within and across families
+
+fb1 (`tools/rl_fb.sh`, holdem-rl f76572e) ran 180 minutes from h4-300, about 1080 iterations. Its SDK
+workers cycled the heuristic bot (twice), ext:ashwing_v2, ext:ashwing_value, ext:ashwing_adaptive and
+ext:autodidact_fast. ctl1 is the control: the same recipe with the heuristic bot only.
+
+Validation, the held-out Ashwing siblings (seed 5, 400 matches each):
+
+| hero | ashwing | ashwing_search | ashwing_hive | mean | ashwing_v2 (trained) |
+|---|---|---|---|---|---|
+| h4-300 (shipped) | 57.3 | 55.3 | 59.8 | 57.4 | 59.3 |
+| ctl1 it1000 | 59.8 | 61.3 | 66.8 | 62.6 | 67.8 |
+| fb1 it100 | 62.3 | 59.5 | 68.8 | 63.5 | 69.3 |
+| fb1 it200 | 64.0 | 64.8 | 75.0 | 67.9 | 73.0 |
+| fb1 it600 | 66.8 | 67.3 | 75.5 | 69.8 | 74.5 |
+| fb1 it700 | 68.3 | 67.8 | 76.8 | 70.9 | 74.0 |
+| fb1 it900 | 66.0 | 67.5 | 80.3 | 71.3 | 76.0 |
+| fb1 it1000 | 67.3 | 65.8 | 79.5 | 70.8 | 81.0 |
+
+* **Pick:** it900, on the held-out mean and the weakest league screen (83.8%).
+* **Clone league:** it stayed at field 91 to 92 throughout.
+* **Against rl-17cf03f:** it rose from about 50% (ctl1) to 55 to 64%.
+
+Test, other families, never trained or selected on (seed 3, 400 matches each):
+
+| opponent | h4-300 | fb1-900 |
+|---|---|---|
+| ext:wolf | 84.0 | 93.3 [90.4, 95.3] |
+| ext:wolf_v1 | 90.0 | 96.0 [93.6, 97.5] |
+| ext:wolf_v2 | 88.0 | 94.3 [91.5, 96.1] |
+| ext:wolf_v5 | 84.0 | 93.3 [90.4, 95.3] |
+| ext:sdkref | 98.0 | 98.8 [97.1, 99.5] |
+
+The gain carries to the Wolf family, which shares no code with the training bots.
+
+Ship gate (holdem-league f07923f):
+* **League screen, pairs 0 to 199:** PASS 23/23, weakest A5 83.8%. The heuristic head to head was
+  64.0% over 400.
+* **Fresh pairs 200 to 399** (independent verifier, `out/verify-fb1-900` on gb10-d, 9600 matches, 0
+  errors or illegal actions): every opponent's Wilson lower bound is above 80%. The weakest is A5 at
+  86.0% (LB 82.3), against h4-300's 80.25% (LB 76.1) on the same seeds. The heuristic head to head
+  is 69.0% (LB 64.3), against h4-300's 67.5%.
+
+Head to head against other policies (400 each): 47.2% against h4-300, 45.0% against h4-900, 60.0%
+against rl-17cf03f. fb1-900 is slightly worse than its ancestors in a direct match, but much
+stronger against every real bot we have. The ancestors are not in the field.
