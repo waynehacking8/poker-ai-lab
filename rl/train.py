@@ -267,6 +267,7 @@ def main():
     ap.add_argument("--clip", type=float, default=0.2, help="PPO clip range")
     ap.add_argument("--floor", type=float, default=0.15, help="PFSP floor: weight = w0 * (floor + (1 - winrate)^2)")
     ap.add_argument("--snap-w", type=float, default=0.3, help="base weight of each past snapshot / pool entry")
+    ap.add_argument("--pool-w", type=float, default=None, help="base weight of each --pool-dir entry (default: --snap-w)")
     ap.add_argument("--no-hist", action="store_true", help="hide the in-match opponent statistics")
     ap.add_argument("--only", default=None, help="train against these opponent keys only (comma separated)")
     ap.add_argument("--sdk-workers", type=int, default=0, help="extra busy processes playing the heuristic HoldemBot in the SDK engine")
@@ -365,13 +366,23 @@ def main():
     window = defaultdict(lambda: [0, 0, 0])
     sdk_buf = []
     sdk_n = {}
-    ext = []
+    ext, ext_names, pool_wr = [], [], {}
+    pool_w = args.snap_w if args.pool_w is None else args.pool_w
     for it in range(it0 + 1, it0 + args.iters + 1):
         if args.pool_dir and (it == it0 + 1 or it % 10 == 0):
-            ext = [dict(np.load(f)) for f in sorted(glob.glob(os.path.join(args.pool_dir, "*.npz")))][-4:]
+            files = sorted(glob.glob(os.path.join(args.pool_dir, "*.npz")))[-4:]
+            names = [os.path.basename(f) for f in files]
+            if names != ext_names:
+                # pool entries keep their win rate per file while their snap:j position moves
+                for j, nm in enumerate(ext_names, 1):
+                    pool_wr[nm] = wr.get(f"snap:{j}", 0.5)
+                ext, ext_names = [dict(np.load(f)) for f in files], names
+                for j, nm in enumerate(ext_names, 1):
+                    wr[f"snap:{j}"] = pool_wr.get(nm, 0.5)
         if args.fixed_opp and (it == it0 + 1 or it % 20 == 0):
             ext = [dict(np.load(args.fixed_opp))]
-        opp_models = ([] if args.fixed_opp else snaps) + ext
+        # pool entries first, so their snap:j keys do not move as the snapshot window fills
+        opp_models = ext + ([] if args.fixed_opp else snaps)
         # league sampling: prioritized fictitious self-play, opponents that beat us more are drawn more
         pf = lambda k, w0: w0 * (args.floor + (1.0 - wr.setdefault(k, 0.5)) ** 2)  # noqa: E731
         if args.fixed_opp:
@@ -379,7 +390,7 @@ def main():
         else:
             weights = {k: pf(k, w0) * 4 for k, w0 in base_w.items()}
             for j in range(1, len(opp_models) + 1):
-                weights[f"snap:{j}"] = pf(f"snap:{j}", args.snap_w) * 4
+                weights[f"snap:{j}"] = pf(f"snap:{j}", pool_w if j <= len(ext) else args.snap_w) * 4
         for c in conns:
             c.send((params, opp_models, weights, args.steps))
         if sdk:
@@ -451,6 +462,8 @@ def main():
                    "pl": round(stats[0], 4), "vl": round(stats[1], 4), "ent": round(stats[2], 3), "wr": {}}
             if args.sdk_opps != "chipzen":
                 row["sdk_samples"] = dict(sdk_n)
+            if args.pool_dir:
+                row["pool"] = ext_names
             if dist is not None:
                 row["distill_ce"], row["distill_acc"] = round(dstat[0], 3), round(dstat[1], 3)
             for k, (m, wn, h) in window.items():

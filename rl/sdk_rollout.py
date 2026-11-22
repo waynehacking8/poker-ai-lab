@@ -93,10 +93,14 @@ class HeroRec(Bot):
 
 
 def make_opp(name, seed, seat):
-    """``chipzen`` is the heuristic HoldemBot; ``ext:<name>`` is a reviewed third-party bot (rl.field_bots)."""
+    """``chipzen`` is the heuristic HoldemBot; ``ext:<name>`` is a reviewed third-party bot (rl.field_bots);
+    ``jam``, ``jam_half``, ``jam_post`` and ``minraiser`` are the extreme bots of holdem/opponents.py."""
     if name == "chipzen":
         from bot import HoldemBot  # chipzen_bot/bot.py, the original heuristic
         return HoldemBot(seed=seed * 13 + seat)
+    from holdem.opponents import EXTREMES, make_baseline
+    if name in EXTREMES:
+        return make_baseline(name, seed * 13 + seat)
     from rl.field_bots import build
     return build(name)
 
