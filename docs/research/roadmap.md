@@ -138,6 +138,10 @@ Training never showed it an opponent that shoves any two cards.
     finding.
 * **Baseline.** `logs/eval_card/fb2-900.json` exists with the named E2 opponents and seeds, plus E3 and E4.
 
+**Result (2026-11-22, experiments 14.9):** acceptance met. Seeded v011 rows are byte identical (2 and 3
+workers), v010 differs in 310 of 400, v011 is one layer over v010, probes read 97.25 and 97.5 (overlapping
+ex1's 96.5), and `logs/eval_card/fb2-900.json` is the baseline card.
+
 ### S2. League with exploiters (step 3)
 
 **Owned files** (holdem-rl):

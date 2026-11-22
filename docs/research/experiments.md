@@ -630,3 +630,41 @@ ex1 (`tools/rl_exploit.sh`, started as fb2-900 and trained only against it in th
   * fb2-900's river shoves still fold it out 90% of the time, but the 54 calls come at 24% equity.
 * **Use:** the ex1 snapshots (every 25 iterations in `ckpt/ex1` on gb10-d) are the first pool members for S2,
   the league with exploiters.
+
+### 14.9 The measurement harness (roadmap S1)
+
+Everything later is judged with this, so it had to repeat exactly.
+
+* **Seeded Blueprint.** `bpopp:v011` is v010 plus one layer, a `server.py` that seeds the global NumPy RNG
+  on `match_start`. The two servers differ only by those four lines. fb2-900 against it, 400 matches, seed 3:
+  * byte-identical rows across three runs, with 2 and 3 workers: 236 wins, 59.0%;
+  * the unseeded v010 differs in 310 of 400 rows (57.5%), so the seed is what makes it repeat.
+* **Seeded policy opponents.** `model:` and `policy:` opponents now repeat byte for byte. The fb2-900 mirror
+  read 45.0% twice.
+* **Exploitability probe** (`tools/exploit_probe.sh`: a fresh exploiter, 400 iterations in the C engine, then
+  400 SDK matches). Four probes of fb2-900:
+
+  | probe | exploiter win rate |
+  |---|---|
+  | ex1 at 400 iterations | 96.5 [94.2, 97.9] |
+  | train seed 1 | 97.25 [95.1, 98.5] |
+  | train seed 2 | 97.5 [95.5, 98.6] |
+  | card, train seed 1 | 95.0 [92.4, 96.7] |
+
+  The intervals overlap, so the probe is stable to about two points. Training is not deterministic across
+  runs; the eval is.
+* **Baseline card** `logs/eval_card/fb2-900.json` (`tools/eval_card.sh`), for the entered bot
+  (fb2-900 plus the all-in answer):
+
+  | opponent | win rate |
+  |---|---|
+  | Ashwing, search, hive, v2 (seed 5) | 72.75, 71.5, 85.5, 84.25 |
+  | Wolf, v1, v2, v5, SDK reference (seed 3) | 96.0, 97.0, 96.5, 96.0, 98.5 |
+  | autodidact (seed 3) | 74.5 |
+  | Blueprint (seeded) | 59.0, +0.25 bb per hand all-in adjusted |
+  | E3 probe | 95.0 |
+  | E4 mirror | 45.0 |
+
+  The Ashwing bots and autodidact are not seeded. Over four seed-5 runs fb2-900 reads 1183/1600 (73.9%)
+  against Ashwing and 1164/1600 (72.75%) against ashwing_search. Single runs spread about plus or minus two
+  points.
