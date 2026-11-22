@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-22 02:55 UTC.
+Updated 2026-11-22 06:35 UTC.
 
 ## Goal and gate
 - Heads-up NLHE bot for Chipzen.ai Season 16. Registration closes Mon 23 Nov 23:59 UTC.
@@ -15,6 +15,7 @@ Updated 2026-11-22 02:55 UTC.
 ## State (league on the corrected engine, `reports/league/leaderboard.md` on holdem-league 1c74fbd)
 | entrant | branch / commit | passed | field | weakest |
 |---|---|---|---|---|
+| rl-fb1-900 (SWAP CANDIDATE) | holdem-rl 82b1921 | 23/23 | 89.8 | A5 83.8 (fresh seeds 86.0, LB 82.3); heuristic h2h 64.0 (fresh 69.0, LB 64.3); verifier CONFIRMED |
 | rl-h4-300 (SHIPPED) | holdem-rl 5493fc6 | 23/23 | 88.8 | A5 83.2 (fresh seeds 80.2); heuristic h2h 69.8 (fresh 67.5) |
 | rl-distill1 | holdem-rl 22b46de | 23/23 | 91.5 | qwentom-leap clone 85.0; heuristic h2h 43.0 |
 | adapt-v2 | holdem-adapt 4a4b419 | 23/23 | 89.4 | SolvencyCheck clone 80.8; heuristic h2h 29.5 |
@@ -47,11 +48,13 @@ poker-ai-lab (holdem-chipzen), -league, -rl, -adapt, -br, -blueprint, -search, -
    stdlib+numpy, Wolf in a --network none container): h4-300 wins only 49 to 64% against the Ashwing family
    and autodidact (clones of the same entrants: 84 to 89%). The 23-opponent gate does not measure the live
    field. docs/field_bots.md, research 14.3.
-   fb1 RUNNING since 02:44 UTC, 180 min (`tools/rl_fb.sh`, holdem-rl f76572e): ctl1 recipe plus SDK workers
-   cycling heuristic x2, ext:ashwing_v2, ext:ashwing_value, ext:ashwing_adaptive, ext:autodidact_fast.
-   Validation (held out siblings): ext:ashwing, ext:ashwing_search, ext:ashwing_hive, ext:autodidact,
-   screened by `tools/fb_watch.sh` (logs/fb_watch_fb1/). Test: Wolf, sdkref, Blueprint bp100, rl-17cf03f.
-   Baselines on the same screen: logs/fb_base/ (h4-300, ctl1 it1000).
+   fb1 (180 min, done): held-out Ashwing mean 57.4 (h4-300) -> 71.3 (it900); Wolf 84-90 -> 93-96.
+   Candidate rl-fb1-900 = fb1 it900, weights rl/models/fb1_it000900.npz md5 f7428123. Fresh-seed verifier
+   CONFIRMED (gb10-d ~/poker-ai-lab-league/out/verify-fb1-900). Image .cache/images/holdem-rl-fb1-900.tar.gz,
+   sha256 8b4b4a45038c9fdc475895654c20ff26a1e7b028a51bf0764a199a3b8f3bd56f, local match vs lag won, 0 protocol
+   problems, peak 93 MB. Pending before the swap: test vs ext:autodidact and the real Blueprint
+   (logs/fb_test/fb1_900.out; h4-300 had 63.7 and 55.5).
+   fb2 RUNNING from fb1 it900 since 05:46 UTC, 180 min (`tools/rl_fb2.sh`, holdem-rl dc0e0c3).
 5. Blueprint 100bb (matteo-psnt/poker-solver v0.1.0, 1.9 GB; Wayne approved, Docker with --network none
    only): branch holdem-bpopp, box dirs ~/poker-ai-lab-bp and ~/bp-data.
 6. Image builds: `deploy/build_on_box.sh <model npz> <tag>` on holdem-rl (4d50c2a fixes root-owned cleanup).
