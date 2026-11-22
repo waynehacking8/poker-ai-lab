@@ -21,7 +21,9 @@ RUN pip install -r requirements.txt \
     && find /usr/local/lib/python3.12 -type d -name tests -exec rm -rf {} + 2>/dev/null || true
 
 COPY deploy/bot.py /bot/bot.py
-COPY rl/__init__.py rl/bot.py rl/bot_distill.py rl/features.py rl/runtime.py /bot/rl/
+COPY rl/__init__.py rl/allin.py rl/bot.py rl/bot_distill.py rl/features.py rl/runtime.py /bot/rl/
+# Match-value tables for answering a near-certain shover (rl/allin.py, tools/allin_tables.py).
+COPY rl/models/allin_v.npz /bot/rl/models/allin_v.npz
 # Weights: any repo path via --build-arg MODEL=..., installed under a fixed name.
 ARG MODEL=rl/models/distill1.npz
 COPY ${MODEL} /bot/rl/models/weights.npz
