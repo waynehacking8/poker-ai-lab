@@ -270,6 +270,7 @@ def main():
     ap.add_argument("--no-hist", action="store_true", help="hide the in-match opponent statistics")
     ap.add_argument("--only", default=None, help="train against these opponent keys only (comma separated)")
     ap.add_argument("--sdk-workers", type=int, default=0, help="extra busy processes playing the heuristic HoldemBot in the SDK engine")
+    ap.add_argument("--sdk-opps", default="chipzen", help="SDK opponents for the sdk workers, comma separated: chipzen (heuristic) and ext:<field bot>; round robin per worker")
     ap.add_argument("--heur-batch", type=int, default=3000, help="heuristic samples to wait for before each PPO update")
     ap.add_argument("--skip", default=None, help="drop these opponent keys from the PFSP pool (comma separated, e.g. arch:1)")
     ap.add_argument("--distill", default=None, help="teacher labels npz from rl.teacher (obs, mask, label)")
@@ -325,7 +326,7 @@ def main():
         publish_params(params, sdk_path)
         for w in range(args.sdk_workers):
             a, b = ctx.Pipe()
-            pr = ctx.Process(target=sdk_worker_main, args=(b, args.seed * 100 + 50 + w, sdk_path), daemon=True)
+            pr = ctx.Process(target=sdk_worker_main, args=(b, args.seed * 100 + 50 + w, sdk_path, tuple(args.sdk_opps.split(",")), w), daemon=True)
             pr.start()
             sdk.append(a)
             procs.append(pr)
@@ -358,6 +359,7 @@ def main():
     from collections import defaultdict
     window = defaultdict(lambda: [0, 0, 0])
     sdk_buf = []
+    sdk_n = {}
     ext = []
     for it in range(it0 + 1, it0 + args.iters + 1):
         if args.pool_dir and (it == it0 + 1 or it % 10 == 0):
@@ -384,10 +386,11 @@ def main():
             while True:
                 for c in sdk:
                     while c.poll():
-                        b, won, hands = c.recv()
+                        b, won, hands, oname = c.recv()
                         if b is not None:
-                            sdk_buf.append((b, [("heuristic", 1 if won else 0, int(hands))]))
+                            sdk_buf.append((b, [("heuristic" if oname == "chipzen" else oname, 1 if won else 0, int(hands))]))
                             nh += len(b["obs"])
+                            sdk_n[oname] = sdk_n.get(oname, 0) + len(b["obs"])
                 if nh >= args.heur_batch:
                     break
                 time.sleep(0.2)
@@ -438,9 +441,11 @@ def main():
             window[k][0] += 1
             window[k][1] += w_
             window[k][2] += h
-        if it % 5 == 0 or it == 1:
+        if it % 5 == 0 or it == 1 or (args.sdk_opps != "chipzen" and it == it0 + args.iters):
             row = {"it": it, "steps": total_steps, "min": round((time.time() - t0) / 60, 1),
                    "pl": round(stats[0], 4), "vl": round(stats[1], 4), "ent": round(stats[2], 3), "wr": {}}
+            if args.sdk_opps != "chipzen":
+                row["sdk_samples"] = dict(sdk_n)
             if dist is not None:
                 row["distill_ce"], row["distill_acc"] = round(dstat[0], 3), round(dstat[1], 3)
             for k, (m, wn, h) in window.items():
