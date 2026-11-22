@@ -39,6 +39,10 @@ poker-ai-lab (holdem-chipzen), -league, -rl, -adapt, -br, -blueprint, -search, -
   `poker-ai-lab-v2` (rl-fb1-900, sha256 8b4b4a45...) and `poker-ai-lab` (rl-h4-300, sha256 b6f08ac7...).
 - Registered at 10:15 UTC: poker-ai-lab-v3, Shadow, bp_bot, 6BP9, allin_9-1, microholdem, Ashwing_v3.
   House bots top up after the deadline.
+- Hugging Face (2026-11-22, PRIVATE): https://huggingface.co/waynehacking8/poker-ai-lab-hunl-ppo holds the
+  fb2-900 package (model card, MIT, weights.npz plus model.safetensors, the image's runtime files). Built by
+  `deploy/hf_package.sh` (holdem-rl 4f8adde), uploaded through the web UI (no HF token on this PC), all 16
+  files read back byte identical. Make it public in the repo Settings when Wayne wants.
 
 ## Open work
 1. Swap again only if a candidate beats rl-fb2-900 on the real field bots and ties or beats it on both gates, on fresh seeds; ask Wayne first.
