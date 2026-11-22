@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-21 22:35 UTC.
+Updated 2026-11-22 00:30 UTC.
 
 ## Goal and gate
 - Heads-up NLHE bot for Chipzen.ai Season 16. Registration closes Mon 23 Nov 23:59 UTC.
@@ -37,11 +37,17 @@ poker-ai-lab (holdem-chipzen), -league, -rl, -adapt, -br, -blueprint, -search, -
 - Verifier (fresh seeds, pairs 200 to 399): CONFIRMED. Thin margin: A5 321/400 = 80.2% (LB 76.1).
 
 ## Open work
-1. Only if a candidate beats rl-h4-300 on both gates with margin (fresh seeds): upload it and swap the entry.
-2. heur4 long run on gb10-d (`ckpt/heur4`, screener `tools/heur_watch.sh`, summary in
-   `logs/heur_watch/summary.jsonl`). it600 failed A5 (77.7). A5 is the weak spot as heuristic training grows.
-3. Optional round 4: widen the A5 margin without losing the heuristic head to head.
-4. Image builds: `deploy/build_on_box.sh <model npz> <tag>` on holdem-rl (4d50c2a fixes root-owned cleanup).
+1. Swap the Season 16 entry only if a candidate beats rl-h4-300 on both gates with margin, on fresh seeds.
+2. rl-h4-900 (holdem-rl 4500e65, heur4 checkpoint 900): screening 23/23 (A5 81.2), heuristic 75.25,
+   head to head vs h4-300 59.25 [54.4, 64.0]. League entry running (`tools/league_add.sh`); then fresh seeds.
+3. sp1 self-play test on gb10-d (`tools/rl_selfplay.sh`, snapshots weight 2.0 every 10 its, 240 min),
+   screener `tools/sp_watch.sh sp1 100` -> `logs/sp_watch_sp1/summary.jsonl`. Control: `logs/sp_watch_heur4/`.
+   heur4 was stopped at it1440 to free cores.
+4. Real Chipzen bots as opponents (Wayne approved running them on gb10-d; read in full, stdlib+numpy only,
+   no network): branch holdem-fieldbots (Ashwing_v2, AutodidactInnovations, SDK reference, wolfBot).
+5. Blueprint 100bb (matteo-psnt/poker-solver v0.1.0, 1.9 GB; Wayne approved, Docker with --network none
+   only): branch holdem-bpopp, box dirs ~/poker-ai-lab-bp and ~/bp-data.
+6. Image builds: `deploy/build_on_box.sh <model npz> <tag>` on holdem-rl (4d50c2a fixes root-owned cleanup).
 
 ## Traps
 - `tools/league_add.sh`: never edit it while a run of it is active (bash reads scripts lazily).
