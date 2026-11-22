@@ -524,3 +524,46 @@ fb3 ran the same recipe from fb2-900 and was stopped at iteration 300:
 
 A third round of the same signal overfits the training bots, so the next gain needs new opponents,
 not more iterations against these four.
+
+### 14.6 Why fb2-900 wins only about 61% against the real Blueprint
+
+Tool: `tools/chipflow.py` (holdem-rl), which logs each hand from our side, 400 matches per run, seed 3.
+The blueprint samples with an unseeded RNG, so five runs read 62.3, 61.0, 61.2, 57.8 and 60.8%.
+
+**Blueprint beats nobody by much either** (Blueprint as hero, 400 each):
+
+| opponent | Blueprint | fb2-900 |
+|---|---|---|
+| Ashwing v2 | 57.3 [52.4, 62.0] | 85.3 |
+| Ashwing | 56.8 [51.9, 61.5] | 74.5 |
+| Wolf | 64.0 [59.2, 68.6] | 96.0 |
+
+Close to equilibrium, it rarely gives up much and rarely takes much. A 61% match win against it fits that.
+
+**Our edge per hand is a third of what it is against Ashwing:**
+* Against Blueprint, +0.30 bb per hand (+4917 bb over 16616 hands); against Ashwing, +0.87 (+14537 bb over 16683).
+* At about 41 hands a match, that is the difference between 61% and 75%.
+* This is not card luck. The all-in luck was +52k and +54k chips in our favour in two runs.
+
+**Where the difference comes from:**
+* Against Ashwing, about half our net chips (+1.04M of 2.0M) come from river all-ins where it calls with
+  worse; our mean equity there is 0.70. Blueprint does not pay off like that.
+* Calling Blueprint's river shoves is the clearest leak: we called 58 times, won 6 and lost 342k chips.
+  Against Ashwing, the same spot is 25 calls, 3 wins and -100k.
+* Our own shoves are profitable against Blueprint on every street:
+
+  | street | shoves | folds | net chips |
+  |---|---|---|---|
+  | preflop | 302 | 77% | +81k |
+  | flop | 491 | 67% | +125k |
+  | turn | 154 | 60% | +207k |
+  | river | 536 | 73% | +731k |
+
+  When a flop shove is called we hold 35% equity, and that is how about a third of the lost matches end. The
+  folds pay for it in chips, but the variance is concentrated where the match is decided.
+* Non-all-in showdowns lose 862k, of which 519k are after our own last raise and 341k after Blueprint's.
+
+**Next:**
+* Add a solver-style opponent to training, keeping Blueprint held out: the holdem-blueprint MCCFR tables
+  (section 9) are the candidate.
+* Its river shoves are value-heavy, which is the spot the training field never taught.
