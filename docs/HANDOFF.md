@@ -30,6 +30,13 @@ Updated 2026-11-22 10:20 UTC.
 ## Branches and worktrees (Desktop)
 poker-ai-lab (holdem-chipzen), -league, -rl, -adapt, -br, -blueprint, -search, -research.
 
+## Goal (Wayne, 2026-11-22 13:30 UTC)
+The long-term strongest bot, a "future king". The Season 16 deadline no longer matters, and fb2-900 stays
+entered. Plan: `docs/research/roadmap.md` on branch research, slices S1 to S7: measurement harness, league
+with exploiters, showdown memory, range belief, a wider bet set, river search, then capacity. Key fact:
+an exploiter trained 2 minutes against fb2-900 beats it 96.5% (fb2-900 folds after the flop too often), so
+exploitability (E3) is a primary metric next to the league and the real bots.
+
 ## Season 16 entry (swapped 2026-11-22 10:15 UTC, Wayne approved)
 - Entered: Chipzen bot `poker-ai-lab-v3` (id 116f047c-da11-4879-be63-136232ec7913) = rl-fb2-900, image
   `.cache/images/holdem-rl-fb2-900.tar.gz` sha256 058280d4c18ae58d0efa8a8aef522d2412f9c452fcafffe9c612e781b28468c4
