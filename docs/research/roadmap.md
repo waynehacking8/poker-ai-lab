@@ -1,7 +1,8 @@
 # Roadmap: the long-term strongest Chipzen HUNL bot
 
 Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The Season 16 deadline does
-not matter. The Season 16 entry stays `poker-ai-lab-v3` (rl-fb2-900).
+not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
+0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
 ## Evidence that sets the order
 
@@ -59,7 +60,7 @@ Training never showed it an opponent that shoves any two cards.
 * **Result (2026-11-23, experiments 14.7):** gate passed. jam 49.0 -> 62.75% [57.9, 67.3] (ceiling 65.5%).
   The league, Wolf family, SDK reference, seeded Blueprint and the seeded head to head against v3 are
   identical. The answer fired 0 times in 2400 matches against v3, the Ashwing family and autodidact. Fresh
-  verifier CONFIRMED. Image `holdem-rl-fb2-900-allin` is built; swapping it in as v4 waits for Wayne.
+  verifier CONFIRMED. Entered as poker-ai-lab-v4 on 2026-11-22 18:45 UTC (Wayne approved).
 
 ### S1. Measurement harness (step 1)
 
@@ -139,14 +140,99 @@ Training never showed it an opponent that shoves any two cards.
 
 ### S2. League with exploiters (step 3)
 
-* **Main agent:** starts from fb2-900, with the fb2 recipe's opponents (clones, archetypes, baselines,
-  real field bots through SDK workers).
-* **Exploiters** join through `--pool-dir`, which is re-read every 10 iterations.
-* **The exploiter process** trains with `--fixed-opp` on the main agent's latest snapshot, re-read every 20
-  iterations. Every N iterations it restarts from the main agent, as AlphaStar's main exploiters reset,
-  and its checkpoint is copied into the pool.
-* **Acceptance:** E3 falls well below 96.5% (first target under 70%), with E1 held and E2 not below
-  fb2-900 beyond its interval.
+**Owned files** (holdem-rl):
+* new `tools/rl_s2.sh`, `tools/s2_exploiters.sh` and `tools/s2_screens.sh`;
+* `rl/sdk_rollout.py`: `make_opp` also builds the `holdem/opponents.py` EXTREMES bots;
+* `rl/train.py`, three changes:
+  1. a `--pool-w` option, the base PFSP weight of pool entries (default `--snap-w`, so old recipes keep
+     their weights);
+  2. pool entries come first in the opponent list, so their `snap:j` keys no longer shift as the snapshot
+     window fills;
+  3. win rates of pool entries are kept per file name. When the pool's file list changes, each surviving
+     file carries its win rate to its new `snap:j` key, a new file starts at 0.5, and the log row records the
+     file names (`"pool"`);
+* `tools/README.md`.
+
+**Non-goals:** no change to the C engine, the features or the network size. No upload.
+
+**Measured inputs:**
+* gb10-d has 20 cores.
+* fb2 (`tools/rl_fb2.sh`, alone on the box) reached iteration 400 at 74 minutes and 900 at 167 minutes, about
+  5.4 iterations per minute.
+* In fb2 each pool policy drew about 2% of the C-engine matches, and the C engine played 46% of all matches.
+
+1. **Launcher and main agent:** `tools/rl_s2.sh OUT INIT [MINUTES]`, started as
+   `rl_s2.sh s2 ckpt/fb2/it000900.npz 300` after the S1 baseline card has finished.
+   * **Before the main run starts**, it copies the final ex1 (`ckpt/ex1/latest.npz`) to `pool_s2/x000.npz`:
+     a temp name that does not match `*.npz`, then a rename.
+   * **Main run:** `tools/rl_fb2.sh`'s command with these changes:
+     * `--pool-dir pool_s2 --pool-w 1.0` instead of `--pool-dir pool_gen`. `rl/train.py` keeps the last 4
+       files by name, so the pool holds the newest exploiters, and fb2's two pool policies leave.
+     * The SDK round robin gains `jam` and `jam_half` (2 of 8 slots).
+     * `--max-minutes 300`. Everything else stays as in fb2.
+   * **Exploiter loop and screens:** `tools/s2_exploiters.sh` and `tools/s2_screens.sh`, both started with
+     the main run's pid.
+   * **When the main run ends**, the launcher waits for both and writes `logs/s2/end.txt` with the reason:
+     * `stop N` when `logs/s2/STOP` exists;
+     * `crash` when the main run exited nonzero without a STOP file;
+     * `max-minutes` otherwise.
+   * **Weights:** at `--pool-w 1.0`, a fresh exploiter (main agent win rate near 0.03) weighs about 4.4.
+     fb2's other C-engine opponents weigh about 19.5 in total at fb2's final win rates. That total is
+     consistent with each fb2 snapshot drawing 2.2% at weight 0.37. So one exploiter makes about 18% of
+     C-engine matches, and four make about 47%. These are upper bounds: a new file starts at win rate 0.5
+     (weight 1.6) until the EMA catches up, so the screens measure the real share.
+2. **Exploiter loop** `tools/s2_exploiters.sh MAIN_PID MAIN_OUT POOL [CYCLES=1000]`. The cycles are
+   k = 1 to CYCLES, and the loop refuses to start if `POOL/x001.npz` exists. Each cycle k:
+   * waits until `MAIN_OUT/latest.npz` is newer than the last target;
+   * copies it with a temp name plus rename to `ckpt/s2x/target_k.npz`, and checks that `np.load` reads the
+     policy and value weights, retrying up to 3 times;
+   * runs `rl.train --out ckpt/s2x/c_k --init target_k --fixed-opp target_k --iters 400 --seed k --workers 4
+     --steps 8000 --envs 96 --lr 3e-4 --clip 0.2`. That is 4 × 8000 decisions per iteration, the same as ex1
+     and the probe at 8 × 4000;
+   * copies `c_k/latest.npz` to `POOL/x{k:03d}.npz` with a temp name plus rename.
+
+   Each exploiter restarts from the current main agent, as AlphaStar's main exploiters reset. The loop exits
+   0 when MAIN_PID is gone. If an `rl.train` cycle fails, it writes a log line and exits 1, which is stop
+   condition 3.
+3. **Screens** `tools/s2_screens.sh MAIN_PID OUT`. It waits for `ckpt/OUT/it000200.npz`, `it000400` and
+   `it000600` in turn. For each checkpoint C at iteration N:
+   * `exploit_probe.sh C C s2_itN 1 3`, output `logs/exploit_probe/s2_itN.json`;
+   * `rl.eval_arena --model C --opp ext:ashwing,ext:ashwing_search --matches 400 --seed 5 --workers 4`, output
+     `logs/s2/screen_itN.jsonl`;
+   * from `ckpt/OUT/train.jsonl` since the last screen: the pool file names, the pool keys' match count, win
+     rate and share of C-engine matches, and the `x{k}` files added. Output `logs/s2/screen_itN_pool.json`.
+
+   It then applies stop conditions 1 and 2. On a stop it writes `logs/s2/STOP` (number and reason) and
+   kills MAIN_PID. When the main run ends past the last screened iteration, it screens the last
+   `itNNNNNN.npz` the same way. Expected timing: 600 at about 110 minutes alone, at most 1.6 times slower with
+   the loop and screens, so well inside the cap.
+
+**Budget:** 300 minutes of main training with the loop and screens running alongside, at most 6 box-hours on
+gb10-d.
+
+**Stop conditions:**
+1. **No gain.** If the probe at iteration 400 is still at 90% or more while the pool's share of C-engine
+   matches since iteration 200 is at least 20%, S2 stops. The finding is that training against the newest
+   exploiters at that share does not cut exploitability at this budget. If the share is under 20%, the
+   finding is "under-sampled" instead: S2 also stops, and the next plan revision raises `--pool-w`.
+2. **Field cost (the tripwire).** If both held-out Ashwing bots fall below fb2-900's pooled rate minus two
+   standard errors of one 400-match run at a screen, S2 stops. Those lines are 69.5 for ashwing (fb2-900
+   1183/1600 over four seed-5 runs) and 68.3 for ashwing_search (1164/1600). Single runs of fb2-900 range
+   72.75 to 75.25 and 71.5 to 74.75. The finding is that the robustness costs field strength.
+3. **Crash.** If the main run crashes, or the exploiter loop exits 1, S2 stops until the cause is known.
+
+**Acceptance.** The candidate is the screened checkpoint with the lowest probe whose screen did not trigger
+stop condition 2.
+* **E3:** the probe is under 70%. fb2-900's probes read 96.5, 97.25 and 97.5%.
+* **E1:** the league gate holds, 23/23 at 80% or more, fresh seeds.
+* **E2:** `tools/eval_card.sh`, with no family below the fb2-900 card beyond its interval.
+* **E4:** a seeded head to head against `model:rl/models/fb2_it000900.npz` (RLBot with the all-in answer, as
+  entered in poker-ai-lab-v4) of at least the 45.0% mirror.
+* A fresh verifier confirms the claim. A swap is then put to Wayne.
+
+**Rollback:** the changes are additive, and the `rl/train.py` defaults keep old recipes' weights.
+poker-ai-lab-v4 (image sha256 0291ee39...) stays entered until Wayne approves a swap, and poker-ai-lab-v3
+stays uploaded.
 
 ### S3. Showdown memory (step 2, part 1)
 
