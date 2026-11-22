@@ -32,24 +32,32 @@ def make_chipzen_hero(seed):
     return HoldemBot(seed=seed)
 
 
+def make_bp100(seed=None):
+    from bpopp.opponent import make_bp100 as factory
+    return factory()
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default=None, help="hero policy (required unless --hero chipzen)")
+    ap.add_argument("--model", default=None, help="hero policy (required unless --hero chipzen or bp100)")
     ap.add_argument("--matches", type=int, default=400)
     ap.add_argument("--opp", default="all", help="baseline, chipzen, model:<npz>, ext:<field bot>, comma separated")
-    ap.add_argument("--hero", default="rl", choices=("rl", "chipzen"), help="chipzen: the heuristic HoldemBot plays hero")
+    ap.add_argument("--hero", default="rl", choices=("rl", "chipzen", "bp100"),
+                    help="chipzen: the heuristic HoldemBot plays hero; bp100: the isolated blueprint (smoke test)")
     ap.add_argument("--temperature", type=float, default=1.0)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--legacy-rules", action="store_true", help="match the pre-fix SDK engine (600 cap, old short blind)")
     args = ap.parse_args()
     if args.hero == "rl" and not args.model:
-        ap.error("--model is required unless --hero chipzen")
+        ap.error("--model is required with --hero rl")
     if args.legacy_rules:
         from rl.features import set_rules
         set_rules(False)
     if args.hero == "chipzen":
         hero = make_chipzen_hero
+    elif args.hero == "bp100":
+        hero = make_bp100
     else:
         hero = functools.partial(make_hero, os.path.abspath(args.model), args.temperature)
     names = list(BASELINES) + ["chipzen"] if args.opp == "all" else args.opp.split(",")
@@ -60,7 +68,7 @@ def main():
         elif name.startswith("model:"):
             opp = functools.partial(make_hero, os.path.abspath(name[6:]), 1.0, None)
         else:
-            opp = make_chipzen if name == "chipzen" else name
+            opp = make_chipzen if name == "chipzen" else make_bp100 if name == "bp100" else name
         out = run_arena(opp, args.matches, args.seed, args.workers, hero_factory=hero)
         out["opponent"] = name
         print(json.dumps(out), flush=True)
