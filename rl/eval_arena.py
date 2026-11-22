@@ -27,9 +27,20 @@ def make_chipzen():
     return HoldemBot(seed=None)
 
 
+def make_chipzen_hero(seed):
+    from bot import HoldemBot
+    return HoldemBot(seed=seed)
+
+
+def make_bp100():
+    from bpopp.opponent import make_bp100 as factory
+    return factory()
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", required=True)
+    ap.add_argument("--model", default=None, help="hero policy (not needed with --hero chipzen)")
+    ap.add_argument("--hero", default="rl", choices=["rl", "chipzen"], help="chipzen = the old heuristic bot.HoldemBot")
     ap.add_argument("--matches", type=int, default=400)
     ap.add_argument("--opp", default="all")
     ap.add_argument("--temperature", type=float, default=1.0)
@@ -46,7 +57,7 @@ def main():
         if name.startswith("model:"):
             opp = functools.partial(make_hero, os.path.abspath(name[6:]), 1.0, None)
         else:
-            opp = make_chipzen if name == "chipzen" else name
+            opp = make_chipzen if name == "chipzen" else make_bp100 if name == "bp100" else name
         out = run_arena(opp, args.matches, args.seed, args.workers, hero_factory=hero)
         out["opponent"] = name
         print(json.dumps(out), flush=True)
