@@ -24,6 +24,8 @@ Scripts around the Chipzen replays. The replays themselves live in `.cache/chipz
   (`INIT=<full checkpoint>` when TARGET has no value weights).
 * `bash tools/exploit_probe.sh INIT_CKPT TARGET_NPZ NAME TRAIN_SEED EVAL_SEED [ITERS]` is the fixed-budget
   exploitability probe (roadmap E3): a fresh exploiter, then 400 SDK matches against TARGET.
+* `bash tools/eval_card.sh NAME POLICY_NPZ INIT_CKPT [KING_NPZ]` writes the eval card of one candidate
+  (roadmap E2 to E4) to `logs/eval_card/NAME.json` on the box, about 75 minutes.
 * `python tools/replay_conformance.py [REPLAY_DIR] [--show N]` replays every real NLHE hand
   through `holdem/engine.py` and lists each hand where the engine asks something else, offers
   other actions, posts other blinds or ends with other stacks (exit code 1 on any difference).
