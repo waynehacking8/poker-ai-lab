@@ -462,8 +462,11 @@ Test, other families, never trained or selected on (seed 3, 400 matches each):
 | ext:wolf_v2 | 88.0 | 94.3 [91.5, 96.1] |
 | ext:wolf_v5 | 84.0 | 93.3 [90.4, 95.3] |
 | ext:sdkref | 98.0 | 98.8 [97.1, 99.5] |
+| ext:autodidact (2000 trials; sibling of a trained bot) | 63.7 | 71.8 [67.1, 75.9] |
+| real Blueprint 100bb (bp100) | 55.5 | 59.3 [54.4, 64.0] |
 
-The gain carries to the Wolf family, which shares no code with the training bots.
+The gain carries to the Wolf family, which shares no code with the training bots, and the
+Blueprint's lower bound moves above 50%.
 
 Ship gate (holdem-league f07923f):
 * **League screen, pairs 0 to 199:** PASS 23/23, weakest A5 83.8%. The heuristic head to head was
