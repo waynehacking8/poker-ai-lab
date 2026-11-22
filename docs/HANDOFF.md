@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-22 07:15 UTC.
+Updated 2026-11-22 10:20 UTC.
 
 ## Goal and gate
 - Heads-up NLHE bot for Chipzen.ai Season 16. Registration closes Mon 23 Nov 23:59 UTC.
@@ -15,7 +15,8 @@ Updated 2026-11-22 07:15 UTC.
 ## State (league on the corrected engine, `reports/league/leaderboard.md` on holdem-league f07923f)
 | entrant | branch / commit | passed | field | weakest |
 |---|---|---|---|---|
-| rl-fb1-900 (ENTERED as poker-ai-lab-v2) | holdem-rl 82b1921 | 23/23 | 89.8 | A5 83.8 (fresh seeds 86.0, LB 82.3); heuristic h2h 64.0 (fresh 69.0, LB 64.3); verifier CONFIRMED |
+| rl-fb2-900 (ENTERED as poker-ai-lab-v3) | holdem-rl 56c4419 | 23/23 | 91.2 | A5 84.5 (fresh 84.75, LB 80.9); heuristic h2h 66.2 (fresh 70.25, LB 65.6); verifier CONFIRMED |
+| rl-fb1-900 (uploaded as poker-ai-lab-v2) | holdem-rl 82b1921 | 23/23 | 89.8 | A5 83.8 (fresh seeds 86.0, LB 82.3); heuristic h2h 64.0 (fresh 69.0, LB 64.3); verifier CONFIRMED |
 | rl-h4-300 (previous entry, bot poker-ai-lab) | holdem-rl 5493fc6 | 23/23 | 88.8 | A5 83.2 (fresh seeds 80.2); heuristic h2h 69.8 (fresh 67.5) |
 | rl-distill1 | holdem-rl 22b46de | 23/23 | 91.5 | qwentom-leap clone 85.0; heuristic h2h 43.0 |
 | adapt-v2 | holdem-adapt 4a4b419 | 23/23 | 89.4 | SolvencyCheck clone 80.8; heuristic h2h 29.5 |
@@ -29,17 +30,18 @@ Updated 2026-11-22 07:15 UTC.
 ## Branches and worktrees (Desktop)
 poker-ai-lab (holdem-chipzen), -league, -rl, -adapt, -br, -blueprint, -search, -research.
 
-## Season 16 entry (swapped 2026-11-22 07:10 UTC, Wayne approved)
-- Entered: Chipzen bot `poker-ai-lab-v2` (id 920042c2-cc14-414f-951d-128bd6e44d05) = rl-fb1-900, image
-  `.cache/images/holdem-rl-fb1-900.tar.gz` sha256 8b4b4a45038c9fdc475895654c20ff26a1e7b028a51bf0764a199a3b8f3bd56f
-  (weights md5 f7428123). Review passed in about 4 minutes; warm-up on the real server beat PluriBot.
-  Season page shows "poker-ai-lab-v2 is entered" (read back after reload).
-- Previous entry `poker-ai-lab` (rl-h4-300, image sha256 b6f08ac7...) stays uploaded and ACTIVE; the
-  site allows swapping back until registration closes Mon 23 Nov 23:59 UTC (Season 16 page, Change bot).
-- Registered so far: poker-ai-lab-v2, Shadow, bp_bot, 6BP9, microholdem; house bots top up after the deadline.
+## Season 16 entry (swapped 2026-11-22 10:15 UTC, Wayne approved)
+- Entered: Chipzen bot `poker-ai-lab-v3` (id 116f047c-da11-4879-be63-136232ec7913) = rl-fb2-900, image
+  `.cache/images/holdem-rl-fb2-900.tar.gz` sha256 058280d4c18ae58d0efa8a8aef522d2412f9c452fcafffe9c612e781b28468c4
+  (weights md5 4ad6e363). Review about 4 minutes; warm-up beat PluriBot. Season page reads
+  "poker-ai-lab-v3 is entered" after reload.
+- Also uploaded and ACTIVE, for switching back until Mon 23 Nov 23:59 UTC (Season 16 page, Change bot):
+  `poker-ai-lab-v2` (rl-fb1-900, sha256 8b4b4a45...) and `poker-ai-lab` (rl-h4-300, sha256 b6f08ac7...).
+- Registered at 10:15 UTC: poker-ai-lab-v3, Shadow, bp_bot, 6BP9, allin_9-1, microholdem, Ashwing_v3.
+  House bots top up after the deadline.
 
 ## Open work
-1. Swap again only if a candidate beats rl-fb1-900 on both gates and on the real field bots, on fresh seeds.
+1. Swap again only if a candidate beats rl-fb2-900 on the real field bots and ties or beats it on both gates, on fresh seeds; ask Wayne first.
 2. rl-h4-900 (holdem-rl 4500e65): league FAIL 22/23 (A5 79.8; holdem-league f5441a0), h2h vs h4-300 60.5,
    heuristic 72.0. Not a swap candidate. Lesson: A5 sits on the 80% line; same-seed screening overstates.
 3. Generalization A/B (gen1 with 48 generated archetypes vs ctl1, both from h4-300): stopped 02:44 UTC at
@@ -54,7 +56,8 @@ poker-ai-lab (holdem-chipzen), -league, -rl, -adapt, -br, -blueprint, -search, -
    CONFIRMED (gb10-d ~/poker-ai-lab-league/out/verify-fb1-900). Image .cache/images/holdem-rl-fb1-900.tar.gz,
    sha256 8b4b4a45038c9fdc475895654c20ff26a1e7b028a51bf0764a199a3b8f3bd56f, local match vs lag won, 0 protocol
    problems, peak 93 MB. Test: ext:autodidact 71.8 (h4-300 63.7), real Blueprint 59.3 (h4-300 55.5); logs/fb_test/fb1_900.out.
-   fb2 RUNNING from fb1 it900 since 05:46 UTC, 180 min (`tools/rl_fb2.sh`, holdem-rl dc0e0c3).
+   fb2 (from fb1-900, `tools/rl_fb2.sh`): it900 = rl-fb2-900, held-out Ashwing 77.2, autodidact 75.5, Blueprint 62.3.
+   fb3 (same recipe from fb2-900) stopped at it300: overfits (held-out 75.5 -> 73.4, A5 79.7). Research 14.5.
 5. Blueprint 100bb (matteo-psnt/poker-solver v0.1.0, 1.9 GB; Wayne approved, Docker with --network none
    only): branch holdem-bpopp, box dirs ~/poker-ai-lab-bp and ~/bp-data.
 6. Image builds: `deploy/build_on_box.sh <model npz> <tag>` on holdem-rl (4d50c2a fixes root-owned cleanup).
