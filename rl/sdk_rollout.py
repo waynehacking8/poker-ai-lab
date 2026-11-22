@@ -92,15 +92,25 @@ class HeroRec(Bot):
                     act=np.array(self.a, np.int64), lp=np.array(self.lp, np.float32), adv=adv, ret=adv + v)
 
 
-def play_one(params, seed, seat):
-    from bot import HoldemBot  # chipzen_bot/bot.py, the original heuristic
+def make_opp(name, seed, seat):
+    """``chipzen`` is the heuristic HoldemBot; ``ext:<name>`` is a reviewed third-party bot (rl.field_bots)."""
+    if name == "chipzen":
+        from bot import HoldemBot  # chipzen_bot/bot.py, the original heuristic
+        return HoldemBot(seed=seed * 13 + seat)
+    from rl.field_bots import build
+    return build(name)
+
+
+def play_one(params, seed, seat, opp_name="chipzen"):
     hero = HeroRec(params, seed)
-    opp = HoldemBot(seed=seed * 13 + seat)
+    opp = make_opp(opp_name, seed, seat)
     bots = [None, None]
     bots[seat] = hero
     bots[1 - seat] = opp
     res = play_match(bots, seed, MatchConfig())
     won = res.winner == seat
+    if hasattr(opp, "close"):
+        opp.close()
     return hero.batch(won), won, res.hands
 
 
@@ -112,8 +122,10 @@ def publish_params(params, path):
     os.replace(tmp, path)
 
 
-def sdk_worker_main(conn, seed, params_path):
-    """Loop: reload the parameter file when it changed, play one match, send (batch, won, hands).
+def sdk_worker_main(conn, seed, params_path, opps=("chipzen",), offset=0):
+    """Loop: reload the parameter file when it changed, play one match, send (batch, won, hands, opponent).
+
+    The opponent cycles round robin through ``opps``, one opponent per seat pair (both seats); ``offset`` staggers the workers.
 
     The pipe carries worker to learner batches only; the learner sends a single ``None`` to stop the worker.
     """
@@ -134,5 +146,6 @@ def sdk_worker_main(conn, seed, params_path):
                 time.sleep(0.5)
                 continue
         k += 1
-        batch, won, hands = play_one(params, seed * 1000003 + k, k % 2)
-        conn.send((batch, won, hands))
+        name = opps[(k // 2 + offset) % len(opps)]
+        batch, won, hands = play_one(params, seed * 1000003 + k, k % 2, name)
+        conn.send((batch, won, hands, name))
