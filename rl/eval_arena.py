@@ -32,7 +32,7 @@ def make_chipzen_hero(seed):
     return HoldemBot(seed=seed)
 
 
-def make_bp100():
+def make_bp100(seed=None):
     from bpopp.opponent import make_bp100 as factory
     return factory()
 
@@ -40,7 +40,7 @@ def make_bp100():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default=None, help="hero policy (not needed with --hero chipzen)")
-    ap.add_argument("--hero", default="rl", choices=["rl", "chipzen"], help="chipzen = the old heuristic bot.HoldemBot")
+    ap.add_argument("--hero", default="rl", choices=["rl", "chipzen", "bp100"], help="chipzen = the old heuristic bot.HoldemBot; bp100 = the isolated blueprint (smoke test)")
     ap.add_argument("--matches", type=int, default=400)
     ap.add_argument("--opp", default="all")
     ap.add_argument("--temperature", type=float, default=1.0)
@@ -51,7 +51,14 @@ def main():
     if args.legacy_rules:
         from rl.features import set_rules
         set_rules(False)
-    hero = functools.partial(make_hero, os.path.abspath(args.model), args.temperature)
+    if args.hero == "chipzen":
+        hero = make_chipzen_hero
+    elif args.hero == "bp100":
+        hero = make_bp100
+    else:
+        if not args.model:
+            ap.error("--model is required with --hero rl")
+        hero = functools.partial(make_hero, os.path.abspath(args.model), args.temperature)
     names = list(BASELINES) + ["chipzen"] if args.opp == "all" else args.opp.split(",")
     for name in names:
         if name.startswith("model:"):

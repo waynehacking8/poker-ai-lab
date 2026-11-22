@@ -133,6 +133,33 @@ class BlueprintOpponent:
         frame = self.box.call({"op": "decide", "state": wire_state(state), "seat": state.your_seat})
         rtt = (time.perf_counter() - t0) * 1000
         info = frame.pop("info", {})
+        kind = frame["action"]
+        clamped = False
+        if kind == "raise":
+            # Their _clamp_raise returns max(min_raise, min(total, max_raise)), which
+            # exceeds max_raise when min_raise > max_raise (only the shove is legal).
+            # The live server would reject that frame; the arena engine would raise.
+            # Clamp into the legal range (the shove) and count it.
+            lo = min(state.min_raise, state.max_raise)
+            want = int(frame["params"]["amount"])
+            amount = max(lo, min(want, state.max_raise))
+            clamped = amount != want
+            frame["params"]["amount"] = amount
+        valid = list(state.valid_actions or ())
+        repaired = None
+        if kind not in valid:
+            # The adapter snaps a raise that rounds to no increment in its coarse chips
+            # (e.g. a short all-in below the min raise) to a CALL, so it answers as if
+            # it faced a check and returns "check" where the real price is positive.
+            # The live server would reject it. Repair to the nearest legal action
+            # and count it.
+            repaired = kind
+            if kind in ("check", "raise") and "call" in valid:
+                kind = "call"
+            elif kind in ("call", "raise") and "check" in valid:
+                kind = "check"
+            else:
+                kind = "fold" if "fold" in valid else valid[0]
         if self.box.log:
             self.box.log.write(json.dumps({
                 "hand": state.hand_number, "phase": state.phase, "seat": state.your_seat,
@@ -140,8 +167,7 @@ class BlueprintOpponent:
                 "pot": state.pot, "stack": state.your_stack, "opp": list(state.opponent_stacks),
                 "to_call": state.to_call, "min": state.min_raise, "max": state.max_raise,
                 "valid": list(state.valid_actions or ()), "hist": list(state.action_history),
-                "act": frame, "rtt_ms": round(rtt, 3), **info}) + "\n")
-        kind = frame["action"]
+                "clamped": clamped, "repaired": repaired, "final": kind, "act": frame, "rtt_ms": round(rtt, 3), **info}) + "\n")
         if kind == "fold":
             return Action.fold()
         if kind == "check":
