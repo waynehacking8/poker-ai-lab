@@ -19,7 +19,7 @@ from holdem.engine import MatchConfig, play_match  # noqa: E402
 from holdem.opponents import make_baseline  # noqa: E402
 from rl import fastenv  # noqa: E402
 from rl.features import NST, Tracker, load_priors  # noqa: E402
-from rl.oppmodel import FOLD, extract_replay  # noqa: E402
+from rl.oppmodel import ALLIN, FOLD, RAISE_OVER, RAISE_POT, extract_replay  # noqa: E402
 from tests.test_rl_env import KIND, Scripted, Stub, check_state, decks_for  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -41,11 +41,12 @@ def replay_dir():
 
 def independent_counts(replays):
     """hands (st[10]), postflop decisions facing a bet (st[5]), folds among them (st[6]), preflop first actions
-    (st[11]) per name, read with rl.oppmodel.extract_replay (its own public-state bookkeeping, chips added)."""
+    (st[11]), and the dealer's opening actions and raises among them (st[0], st[1], which depend on the dealer rule)
+    per name, read with rl.oppmodel.extract_replay (its own public-state bookkeeping, chips added)."""
     out = {}
 
     def row(name):
-        return out.setdefault(name, {10: 0, 5: 0, 6: 0, 11: 0})
+        return out.setdefault(name, {10: 0, 5: 0, 6: 0, 11: 0, 0: 0, 1: 0})
 
     for r in replays:
         for h in r["hands"]:
@@ -60,6 +61,12 @@ def independent_counts(replays):
             if state.street == 0 and (hi, seat) not in seen:
                 seen.add((hi, seat))
                 row(name)[11] += 1
+                if state.is_sb:
+                    # heads up the dealer posts the small blind and opens: its first action is st[0]
+                    row(name)[0] += 1
+                    shove_call = cls == ALLIN and state.to_call >= state.rem
+                    if cls in (RAISE_POT, RAISE_OVER, ALLIN) and not shove_call:
+                        row(name)[1] += 1
     return out
 
 
@@ -74,7 +81,7 @@ def replays():
 def mismatches(counts, ind):
     bad = []
     for name, c in counts.items():
-        for k in (10, 5, 6, 11):
+        for k in (10, 5, 6, 11, 0, 1):
             if c[k] != ind[name][k]:
                 bad.append((name, k, c[k], ind[name][k]))
     return bad
@@ -323,7 +330,7 @@ def test_bot_seeds_from_known_name_only():
     bot.on_match_start({"your_seat": 0, "seats": seats("Known")})
     assert bot.tracker.st == prior and bot.tracker.me == 0
     bot.tracker.st[0] += 1
-    assert bot.priors["Known"] == prior, "the table must not be mutated by a match"
+    assert bot.priors["Known"] == [float(k + 1) for k in range(NST)], "the table must not be mutated by a match"
     bot.on_match_start({"your_seat": 0, "seats": seats("Stranger")})
     assert bot.tracker.st == [0.0] * NST
     bot.on_match_start({"your_seat": 1, "seats": [{"seat": 0, "display_name": "Known", "is_self": False},
