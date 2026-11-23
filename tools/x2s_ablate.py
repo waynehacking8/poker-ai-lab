@@ -14,12 +14,14 @@ The patches are applied before the arena's worker pool forks (Linux), so every w
 
 from __future__ import annotations
 
+import os
 import random
 import sys
 
-import rl  # noqa: F401
-import rl.search as S
-from rl import eval_arena
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import rl  # noqa: F401,E402
+import rl.search as S  # noqa: E402
+from rl import eval_arena  # noqa: E402
 
 
 def main():
