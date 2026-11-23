@@ -247,65 +247,98 @@ unpaired. The interval resolves a gain of about 4.4 points at 800 matches a side
 * **Question:** does a broader training population, and then a per-name profile, move a single policy toward
   the specialists' gains on opponents it never trained on? M1 put the headroom at 11 to 15 points on a known
   bot; M1b showed one network keeps most of two different exploits with half the data each (14.12).
-* **Outcome:** three policies trained from fb2-900 with the same recipe, seeds and minutes, differing only
-  in population and seeding, and an E6 table that ranks them against fb2-900.
+* **Review 1 (REVISE, 5 blockers, all checked and fixed here):** the first draft trained on the Ashwing and
+  autodidact code that E6 evaluates and on clones of E6 sources; it measured the profile effect only on
+  trained-on clones; it picked the best arm and decided on the same E6 run; its E6 statistic mixed cell
+  sizes; and its start gate, `--out` and core count were missing.
+* **Outcome:** three policies trained from fb2-900 with the same recipe, seeds and minutes, differing only in
+  population and seeding, an E6 table that tests each against fb2-900, and the profile effect on held-out
+  named clones.
+* **Held out, by construction.** No arm trains on any E6 family's code or on a clone of an E6 source:
+
+  | E6 cell | code or source | in training? |
+  |---|---|---|
+  | `raise_station` | rule bot; style source DeepStack | no; `bot:DeepStack` skipped |
+  | `sticky_overbettor` | rule bot; source PluriBot (no clone) | no |
+  | `tight_sticky` | rule bot; sources r0ckGarden, SHADOW_REAPER, WSmithSimLab (no clones) | no |
+  | `never_fold_pre` | rule bot; sources Chatterbox, 5ur9e, PoetAndCoder, MercuryRetrograde | no; `bot:PoetAndCoder`, `bot:MercuryRetrograde` skipped |
+  | `ext:ashwing`, `ext:ashwing_search`, `ext:ashwing_hive` | vendor Ashwing package (all variants share it) | no `ext:ashwing*` in any arm |
+  | `ext:autodidact` | AutodidactBot (`autodidact_fast` is the same code) | no `ext:autodidact*`; `bot:AutodidactInnovations` skipped |
+  | `ext:wolf`, `ext:wolf_v5` | vendor Wolf | no `ext:wolf*` in any arm |
+
+  The `arch:k` clones stay in: 14.11 measured that no training or evaluation opponent, archetype clones
+  included, plays these four styles. `tools/x2b_eval.sh` prints `data/clones.npz` meta and each arm's
+  logged opponent keys, and refuses to judge if any skipped key or E6 code path appears.
 * **Code (holdem-rl, own worktree):**
   1. `holdem/opponents.py`: `GridStyle(seed)`, a `StyleBot` whose parameters are drawn from the seed:
      `open_p`, `play_p`, `face_p` uniform in [0, 1] with `play_p <= open_p`; `pre_size` in [2, 4];
-     `bet`, `rr`, `cont` per level uniform in [0, 1], each made non-decreasing in hand strength (sorted);
+     `bet`, `rr`, `cont` per level uniform in [0, 1], each sorted non-decreasing in hand strength;
      `bet_size` in [0.33, 2.0]. A draw whose normalized parameter vector (each parameter scaled to [0, 1]
      by its range, 20 dimensions) lies within Euclidean distance R = 0.6 of any of the four E6 bots is
      redrawn. Registered as `stylegrid`; `make_baseline("stylegrid", seed)` gives a new draw per seed.
-  2. `rl/sdk_rollout.py` `make_opp`: `stylegrid` builds `GridStyle(seed * 13 + seat)`, so every SDK match
-     gets a fresh style.
-  3. `tools/rl_x2b.sh ARM MINUTES`: one launcher for the three arms (below), `tools/x2b_eval.sh`: the judge.
+  2. `rl/sdk_rollout.py` `make_opp`: `stylegrid` builds `GridStyle(seed * 13 + seat)`.
+  3. `tools/rl_x2b.sh ARM`: the launcher; `tools/x2b_eval.sh`: the judge; `tools/x2b_stats.py`: the
+     statistics below.
   4. `tests/test_style_grid.py`: legality in strict-engine matches, determinism per seed, monotone fold sets,
-     and the rejection rule (no draw of 10,000 seeds within R of an E6 bot).
-* **Arms**, each `python -m rl.train --init ckpt/fb2/it000900.npz --workers 2 --sdk-workers 4 --envs 96
-  --steps 3000 --heur-batch 6000 --lr 1.5e-4 --clip 0.1 --floor 0.15 --snap-w 0.3 --snap-every 25
-  --clones data/clones.npz --bot-clones --seed 7 --max-minutes 180` (the S2 recipe without the exploiter
-  pool and the distill term, which serve the floor, not this question):
-  1. **base:** `--sdk-opps chipzen,ext:ashwing_v2,ext:ashwing_value,ext:ashwing_adaptive,ext:autodidact_fast,jam,jam_half`
-     (S2's field mix);
-  2. **grid:** the same list with `stylegrid` added four times, so about a third of SDK matches meet a fresh
-     style;
-  3. **grid + seeded:** grid plus `--seed-profiles rl/models/tracker_prior.npz`.
+     and the rejection rule on 10,000 seeds.
+* **Arms.** `tools/rl_x2b.sh ARM` exits non-zero unless `logs/swap_acc/done` exists (written when today's
+  swap acceptance runs end) and `ckpt/x2b_ARM` does not. It runs `python -m rl.train --out ckpt/x2b_ARM
+  --init ckpt/fb2/it000900.npz --workers 2 --sdk-workers 3 --envs 96 --steps 3000 --heur-batch 6000
+  --lr 1.5e-4 --clip 0.1 --floor 0.15 --snap-w 0.3 --snap-every 25 --clones data/clones.npz --bot-clones
+  --skip bot:DeepStack,bot:PoetAndCoder,bot:MercuryRetrograde,bot:AutodidactInnovations,bot:Kimiko
+  --seed 7 --max-minutes 180` plus, per arm:
+  1. **base:** `--sdk-opps chipzen,ext:sdkref,jam,jam_half`;
+  2. **grid:** `--sdk-opps chipzen,ext:sdkref,jam,jam_half,stylegrid,stylegrid,stylegrid,stylegrid` (half the SDK
+     matches meet a fresh style);
+  3. **seeded:** grid plus `--seed-profiles rl/models/tracker_prior.npz`.
 
-  All three use `--bot-clones`, so the seeded arm's only difference is the seeding. E1 cells for those clones
-  are then trained-on and reported as such.
-* **Judge (`tools/x2b_eval.sh`), seed 31, for fb2-900 and the three arms' `latest.npz`:**
-  * E6 rule cells: `raise_station`, `sticky_overbettor`, `tight_sticky`, `never_fold_pre`, 400 matches each.
-  * E6 field cells: `ext:ashwing`, `ext:ashwing_search`, `ext:ashwing_hive` (400 each), `ext:autodidact` (200,
-    it plays about 7 matches a minute), `ext:wolf` and `ext:wolf_v5` (200 each).
-  * The seeding check, in the C engine: each arm against the 10 `bot:` clones, 200 seeded matches each, with
-    and without the hero's prior (`tools/x2b_eval.sh` calls `Pool.set_prior` the way `Collector` does).
+  `bot:Kimiko` is skipped too, as a held-out named clone that is no E6 source (below). The S2 exploiter pool
+  and distill term are left out: they serve the floor, not this question.
+* **Judge, after all three arms end, never overlapping training:**
+  * **E6:** fb2-900 and each arm's `latest.npz`, 300 matches per cell on seed 31, all 10 cells, through
+    `rl.eval_arena` (deployed settings, all-in answer on).
+  * **Profile effect:** the seeded arm against the 5 held-out named clones (`bot:DeepStack`,
+    `bot:PoetAndCoder`, `bot:MercuryRetrograde`, `bot:AutodidactInnovations`, `bot:Kimiko`) and, separately,
+    the 5 trained-on ones (`bot:Blueprint`, `bot:SolvencyCheck`, `bot:mr_hide`, `bot:qwentom-leap`,
+    `bot:InfernalMonarch`), 200 C-engine matches each, every seed played twice: hero prior set as
+    `Collector` does, and no prior.
+* **Statistics (`tools/x2b_stats.py`, which prints the estimator, per-cell n and interval method):**
+  * E6 score of a model: the pooled win rate over its 3,000 E6 matches. Every cell has 300, so this equals the
+    unweighted cell mean.
+  * Arm minus fb2-900: Newcombe interval at 98.33% (95% Bonferroni-corrected over the three arms). Pooling
+    across cells treats them as one binomial, which overstates the variance, so the interval is
+    conservative. At p near 0.8 the detectable difference is about 2.5 points.
+  * Population effect: grid minus base, Newcombe 95%.
+  * Profile effect: mean paired difference (prior minus no prior) over the 1,000 held-out pairs, 95% normal
+    interval of the per-pair differences. The trained-on clones' result is reported beside it and does not
+    count.
 * **Acceptance (the finding, whichever way it falls):**
   1. Grid code tests pass; the rejection rule holds on 10,000 seeds; the nearest of 40 sampled grid bots to
      each E6 target in style space (`tools/style_map.py sim`, 120 matches each) is reported.
-  2. Each arm runs its 180 minutes without a crash, and its per-opponent training win rates are logged.
-  3. The E6 table: per cell win rate and Wilson interval for all four models, the mean over cells, and the
-     unpaired Newcombe interval of each arm minus fb2-900 on the mean over the 10 cells.
-  4. **Population effect:** grid minus base on the E6 mean, Newcombe 95%. **Profile effect:** grid + seeded
-     with its prior minus without, on the 10 clones, paired by seed.
-  5. The best arm (highest E6 mean) also gets E5 (no opponent below v4's interval) and E3 (fresh probe, one
-     run, information only), so a later king decision has them.
-* **Decision rule:** if the best arm beats fb2-900 on the E6 mean with the interval above zero and no cell
-  below fb2-900's interval, it becomes the base for the next slice (floor plus exploitation in one recipe)
-  and goes through the full king card (E1 to E5, a fresh verifier, then Wayne). If no arm does, the
-  population is not the bottleneck, and the next plan revision turns to decision-time search under X1.
+  2. Each arm runs 180 minutes without a crash; its training log lists only allowed opponent keys.
+  3. The held-out table above is checked by `tools/x2b_eval.sh` before any E6 match.
+  4. The E6 table (per cell rate and Wilson interval, four models), the three arm-minus-fb2 intervals, the
+     population effect and the held-out profile effect, each recomputable by hand from the per-cell wins.
+* **Decision rule, pre-registered, no selection on E6:** an arm passes when its 98.33% interval against
+  fb2-900 is above zero and no cell has the arm's 95% Wilson upper bound below fb2-900's point estimate. The
+  next base is the first passing arm in the fixed order seeded, grid, base. It then goes through the full
+  king card on fresh seeds (E1 to E5, a fresh verifier, then Wayne). If none passes, the population is not
+  the bottleneck, and the next plan revision turns to decision-time search under X1. The profile effect
+  decides only whether seeding stays in the recipe (interval above zero) or is dropped.
 * **Ownership:** `holdem/opponents.py` (GridStyle only), `rl/sdk_rollout.py` (`make_opp` only),
-  `tools/rl_x2b.sh`, `tools/x2b_eval.sh`, `tests/test_style_grid.py`, `tools/README.md`; outputs in
-  `ckpt/x2b_*`, `logs/x2b/`; results in experiments 14.15. No change to `rl/train.py`, the features, the C
-  engine or the network.
-* **Order and budget:** the code and its tests first (any time). Training starts only after the S2 or S2b
-  candidate's acceptance runs have finished on gb10-d (they decide today's swap). Three arms in parallel, 6
-  cores each, 180 minutes: 9 box-hours. The judge: about 3 box-hours (the autodidact and Wolf cells
-  dominate). **Stop:** a crash stops that arm; if two arms crash, X2b stops until the cause is known.
-  **Rollback:** nothing is deployed; poker-ai-lab-v4 stays entered.
-* **Known limits:** the grid draws one style per match and stays fixed, so it does not train against
-  adaptive opponents (`ext:ashwing_adaptive` is the only one); `stylegrid` is Python and plays in the SDK
-  workers only, so it gets a third of 4 workers' matches; R = 0.6 is a parameter-space guard, and the
-  style-space distances in acceptance 1 show how far it really holds E6 out.
+  `tools/rl_x2b.sh`, `tools/x2b_eval.sh`, `tools/x2b_stats.py`, `tests/test_style_grid.py`, `tools/README.md`;
+  outputs in `ckpt/x2b_*` and `logs/x2b/`; results in experiments 14.15. No change to `rl/train.py`, the
+  features, the C engine or the network.
+* **Order and budget:** code and tests first (any time, 2 cores). Training after `logs/swap_acc/done`: three
+  arms in parallel, 6 processes each (learner, 2 workers, 3 SDK workers), 18 of gb10-d's 20 cores, 180
+  minutes: 9 box-hours. The judge after training: 40 E6 runs of 300 matches plus 20 clone runs, up to 3 runs
+  in parallel at 6 workers, at most 6 box-hours (the autodidact and Wolf cells dominate; per-run seconds are
+  recorded). **Stop:** a crash stops that arm; two crashes stop X2b until the cause is known. **Rollback:**
+  nothing is deployed; poker-ai-lab-v4 stays entered.
+* **Known limits:** removing the Ashwing and autodidact families makes the training field weaker than S2's,
+  which is the price of a clean held-out test. If an arm passes, the king recipe adds them back. The grid
+  draws one style per match and stays fixed, so it does not train against adaptive opponents. R = 0.6 is a
+  parameter-space guard; the style-space distances in acceptance 1 show how far it really holds E6 out.
 
 ## Evidence that sets the order
 
