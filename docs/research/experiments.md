@@ -1081,7 +1081,7 @@ Unpaired, the pooled difference is +4.2 [+2.3, +6.1]. Losses fall from 7.8% to 3
 rollout lookahead on top of the policy halves the losses against these bots.** The next question is the
 model we actually have (roadmap X2m).
 
-### 14.18 X2m: with X1 in place of the true rules, the lookahead gains on real bots and loses on wide bettors
+### 14.18 X2m: with X1 in place of the true rules, the lookahead loses on wide bettors and does not reliably gain on real bots
 
 Roadmap X2m. Tool: `tools/x2r_oracle.py --model x1` on holdem-x2r (4d9c1ed, memo f6777b8, tests f427155; two
 fresh verifiers found the implementation right and the tests short, and every real mutation they found now
@@ -1123,6 +1123,32 @@ fails a test). N = 128, Z = 2.6, seed 41, 300 matches per cell, paired against t
   have, and the largest gains are on the Ashwing family, the gap the roadmap targets (73 against a
   specialist's 90). It also loses on bots that bet wide (sticky_overbettor -10.7), so it cannot ship as is:
   a field with such bots would pay for it.
-* **Next:** the same on fresh seeds (seed 43, own off arm with N = 1; `tools/x2m_confirm.sh`, running). Then
-  the model's weak point, limit 1: an action model that says how often, not with what. The fix is a
-  card-conditioned opponent model (what each action means for the hand), learned where cards are seen.
+
+**Confirmation on fresh seeds** (seed 43, `tools/x2m_confirm.sh` at 5ee89f5; each arm has its own off run
+with N = 1, which plays exactly as the policy, so the read is paired; `~/poker-ai-lab-x2m/logs/x2m43_*`):
+
+| cell | off | on | paired [95%] | b / c | overrides |
+|---|---|---|---|---|---|
+| ext:ashwing | 75.7 | 79.0 | +3.3 [-2.0, +8.7] | 39 / 29 | 13.7% |
+| ext:ashwing_search | 76.0 | 80.3 | +4.3 [-1.1, +9.7] | 41 / 28 | 13.5% |
+| ext:ashwing_hive | 85.7 | 80.3 | -5.3 [-10.9, +0.2] | 28 / 44 | 10.4% |
+| ext:autodidact | 79.3 | 80.3 | +1.0 [-4.3, +6.3] | 34 / 31 | 12.6% |
+| ext:wolf | 95.7 | 97.0 | +1.3 [-1.1, +3.8] | 9 / 5 | 9.8% |
+| pooled, five bots | 82.5 | 83.4 | +0.9 [-1.3, +3.2], p = 0.44 | 151 / 137 | |
+| raise_station | 97.0 | 89.3 | -7.7 [-11.0, -4.4] | 2 / 25 | 12.7% |
+| sticky_overbettor | 83.0 | 69.7 | -13.3 [-19.3, -7.4] | 24 / 64 | 10.2% |
+| tight_sticky | 94.0 | 93.7 | -0.3 [-3.5, +2.8] | 11 / 12 | 11.6% |
+| never_fold_pre | 94.7 | 97.7 | +3.0 [+0.5, +5.5] | 12 / 3 | 10.7% |
+| pooled, rule cells | 92.2 | 87.6 | -4.6 [-6.6, -2.6], p < 0.001 | 49 / 104 | |
+
+The pre-registered E read (unpaired Newcombe on the five bots) is +0.9 [-1.8, +3.6].
+
+* **E does not confirm; R fails again.** On fresh seeds the gain on real bots shrinks to +0.9 with an
+  interval across zero, and ashwing_hive turns to -5.3. The Ashwing and Ashwing search cells still lean
+  positive (+3.3, +4.3), but no single cell clears its interval on either seed. The loss on wide bettors
+  replicates and grows (-4.6 pooled, sticky_overbettor -13.3, raise_station -7.7).
+* **Verdict:** the lookahead with X1 is not a candidate. The procedure is sound (14.17: +4.2 with the true
+  model, confirmed); the model is the limit. Seed 41's +3.1 was the high end of a small effect.
+* **Next:** limit 1, the opponent model. X1 says how often an opponent acts, not with what hands; the
+  lookahead needs the second. The fix is a card-conditioned opponent model (what each action means for the
+  hand), learned where cards are seen. Its spec goes in the roadmap before any code.
