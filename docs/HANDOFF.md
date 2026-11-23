@@ -66,6 +66,16 @@ the working memory. Update it at every step that changes state.
   only after S2b and M1 end.
 - br_ashwing ended 04:11 UTC at it 580 (last window 92.4%); its chip flow runs; br_autofast ends about 04:17,
   then `tools/m1_eval.sh` starts.
+- **M1 preliminary (chip flow, seed 31, 400 matches each, unpaired):** br_ashwing wins 90.2% against Ashwing,
+  fb2-900 69.8% (gain about 20 points, interval roughly [15, 26]). The gain is a whole-strategy shift: first
+  preflop action raise 64.7% (fb2 32.3%), showdowns where we bet last +531k chips (fb2 -261k), fewer but
+  better-called river shoves (248 vs 635). The formal M1 statistic (`tools/m1_eval.sh`, running since 04:17
+  UTC, ends about 07:00) decides. Files `logs/m1/flow_{fb2,br}_ashwing.txt`.
+- **M1b (04:19 UTC):** `bash tools/rl_br.sh br_mix ckpt/fb2/it000900.npz ext:ashwing,ext:autodidact_fast 90 4`.
+  Question: does one network hold both exploits when trained on the mixture? If yes, the generalist's gap is
+  the training population, and X2 can be an opponent-conditioned policy (X1 predictions as inputs) trained on
+  a broad population; if it falls well short of the two BRs, conditioning or search is needed. Evaluate it
+  like M1 (800 vs ext:ashwing, 400 vs ext:autodidact, seed 21) after m1_eval finishes.
 - **Season 16 swap window closes today, 23:59 UTC.** An S2b candidate can be a swap option only if it
   passes acceptance before then, and only with Wayne's yes.
 - **Done 2026-11-23:** style map (holdem-rl 3ef434e `tools/style_map.py`; research 14.11: 12 of 51 field
