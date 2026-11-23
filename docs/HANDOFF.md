@@ -149,7 +149,7 @@ the working memory. Update it at every step that changes state.
   turn/river 105/157 vs 21/54. Causes not yet separated: X1 frequency (band width) vs reveal (band rule).
   NEXT: X3 SPEC in roadmap. Review 1 REVISE (4: lam absorbs frequency error; variant chosen on held-out;
   midpoint band cut makes invariance approximate; no budget) -> all fixed in research 8a6ecb3; review 2
-  running since 22:50 UTC (cap 2). X3a = range quality, CPU, no lookahead (tools/x3_range.py,
+  running since 22:29 UTC (cap 2). X3a = range quality, CPU, no lookahead (tools/x3_range.py,
   tests/test_x3.py on holdem-x2r): log share of the true combo minus prior, at hero decisions. Replays first
   on X1's split (fit / validation picks the pre/post lam variant, frozen / refit / held-out scored once).
   Sim seed 47, 200 matches x (4 rule + 5 ext cells), two-by-two on rule cells: R1 X1+band, R2 true freq+band,
