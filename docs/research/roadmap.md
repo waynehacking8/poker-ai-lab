@@ -138,55 +138,99 @@ unpaired. The interval resolves a gain of about 4.4 points at 800 matches a side
   the time (fb2-900 32.3%), showdowns where we bet last turn from -261k to +531k chips, and river shoves
   fall from 635 to 248 with better equity when called. A search that acts only on river and all-in
   decisions would miss most of it.
-* **Choice: X2 is a learned decision procedure under the X1 model** first: the policy takes X1's current
-  belief about the opponent as input and is trained to best-respond across a broad population. It shifts
-  whole strategies the way the fine-tune did, costs almost nothing at runtime, and reuses the training
-  stack. Decision-time search against X1 stays the next option if X2 fails E6 (it would need opponent
-  ranges, which X1 does not give, and full-hand continuation values within 1 s at 0.5 vCPU).
-* **The model's contribution is measured, not assumed:** X2b trains an ablation arm with the X1 inputs
-  zeroed on the same population and seeds.
+* **Choice: X2 is a learned decision procedure under an explicit opponent model.** The policy already reads
+  in-match opponent counts (the `Tracker` in `rl/features.py`, `NST` = 15 slots of which 0 to 13 are used,
+  mirrored as `stats[2][NST]` in `rl/fastenv.c`) through 9 smoothed features (f[46] to f[52], f[54], f[55]). X1 showed that a name's long-run profile predicts that
+  opponent better than in-match counts alone (14.13). X2 seeds those same counts at match start with the
+  opponent name's long-run counts from the replays, scaled to a fixed weight, and trains the policy across a
+  broad population so it learns to act on them. This keeps the observation at 56 floats: every checkpoint,
+  pool member and the E3 probe keep working, and the C engine needs only a setter for the initial counts.
+  X1's per-context prior network is not ported. It stays the opponent model for decision-time search, the
+  next option if X2 fails E6 (search needs opponent ranges, which X1 does not give, and full-hand
+  continuation values within 1 s at 0.5 vCPU).
+* **The contribution of each part is measured, not assumed:** X2b has arms without the seeding and without
+  the style grid (below).
+* Review of the first X2a draft (a 12-float X1 block in both engines): REVISE, 5 blockers (no C interface
+  for the model and its state; a width change breaking every 56-wide consumer; parity that could pass
+  without reaching the profile path, the in-match path or the opponent seat; undefined probe states; no
+  name rule for SDK and E6 opponents). This revision removes the width change and the C model, and answers
+  the rest below.
 
-### X2a. X1 features in the policy, in both engines
+### X2a. Name-seeded opponent counts in both engines
 
-* **Outcome:** the observation gains an X1 block, computed the same way in `rl/features.py` (deployed bot,
-  SDK rollouts) and `rl/fastenv.c` (C engine: league opponents and the E3 probe), plus a tool that widens a
-  checkpoint with zero input weights so it plays exactly as before.
-* **X1 block, 12 floats:**
-  1. X1's class probabilities at the current decision (5);
-  2. five probe contexts: P(fold) and P(raise) facing a half-pot flop bet, P(fold) facing a pot-sized
-     river bet, P(raise) as the first preflop action, P(fold) facing a 3x preflop raise;
-  3. evidence: log(1 + opponent actions this match) / 5, and 1 if the opponent's name has a profile.
+* **Outcome:** a per-name table of the tracker's counts (all `NST` slots) from the replays, a way to seed a match's
+  counts from it in the deployed bot, in SDK rollouts and in the C engine, and tests that both engines
+  agree.
+* **Profile table** (`tools/tracker_profiles.py`, output `rl/models/tracker_prior.npz`): for every name
+  in the 330 poker replays, convert each replay hand (`hands[].streets[].actions[]` with `action_type`,
+  `seat`, `player`, `amount` as chips added; dealer = the small blind poster) to the engine's
+  `action_history` form (raise amounts as raise-to), run it through `Tracker.update` itself with `me` set to
+  the other seat, sum per name, then scale all counts so that the hand count `st[10]` equals H0 = 20 hands (a fixed weight; X2b measures its value).
+  Names with fewer than 100 hands get no profile.
+* **Name rule** (one table, stored in the tool's README line and the test):
 
-  The opponent name comes from `match_start` `seats[].display_name`. In the C engine a clone uses the name
-  of the bot it was fitted to (`bot:NAME` specs from `data/clones.npz` meta); archetype clones (`arch:k`),
-  baselines and pool members have no profile.
+  | where | opponent | name passed | profile |
+  |---|---|---|---|
+  | deployed bot | live opponent | `match_start` `seats[].display_name` of the other seat | if in the table |
+  | C engine | `bot:NAME` clone (fitted to NAME's replays) | NAME | if in the table |
+  | C engine | `arch:k` clones, baselines, snapshots, pool members | none | no |
+  | SDK rollouts and every eval | `ext:` bots, `chipzen`, `model:`, StyleBots, extremes | none | no |
+
+  So E6 (StyleBots and `ext:` bots) always runs nameless and stays held out; X2a reports the overlap
+  between E6's arena-name counterparts and the table only as information. E7 uses real names.
+* **Interfaces:**
+  1. `Tracker(prior=None)` in `rl/features.py`: `st` starts as a copy of `prior` (`NST` floats) or zeros.
+  2. `rl/bot.py` `on_match_start`: looks the other seat's `display_name` up in the table and seeds the
+     tracker; `rl/sdk_rollout.py` passes no prior.
+  3. C: `void env_set_stats(Pool *p, int i, int seat, const double *in)`, the mirror of the existing
+     `env_stats` getter, called after `env_reset`; wrapper `Pool.set_stats(i, seat, arr)` in
+     `rl/fastenv.py`.
+  4. Caller: `Collector._new_match` in `rl/train.py`, for a `bot:NAME` opponent with a profile, seeds the
+     hero seat's counts (the hero observes the clone). The new flag `--seed-profiles PATH` turns it on;
+     without the flag nothing changes.
 * **Acceptance:**
-  1. Parity: the Python and C blocks agree within 1e-5 on every hero decision of 200 seeded C-engine
-     matches against a mix of baselines and clones (the `tests/test_rl_env.py` pattern).
-  2. Surgery: the widened fb2-900 plays byte for byte as fb2-900 in 200 seeded SDK matches against
-     `model:` opponents and in 200 seeded C-engine matches.
-  3. Runtime: in the deployed amd64 image at `--cpus 0.5 --memory 256m`, the X1 block adds under 5 ms at
-     p99 per decision.
-  4. The existing test suite passes.
-* **Ownership:** `rl/features.py`, `rl/fastenv.c` and its wrapper, `rl/bot.py`, `rl/sdk_rollout.py`,
-  `deploy/Dockerfile` and `deploy/hf_package.sh` (the new files), a new `tools/widen_ckpt.py`, a new
-  `tests/test_x1_features.py`; results in experiments 14.14. Work happens in its own worktree. S2b and
-  M1 use some of these files, so nothing is synced to `~/poker-ai-lab-rl` on gb10-d before both end.
-* **Non-goals:** training (X2b), any upload, any change to the X1 model.
-* **Budget:** at most 3 box-hours, at most 2 cores while S2b or M1 run. **Stop:** if parity or surgery
-  still fails after two fix rounds, X2a stops, the failure is recorded, and the next step goes to a new
-  plan revision. **Rollback:** the zero-weight widened policy is fb2-900; nothing is deployed.
+  1. **Profile counts:** `tools/tracker_profiles.py` reproduces `Tracker.update` on 50 engine hands
+     converted to the replay format, exactly.
+  2. **Parity, both seats:** over seeded C-engine matches with `--seed-profiles`, the C counts after
+     `env_set_stats` and after every finished hand equal a Python `Tracker` seeded the same way and fed the
+     same histories, for both seats, within 1e-9. The test prints the number of compared decisions with a
+     profile, without one, and with in-match evidence (at least one finished hand), for each seat; each must
+     be at least 500, or that branch is NOT TESTED. A mutation that skips the seeding in C only makes it fail.
+  3. **No-op by default:** without `--seed-profiles`, `rl.train` collects byte-identical batches to the
+     current code on a fixed seed, and fb2-900 plays byte for byte as before in 200 seeded SDK matches
+     against `model:` opponents (no prior anywhere).
+  4. **Deployed path:** `rl/bot.py` seeds from a `match_start` message carrying a known name and not from an
+     unknown one (unit test), and `deploy/Dockerfile` and `deploy/hf_package.sh` ship the table.
+  5. The existing test suite passes.
+* **Ownership:** `rl/features.py`, `rl/fastenv.c`, `rl/fastenv.py`, `rl/bot.py`, `rl/train.py`, `deploy/Dockerfile`,
+  `deploy/hf_package.sh`, new `tools/tracker_profiles.py`, `rl/models/tracker_prior.npz`,
+  `tests/test_tracker_prior.py`; results in experiments 14.14. Work happens in its own worktree from the
+  holdem-rl tip. S2b and M1 use `rl/train.py`, `rl/features.py` and `rl/fastenv.c` on gb10-d: nothing is
+  synced to `~/poker-ai-lab-rl` before both end (S2b's `end.txt` and M1's `logs/m1/done`); tests run in a
+  separate box directory.
+* **Non-goals:** training (X2b), any upload, the X1 network in C.
+* **Known limit, for X2b:** the policy cannot tell seeded counts from observed ones (f[52] reads 20 hands at
+  match start), and a `bot:NAME` clone is seeded with the real bot's profile, not the clone's own play. X2b
+  reports the clone-vs-profile distance per name, so a mismatch that teaches the policy to distrust profiles
+  is visible.
+* **Budget:** at most 2 box-hours, 2 cores while S2b or M1 run. **Stop:** if acceptance 2 or 3 still fails
+  after two fix rounds, X2a stops, the failure is recorded, and the next step goes to a new plan revision.
+  **Rollback:** without `--seed-profiles` and without a table entry everything plays as today; nothing is
+  deployed.
 
 ### X2b. Train and judge (specified after X2a)
 
-* Two arms from the widened fb2-900, same seeds and budget: **X2** (X1 block live) and **X2-ablation** (X1
-  block zeroed).
-* Population: the training-split field bots (`ext:ashwing_v2`, `ext:ashwing_value`, `ext:ashwing_adaptive`,
-  `ext:autodidact_fast`, `chipzen`), the C-engine league (clones with their names, baselines, the exploiter
-  pool), and a style grid: `StyleBot` (holdem/opponents.py) with parameters sampled per match, rejecting a
-  ball around the four E6 bots' parameters, so E6 stays held out.
-* Acceptance in outline: E6 better than fb2-900 on average with no cell below its interval; X2 beats the
-  ablation on E6; E2, E4 and E5 no worse; E3 no worse; decisions inside the runtime budget.
+* Three arms from fb2-900, same seeds and budget:
+  1. **base:** today's population (C-engine league with bot clones, baselines, exploiter pool; SDK field
+     bots of the training split: `ext:ashwing_v2`, `ext:ashwing_value`, `ext:ashwing_adaptive`,
+     `ext:autodidact_fast`, `chipzen`);
+  2. **grid:** base plus a style grid in the SDK workers: `StyleBot` with parameters sampled per match,
+     rejecting a ball around the four E6 bots' parameters;
+  3. **grid + seeded:** grid plus `--seed-profiles`.
+* Acceptance in outline: E6 split into its rule cells and its real `ext:` bots, each better than fb2-900 on
+  average with no cell below its interval; grid beats base on E6 (the population's contribution), and
+  grid + seeded beats grid on the clones of named bots (the profile's contribution); E2, E4 and E5 no worse;
+  E3 no worse; decisions inside the runtime budget.
 
 ## Evidence that sets the order
 
