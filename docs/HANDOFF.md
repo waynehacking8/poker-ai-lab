@@ -118,7 +118,8 @@ the working memory. Update it at every step that changes state.
   88-89 vs 95-96 (oracle 98-99: X1 is now the weakest part: unobserved fold buckets, collapsing band range).
   HELD-OUT JUDGE RUNNING since 09:02 UTC: gb10-d ~/poker-ai-lab-x2s/tools/x2s_judge.sh (10 cells x 300,
   seed 41, off then on, cores 4-19), out logs/x2s_judge/{off,on}.jsonl + rows, marker done, ~50 min.
-  Fresh verifier on c348a59..8007e33 running (PC only). Branch holdem-x2s NOT merged/pushed yet.
+  Verifier REFUTED 8007e33 on one crash (trips/quads board, strength table); fixed dbe9e3e, swapped into the box
+  before the on arm. Branch holdem-x2s NOT merged/pushed yet; merge after the judge + a fresh verifier on dbe9e3e.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
