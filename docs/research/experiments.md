@@ -851,3 +851,38 @@ played 7 matches a minute. `tools/m1_eval.sh` then played each model on seed 21,
   bluffs less: a whole-strategy shift, not one leak.
 * **Pending:** the autodidact half, the specialization cost on the other bot, and M1b (one fine-tune on
   both bots, `ckpt/br_mix`).
+
+### 14.14 X2a: name-seeded opponent counts in both engines
+
+Roadmap Revision 2, slice X2a (holdem-rl 25cd281, 7e54bf4, 90baa6b). The policy's in-match opponent
+counts (`Tracker`, `NST` = 15 slots) can now start from a per-name long-run profile instead of zeros: in the
+deployed bot (`RLBot(priors=PATH)`, keyed by the other seat's `match_start` `display_name`) and in the C
+engine (`env_set_prior` / `Pool.set_prior`, applied inside the reset before the first hand; `rl.train
+--seed-profiles PATH` seeds the hero seat against `bot:NAME` clones). Nothing is trained yet; X2b does that.
+
+* **Profile table** (`tools/tracker_profiles.py`, `rl/models/tracker_prior.npz`, 5.3 KB): 330 poker replays,
+  70 names, 21,032 name-hands; 51 names with at least 100 hands get a profile, scaled to 20 hands. All 10
+  `bot:` clone names are covered. The replays hold no `all_in` records and no raise that adds no more than
+  the call, so the all-in-for-less rule never fires on them.
+* **Acceptance 1 PASS:** unscaled counts equal an independent count from `rl/oppmodel.py` `extract_replay`
+  for every name on st[10], st[5], st[6], st[11], and (added after verification) the dealer-dependent
+  st[0] and st[1]. Raise amounts left as chips added: fails. Big blind poster as dealer: fails (139
+  mismatches).
+* **Acceptance 2 PASS:** Python and C counts and features agree within 1e-9 on both seats at every decision
+  of 96 seeded matches (seat 0: 1,726 decisions with a prior, 1,873 without, 3,357 with in-match evidence;
+  seat 1: 2,015, 1,584, 3,357), and when the opponent finishes hand 1 inside the reset (43 decks). Killed
+  mutations: no seeding, wrong seat, copy after `run`, prior kept across resets, aliased prior. The
+  "copy after `start_hand`" mutation the spec named cannot be killed: `start_hand` never touches the
+  counts, so it is the same program.
+* **Acceptance 2b, 3, 4, 5 PASS:** only the hero seat is seeded and only for named clones; without the flag
+  three fixed-seed `Collector` batches hash identically to the base (`tools/collector_hash.py`, 54,168 rows)
+  and SDK match rows are byte-identical; `RLBot` seeds only with `priors=PATH` and only for a known
+  opponent name; the full suite passes (189 passed, 2 skipped by the box environment).
+* **Deployed default is off.** fb2-900 was not trained on seeded counts and would read a profile as 20 hands
+  already seen, so `deploy/bot.py` keeps today's behavior until a seeded policy ships.
+* **Verification:** a fresh verifier reproduced every part from `git archive` on gb10-d, regenerated the
+  table byte for byte, matched all 15 slots for all 70 names with a counter written from the raw JSON, and
+  confirmed the raise-to and dealer conventions against `holdem/engine.py` and the SDK's `models.py`.
+  Verdict CONFIRMED; its two test gaps (dealer slots, a self-comparing assert) are fixed in 90baa6b.
+* **Open:** whether the live `display_name` equals the replay player name is not checkable offline; M3
+  (Season 16 replays of our own matches) answers it before seeding is turned on.
