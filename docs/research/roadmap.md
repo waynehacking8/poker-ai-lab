@@ -177,6 +177,35 @@ unpaired. The interval resolves a gain of about 4.4 points at 800 matches a side
   recommendations from you if you think it's worth", 2026-11-23), and the outcome verifier still gates the
   result.
 
+### Correction (2026-11-23, Wayne: "the point is the universal approach I asked for at the start, and you
+### listed the limits yourself")
+
+The X2 choice above drifted back into the move this revision opened by rejecting: X2b's base and grid arms
+enlarge the opponent list of a reactive policy, and the seeded arm only adds an input to it. A reactive
+policy is only as robust as its training distribution, so a broader grid moves the holes, it does not
+remove them. M1's whole-strategy shift does not argue against search either: "search acts only on river and
+all-in decisions" was my own strawman, while the planned X2 (New order, item 3) searches at every decision.
+
+* **X2 returns to the universal design:** X1 (done) as the explicit opponent model, a decision procedure
+  that best-responds to it at decision time, and a safety blend toward the floor policy while the belief
+  is broad. A style the model can express is covered without ever training against it.
+* **The limits I listed, each now a work item of X2s:**
+  1. X1 predicts actions, not hands. A best response needs the opponent's range: a hand-conditioned
+     opponent policy whose action frequencies match X1's (data-biased frequency matching, Ganzfried and
+     Sandholm 2011), with Bayesian range updates on each action, and showdowns as extra evidence corrected
+     for selection (showdown censoring, arXiv 2608.09954).
+  2. Continuation values: depth-limited search with fb2-900's value head (`v*` keys) at the leaf, or
+     rollouts with our policy for us and the model for them.
+  3. Runtime: about 1 s per decision at 0.5 vCPU in Python and numpy; measured on the deployed image.
+  4. Safety: exploitation weighted by the model's confidence (evidence count, posterior spread), the floor
+     policy otherwise (safe exploitation, Ganzfried and Sandholm 2015; confidence-gated exploitation,
+     arXiv 2607.28520).
+  5. Objective: match win probability, not chips, in short winner-take-all matches.
+* **X2b:** its training arms are not run. Its code (the style grid, the held-out judge, the profile eval)
+  is kept as the test bed: X2s is judged on E6 and on the style grid, none of which it trains on.
+* **Next:** the X2s spec, grounded in the cited work and open-source implementations, then review and
+  build.
+
 ### X2a. Name-seeded opponent counts in both engines
 
 * **Outcome:** a per-name table of the tracker's counts (all `NST` slots) from the replays, a way to seed a match's
