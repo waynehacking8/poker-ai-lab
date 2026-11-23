@@ -307,10 +307,11 @@ def main():
     load_to_torch()
     opt = torch.optim.Adam(list(pnet.parameters()) + list(vnet.parameters()), lr=args.lr, eps=1e-5)
     state_path = os.path.join(args.out, "state.pt")
-    snaps, wr, total_steps, it0 = [], None, 0, 0
+    snaps, wr, total_steps, it0, pool_wr = [], None, 0, 0, {}
     if os.path.exists(state_path):
         st = torch.load(state_path, weights_only=False)
         params, snaps, wr, total_steps, it0 = st["params"], st["snaps"], st["wr"], st["steps"], st["it"]
+        pool_wr = st.get("pool_wr", {})
         load_to_torch()
         opt.load_state_dict(st["opt"])
 
@@ -366,10 +367,11 @@ def main():
     window = defaultdict(lambda: [0, 0, 0])
     sdk_buf = []
     sdk_n = {}
-    ext, ext_names, pool_wr = [], [], {}
+    ext, ext_names = [], []
     pool_w = args.snap_w if args.pool_w is None else args.pool_w
     for it in range(it0 + 1, it0 + args.iters + 1):
-        if args.pool_dir and (it == it0 + 1 or it % 10 == 0):
+        # the pool changes only right after a log row, so each row's window has one file per snap:j key
+        if args.pool_dir and (it == it0 + 1 or it % 10 == 1):
             files = sorted(glob.glob(os.path.join(args.pool_dir, "*.npz")))[-4:]
             names = [os.path.basename(f) for f in files]
             if names != ext_names:
@@ -483,8 +485,9 @@ def main():
         if (time.time() - t0) / 60 > args.max_minutes:
             break
     np.savez(os.path.join(args.out, "latest.npz"), **params)
+    pool_wr.update({nm: wr.get(f"snap:{j}", 0.5) for j, nm in enumerate(ext_names, 1)})
     torch.save({"params": params, "snaps": snaps, "wr": wr, "steps": total_steps, "it": it,
-                "opt": opt.state_dict()}, state_path)
+                "opt": opt.state_dict(), "pool_wr": pool_wr}, state_path)
     for c in conns + sdk:
         c.send(None)
 

@@ -4,7 +4,7 @@ screen, the exploitability probe and the held-out Ashwing pair, then stop condit
     python tools/s2_screen.py OUT ITER PREV_ITER
 
 Writes logs/OUT/screen_itNNNNNN_pool.json and prints it. Exit 0 continue, 11 stop 1 (no gain), 12 stop 1
-(under-sampled), 2 stop 2 (field cost); anything else is a failed screen.
+(under-sampled), 20 stop 2 (field cost); anything else, python's own exit 2 included, is a failed screen.
 """
 import json
 import sys
@@ -45,7 +45,7 @@ with open(f"logs/{out}/screen_it{N}_pool.json", "w") as f:
     f.write(json.dumps(rec) + "\n")
 print(json.dumps(rec))
 if all(ash[k] < TRIPWIRE[k] for k in TRIPWIRE):
-    sys.exit(2)
+    sys.exit(20)
 if it == 400 and probe["win_rate"] >= 0.90:
     sys.exit(12 if share < 0.20 else 11)
 sys.exit(0)

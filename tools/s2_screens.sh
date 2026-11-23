@@ -2,19 +2,20 @@
 # S2 screens at main iterations 200, 400 and 600, and on the last checkpoint when the run ends without a stop:
 # the exploitability probe (logs/exploit_probe/OUT_itN.json), held-out ext:ashwing and ext:ashwing_search
 # (logs/OUT/screen_itN.jsonl) and the pool statistics (logs/OUT/screen_itN_pool.json). tools/s2_screen.py
-# applies stop conditions 1 and 2; on a stop this writes logs/OUT/STOP and kills the main run.
+# applies stop conditions 1 and 2; on a stop this writes logs/OUT/STOP (never over an existing one) and kills
+# the main run.
 #
 #   bash tools/s2_screens.sh MAIN_PID OUT
 set -u
 cd ~/poker-ai-lab-rl && . .venv/bin/activate
 MAIN=$1; OUT=$2; C=ckpt/$OUT; L=logs/$OUT; prev=0
 mkdir -p $L
-stopit() { echo "$(date -u +%FT%TZ) STOP $1"; echo "$1" > $L/STOP; kill $MAIN 2>/dev/null; exit 0; }
+stopit() { echo "$(date -u +%FT%TZ) STOP $1"; (set -C; echo "$1" > $L/STOP) 2>/dev/null; kill $MAIN 2>/dev/null; exit 0; }
 screen() {  # ITER
   local N ck
   N=$(printf %06d $1); ck=$C/it$N.npz
   for try in 1 2 3 4 5 6; do
-    python -c "import numpy as np, sys; z = np.load(sys.argv[1]); assert 'vw0' in z.files" $ck 2>/dev/null && break
+    python -c "import numpy as np, sys; z = np.load(sys.argv[1]); assert 'vw0' in z.files; [z[k] for k in z.files]" $ck 2>/dev/null && break
     sleep 10
   done
   echo "$(date -u +%FT%TZ) screen it$N"
@@ -26,7 +27,7 @@ screen() {  # ITER
     0) ;;
     11) stopit "1 no gain at it$N" ;;
     12) stopit "1 under-sampled at it$N" ;;
-    2) stopit "2 field cost at it$N" ;;
+    20) stopit "2 field cost at it$N" ;;
     *) stopit "3 screen it$N failed, see $L/screen_it$N.verdict" ;;
   esac
   prev=$1
