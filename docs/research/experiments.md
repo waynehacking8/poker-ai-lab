@@ -1065,5 +1065,18 @@ policy on 20 seeds. Eight mutations were caught.
   sticky_overbettor, fold instead of calling its big bets (the largest gain, about 0.07 per override);
   against tight_sticky, both folds and calls.
 * **Cost:** about 1.9 s per decision on one box core, so it does not fit the deployed budget as it stands.
-* **Confirmation on fresh seeds** (seed 43, off arm N = 1, which plays exactly as the policy, then N = 128,
-  Z = 2.6) is running in `~/poker-ai-lab-x2r/logs/x2r_s43_off` and `x2r_s43_on`.
+
+**Confirmed on fresh seeds** (seed 43; the off arm is N = 1, which plays exactly as the policy; then N = 128,
+Z = 2.6; `~/poker-ai-lab-x2r/logs/x2r_s43_off` and `x2r_s43_on`):
+
+| cell | off | on | paired [95%] | b / c |
+|---|---|---|---|---|
+| raise_station | 97.0 | 98.3 | +1.3 [-0.3, +2.9] | 5 / 1 |
+| sticky_overbettor | 83.0 | 90.0 | +7.0 [+2.5, +11.5] | 35 / 14 |
+| tight_sticky | 94.0 | 98.0 | +4.0 [+1.3, +6.7] | 15 / 3 |
+| never_fold_pre | 94.7 | 99.0 | +4.3 [+1.8, +6.8] | 14 / 1 |
+| pooled | 92.2 | 96.3 | +4.2 [+2.7, +5.7], p < 0.001 | 69 / 19 |
+
+Unpaired, the pooled difference is +4.2 [+2.3, +6.1]. Losses fall from 7.8% to 3.7%. **With the true model,
+rollout lookahead on top of the policy halves the losses against these bots.** The next question is the
+model we actually have (roadmap X2m).
