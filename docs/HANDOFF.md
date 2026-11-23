@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 16:30 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 20:55 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -136,13 +136,14 @@ the working memory. Update it at every step that changes state.
   logs/x2m_rule DONE 13:11: R FAILS, paired -3.8 [-5.7,-1.8] (sticky_overbettor -10.7: folds every street;
   research 14.18 e5289a8). Diagnosis: band model (bets = strong) wrong for wide-range bettors = limit 1.
   logs/x2m_ext DONE 16:27: E HOLDS, 5 distinct bots +3.1 [+0.4,+5.8] (wolf_v5 == wolf, dropped; 6-cell
-  +2.9 [+0.6,+5.3]); Ashwing +5.7, ashwing_search +6.0 (research 14.18). CONFIRMATION RUNNING since 16:28:
-  tools/x2m_confirm.sh (5ee89f5) seed 43, off N=1 then on, logs/x2m43_{rule,ext}{_off,}, marker
-  logs/x2m43_done, ~4.5 h. Then: card-conditioned opponent model (limit 1), runtime, full card.
-  READ (pre-registered): R = paired_stats.py judge rows_off.jsonl vs x2m_rule/rows_on_*.jsonl pooled LB>0;
-  E = x2s_stats.py logs/x2m_ext pooled Newcombe LB>0. E -> runtime + full card; not E, R -> model work;
-  neither -> ablation (oracle range + X1Bot; X1 range + StyleBot). Report rule diff / +3.8 share.
-  Never re-tar the whole tree into ~/poker-ai-lab-x2m while x2m_run.sh runs (bash script in use).
+  +2.9 [+0.6,+5.3]); Ashwing +5.7, ashwing_search +6.0 (research 14.18).
+  SEED-43 CONFIRMATION DONE 20:48 (tools/x2m_confirm.sh 5ee89f5, own N=1 off arms, paired): E DOES NOT
+  CONFIRM, five bots +0.9 [-1.3,+3.2] p=0.44 (Newcombe +0.9 [-1.8,+3.6]); ashwing +3.3, search +4.3,
+  hive -5.3, autodidact +1.0, wolf +1.3. R fails again: -4.6 [-6.6,-2.6] (sticky_overbettor -13.3,
+  raise_station -7.7). Research 14.18 046e99e. VERDICT: lookahead with X1 is NOT a candidate; procedure is
+  sound (oracle +4.2 confirmed), the model is the limit. holdem-x2r stays unmerged (5ee89f5).
+  NEXT: roadmap spec for X3 = card-conditioned opponent model (what each action means for the hand),
+  judged first by plugging it into the X2r rollouts in place of X1 (oracle = ceiling, X1 = floor).
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
