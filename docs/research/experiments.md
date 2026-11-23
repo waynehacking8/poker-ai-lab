@@ -757,10 +757,10 @@ opponents against fb2-900 (the baselines and extremes, the heuristic bot, the 13
 exploiters, S2's it1800 and fb2-900 itself). Each field bot is matched to its nearest pool member (Euclidean
 distance; a missing axis reads 0.5). Files are in `logs/style/` on gb10-d.
 
-* **Covered (distance 0.16 to 0.30):** the loose middle of the field, including Blueprint, InfernalMonarch,
+* **Covered (distance 0.16 to 0.40):** the loose middle of the field, including Blueprint, InfernalMonarch,
   mr_hide, lil-b3b, the Deep_Thought versions and most of the 100 to 200 hand bots. Their nearest members
-  are autodidact, Ashwing, fb2-900 and, for the aggressive ones, the S2 exploiters (x010 is nearest to 9 bots).
-* **Gaps (0.42 to 0.74), four styles no opponent of ours plays:**
+  are autodidact, Ashwing, fb2-900 and, for the aggressive ones, the S2 exploiters (x010 is nearest to 10 bots).
+* **Gaps (0.42 to 0.74, 12 of 51 bots), four styles no opponent of ours plays:**
 
   | style | field bots (distance) | what they do |
   |---|---|---|
