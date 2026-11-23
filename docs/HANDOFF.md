@@ -162,7 +162,10 @@ the working memory. Update it at every step that changes state.
   mutations survive (R2/R2l get X1 p, R2l uses lp4, pre/post lam swapped, V = R4-R1); (3) report pools
   whatever cells exist. Replay path unaffected. First run INVALID for sim (logs/x3a in ~/poker-ai-lab-x3,
   autodidact killed): do not cite its sim numbers. Its replay part: held-out R4-R1 +1.09 [0.98,1.22],
-  variant not chosen. Executor resumed 23:45 UTC with the three fixes; then fresh verifier 2 (cap 2), rerun.
+  variant not chosen. FIXED in holdem-x2r 4e51db8 (32 tests, 14/14 mutations killed, verifier's
+  r1_vs_search 0 differences in 5 cells). RERUN LAUNCHED 23:46 UTC: gb10-d ~/poker-ai-lab-x3v2 (fresh LF
+  archive of 4e51db8), cores 4-12, logs/x3a (report refuses if a cell is missing). Verifier 2 (cap 2)
+  running in parallel (~/x3-verify2, cores 13-19).
   X3a = range quality, CPU, no lookahead (tools/x3_range.py,
   tests/test_x3.py on holdem-x2r): log share of the true combo minus prior, at hero decisions. Replays first
   on X1's split (fit / validation picks the pre/post lam variant, frozen / refit / held-out scored once).
