@@ -29,6 +29,8 @@ Scripts around the Chipzen replays. The replays themselves live in `.cache/chipz
   (`tools/s2_screens.sh`, `tools/s2_screen.py`). The end reason lands in `logs/OUT/end.txt`. FROM resumes a
   finished run with its state and its 4 newest pool files (S2b).
 * `python tools/probe_pool.py NAME...` pools probes with distinct eval seeds: wins, matches, Wilson interval.
+* `python tools/style_map.py replays|sim|compare ...` puts the real field (replays) and our opponents (simulated
+  against one hero) on one 8-axis style map and lists each field bot's nearest pool member.
 * `bash tools/eval_card.sh NAME POLICY_NPZ INIT_CKPT [KING_NPZ]` writes the eval card of one candidate
   (roadmap E2 to E4) to `logs/eval_card/NAME.json` on the box, about 75 minutes.
 * `python tools/replay_conformance.py [REPLAY_DIR] [--show N]` replays every real NLHE hand
