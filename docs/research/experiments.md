@@ -723,5 +723,8 @@ The run ended at max-minutes, at iteration 1835.
   next step is S2b, which resumes S2 (roadmap).
 * **Bookkeeping fix after the run** (holdem-rl a0ba32c, from the S2 code review): the pool rotated at
   `it % 10 == 0`, inside a 5-iteration log window, so 4 of every 5 iterations around a rotation were
-  credited to the wrong file. Rotation now happens right after a log row. The state also saves per-file pool
-  win rates, so a resume keeps them. The screen's pool share counts matches, not files, so it is unaffected.
+  credited to the wrong file. Rotation now happens right after a log row. That alone was not enough: matches run across
+  iterations, so a match in progress at a rotation finished against the slot's new file and was credited to it
+  (27 of 53 pool results in a 30-iteration check, found by the second review). Such matches are now restarted
+  unreported (0670e94), and the same check reads 0 of 54. The state also saves per-file pool win rates, so a
+  resume keeps them. The screen's pool share counts matches, not files, so it is unaffected.

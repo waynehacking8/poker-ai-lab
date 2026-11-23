@@ -251,8 +251,9 @@ post-flop folds, and shoves called by better hands.
 ### S2b. Continue S2 (revision 1)
 
 S2 was still improving when the clock ran out, so S2b resumes it for another 300 minutes under the same
-recipe. The only recipe change is the bookkeeping fix of holdem-rl a0ba32c: the pool rotates right after a
-log row, so each file's win rate gets its own matches. E3 becomes a pooled probe, because single probes of
+recipe. The only recipe changes are the bookkeeping fixes of holdem-rl a0ba32c and 0670e94: the pool rotates
+right after a log row, and a match in progress against a slot whose file changed is restarted unreported, so
+each file's win rate gets only its own matches. E3 becomes a pooled probe, because single probes of
 one checkpoint spread about 12 points.
 
 **Owned files** (holdem-rl): `tools/rl_s2.sh`, `tools/s2_exploiters.sh`, `tools/s2_screens.sh`, new
