@@ -39,8 +39,11 @@ the working memory. Update it at every step that changes state.
      ext: bots are unseeded, so the gain is an unpaired difference with a Newcombe interval.
   4. Chip flow for M1 (03:14 UTC): `tools/chipflow.py` of fb2-900 against ext:ashwing, 400 matches, seed 31,
      into `logs/m1/flow_fb2_ashwing.{jsonl,txt}`; after br_ashwing ends the same for `ckpt/br_ashwing/latest.npz`
-     into `logs/m1/flow_br_ashwing.*`, marker `logs/m1/flow.done`. The difference shows which decisions the
-     fine-tune's gain comes from, which is where X2 should act first.
+     into `logs/m1/flow_br_ashwing.*`, marker `logs/m1/flow.done` (chain pid 110140 waits with `kill -0 51579`;
+     the first chain matched its own pgrep pattern and was replaced). The difference shows which decisions the
+     fine-tune's gain comes from, which is where X2 should act first. fb2-900 result (03:30 UTC): 69.8% won;
+     post-flop folds lose 1.04M chips, non-all-in showdowns 0.65M (0.26M where we bet last), Ashwing folds
+     preflop 1.4% (a sticky caller); our river shoves gain 0.80M.
 - **X2 design notes (spec waits for M1; nothing built):** opponent hand ranges from X1's action frequencies
   by mapping classes onto strength quantiles of the belief range (fold = weakest, raise = strongest, a
   bluff share later from showdowns), as in DBBR (Ganzfried and Sandholm, AAMAS 2011: model = smallest
@@ -167,6 +170,8 @@ exploitability (E3) is a primary metric next to the league and the real bots.
 6. Image builds: `deploy/build_on_box.sh <model npz> <tag>` on holdem-rl (4d50c2a fixes root-owned cleanup).
 
 ## Traps
+- A `bash -c "while pgrep -f PATTERN"` chain matches its own command line and never ends; wait on a pid
+  with `kill -0`, then check what the pattern matches with `ps -eo pid,cmd | grep -F PATTERN`.
 - `tools/league_add.sh`: never edit it while a run of it is active (bash reads scripts lazily).
 - RL weights are `*.npz` and gitignored: commit with `git add -f`, or the league export has no model.
 - numba is not deployable (pure Python plus numpy only on the host).
