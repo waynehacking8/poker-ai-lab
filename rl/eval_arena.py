@@ -18,9 +18,9 @@ from holdem.arena import run_arena
 from holdem.opponents import BASELINES
 
 
-def make_hero(model, temperature, seed):
+def make_hero(model, temperature, seed, search=False):
     from rl.bot import RLBot
-    return RLBot(seed=seed, model=model, temperature=temperature)
+    return RLBot(seed=seed, model=model, temperature=temperature, search=search)
 
 
 def make_bare_policy(model, temperature, seed):
