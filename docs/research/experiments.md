@@ -739,3 +739,41 @@ The run ended at max-minutes, at iteration 1835.
   (27 of 53 pool results in a 30-iteration check, found by the second review). Such matches are now restarted
   unreported (0670e94), and the same check reads 0 of 54. The state also saves per-file pool win rates, so a
   resume keeps them. The screen's pool share counts matches, not files, so it is unaffected.
+
+### 14.11 Style map: which real-field styles our opponents cover
+
+Wayne asked how diverse opponents are generated, beyond the extreme bots. Before building anything, I measured
+coverage. `tools/style_map.py` (holdem-rl 3ef434e) computes one 8-axis style vector per player:
+* VPIP and PFR on the first preflop decision;
+* the preflop shove rate;
+* fold to a preflop raise;
+* the post-flop aggression share;
+* post-flop fold to a bet;
+* the mean post-flop bet over the pot (halved, capped at 1);
+* the showdown rate.
+
+It reads the 412 Chipzen replays (51 bots with at least 100 hands) and 60 simulated matches of each of our
+opponents against fb2-900 (the baselines and extremes, the heuristic bot, the 13 real field bots, three S2
+exploiters, S2's it1800 and fb2-900 itself). Each field bot is matched to its nearest pool member (Euclidean
+distance; a missing axis reads 0.5). Files are in `logs/style/` on gb10-d.
+
+* **Covered (distance 0.16 to 0.30):** the loose middle of the field, including Blueprint, InfernalMonarch,
+  mr_hide, lil-b3b, the Deep_Thought versions and most of the 100 to 200 hand bots. Their nearest members
+  are autodidact, Ashwing, fb2-900 and, for the aggressive ones, the S2 exploiters (x010 is nearest to 9 bots).
+* **Gaps (0.42 to 0.74), four styles no opponent of ours plays:**
+
+  | style | field bots (distance) | what they do |
+  |---|---|---|
+  | preflop raiser, then a station | DeepStack (0.74) | VPIP 0.89 and PFR 0.67, never bets or folds after the flop, showdown 0.88 |
+  | sticky over-bettor | PluriBot (0.58) | post-flop aggression 0.72, bets about 1.4 pots, folds to a bet 11% |
+  | tight preflop, sticky after | r0ckGarden (0.54), SHADOW_REAPER (0.52), WSmithSimLab (0.49), SolvencyCheck (0.47), Humo-botv2 (0.46) | VPIP 0.24 to 0.39, post-flop aggression 0.23 to 0.40, folds to a bet 18 to 33% (WSmith 56%) |
+  | loose, never folds preflop | Chatterbox (0.51), 5ur9e (0.50), PoetAndCoder (0.43), MercuryRetrograde (0.42) | fold to a preflop raise 0 to 6%, showdown 0.64 to 0.95 |
+
+  Our tight bots (nit, reference, SDK reference) fold to a post-flop bet 66 to 88% of the time, and Wolf has
+  post-flop aggression 0.12. No opponent of ours is tight before the flop and sticky after it.
+* **Limits:** a pool member's style is measured against fb2-900, and a field bot's against its whole season
+  of opponents. Eight axes cannot tell apart bots that differ in hand selection at equal frequencies. The
+  C-engine clones (fitted to these replays) are not measured, because the map reads SDK hand histories.
+* **Use:** the gaps are the first targets of the diversity slice. Opponents are trained to hold a gap style
+  while winning as much as they can (quality-diversity), not built as random tilts, because 14.2 showed
+  weak tilted clones teach nothing. The gap bots that have replays also become held-out evaluation targets.
