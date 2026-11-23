@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 12:05 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 12:16 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -127,21 +127,15 @@ the working memory. Update it at every step that changes state.
   X2r BUILT df4e3c3 (holdem-x2r, worktree C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r, not merged; tests +
   8 mutations). N=16 Z=2: pooled -0.7 [-2.9, +1.6] (research 14.17, a87f3e8), overrides 6-9% ~ noise rate.
   N=128 Z=2.6 (post hoc) DONE: pooled +3.8 [+1.9,+5.8], paired +3.8 [+2.3,+5.4] (research 14.17 c6eab96).
-  CONFIRMATION RUNNING since 11:01 UTC: SEED=43, logs/x2r_s43_off (N=1 = policy) then logs/x2r_s43_on
-  (N=128 Z=2.6, OFF=s43_off/on.jsonl), done markers, ~80 min. Paired read: cat s43_off rows_on_* into one
-  file, tools/paired_stats.py OFF ON... (c0fa30e). Box tip 69a1bec copied.
-  NEXT X2m (roadmap 1d4a373): --model x1 in x2r_oracle.py (Search range + X1Bot band-inverse opponent),
-  rule cells paired + 6 ext: cells unpaired, N=128 Z=2.6 seed 41. Spec e27b4ff (2 reviews, cap reached;
-  last fixes mechanical, applied as prescribed). EXECUTOR building since 11:40 UTC in the x2r worktree, box
-  dir ~/poker-ai-lab-x2m (NOT x2r). BUILT 4d9c1ed (7 tests, 3 mutations). Cost gate STOP: ext 10.30 h > 9 h
-  (rule 3.71 h). 65% of time = rl/features hand_strength in rollouts; memoized in the tool f6777b8 (exact,
-  test). Re-smoke logs/x2m_smoke2 (cores 0-1, marker /tmp/x2m_s2_done) must give identical decisions and
-  a projection under the limits: DONE 11:56, raise_station decisions identical (ext differs: unseeded bot),
-  1.405 / 1.502 s per decision, projections rule 2.18 h, ext 5.50 h: PASS. Verifier 1 REFUTED the tests only
-  (impl correct, 0 mismatches vs its reference); 3 surviving mutations now fail new test c81f95f (9 tests).
-  Fresh verifier 2 running (PC only). Code under run unchanged since f6777b8 (box x2m dir needs c81f95f copy).
-  Launch in ~/poker-ai-lab-x2m (commands in roadmap X2m Run) after verifier CONFIRMED and
-  the confirmation passes. If confirmation fails: stop X2m, record, rethink.
+  CONFIRMED seed 43: paired +4.2 [+2.7,+5.7] p<0.001, all 4 cells positive (research 14.17 5405176).
+  X2m (roadmap e27b4ff): x1 model built (4d9c1ed), memo f6777b8 (exact), tests c81f95f (9), run script
+  bc84803. Verifier 1 REFUTED tests only (impl correct); fixed; verifier 2 on tests running (PC only).
+  X2m FULL RUN LAUNCHED 12:13 UTC: gb10-d ~/poker-ai-lab-x2m, tools/x2m_run.sh (setsid), cores 4-19:
+  logs/x2m_rule (~2.2 h) then logs/x2m_ext (~5.5 h), marker logs/x2m_done, log logs/x2m_run.out.
+  READ (pre-registered): R = paired_stats.py judge rows_off.jsonl vs x2m_rule/rows_on_*.jsonl pooled LB>0;
+  E = x2s_stats.py logs/x2m_ext pooled Newcombe LB>0. E -> runtime + full card; not E, R -> model work;
+  neither -> ablation (oracle range + X1Bot; X1 range + StyleBot). Report rule diff / +3.8 share.
+  If verifier 2 finds an impl defect: stop the run (kill the setsid chain), fix, relaunch.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
