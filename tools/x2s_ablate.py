@@ -17,6 +17,7 @@ ABL is "none" or a comma-separated subset of:
           out of T (gambler's ruin with an edge; k -> 0 is chip EV), reported in chips at the current stack
           (divided by W'). k = 2 ln(w / (1 - w)) from the policy's measured win rate w against --opp
           (WIN_RATE below; a probe of the objective, not a runtime estimate).
+  winf    as win, with one k for every opponent from v4's league field win rate (91.2%, E1)
 
 The patches are applied before the arena's worker pool forks (Linux), so every worker inherits them.
 """
@@ -167,7 +168,7 @@ class Oracle(S.Search):
 
 def main():
     abl = set(sys.argv[1].split(",")) - {"none"}
-    unknown = abl - {"f0", "exact", "crn", "flat", "soft", "oracle", "win"}
+    unknown = abl - {"f0", "exact", "crn", "flat", "soft", "oracle", "win", "winf"}
     if unknown or sys.argv[2] != "--":
         sys.exit(__doc__)
     cls = S.Search
@@ -192,8 +193,8 @@ def main():
         equity = S.equity
         S.equity = lambda rnd, hole, board, ids, wts: equity(
             random.Random(hash((tuple(hole), tuple(board)))), hole, board, ids, wts)
-    if "win" in abl:
-        w = WIN_RATE[sys.argv[sys.argv.index("--opp") + 1]]
+    if abl & {"win", "winf"}:
+        w = 0.912 if "winf" in abl else WIN_RATE[sys.argv[sys.argv.index("--opp") + 1]]
         win_utility(cls, 2 * np.log(w / (1 - w)))
     if "flat" in abl:
         S.update_range = lambda *a: None
