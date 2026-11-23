@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 03:15 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 03:30 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -27,7 +27,8 @@ the working memory. Update it at every step that changes state.
   directly.
 - **Running on gb10-d:**
   1. S2b (main pid 18898), ends about 06:56 UTC plus a final screen; `logs/s2b/` (screen_itNNNNNN.verdict,
-     STOP, end.txt). Screens at 2300, 2700, 3100, 3500.
+     STOP, end.txt). Screens at 2300, 2700, 3100, 3500. Screen 2300 (03:18 UTC): probe 79.25% [75.0, 82.9]
+     (S2's best screen 74.5), Ashwing 69.5 and ashwing_search 73.0, no stop; main wins 27.4% against its pool.
   2. M1 best-response runs, 90 minutes each, holdem-rl d643881: `bash tools/rl_br.sh br_ashwing
      ckpt/fb2/it000900.npz ext:ashwing 90 3` (02:41 UTC, about 6 iterations a minute), and `br_autofast`
      with `ext:autodidact_fast` (02:46 UTC). The first `br_autodidact` run on the full `ext:autodidact` got
