@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 04:15 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 04:20 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -58,7 +58,12 @@ the working memory. Update it at every step that changes state.
 - **Universal test (Wayne asked 04:05 UTC how the universal approach gets approved):** eval card E6 = held-out
   styles (four gap-style rule bots plus ext:ashwing, ashwing_search, ashwing_hive, autodidact, Wolf family,
   never used in tuning), E7 = real arena replays (research 59f2d6f). X2 must tune on other bots
-  (ashwing_v2, ashwing_value, autodidact_fast, chipzen, clones). The four rule bots are still to build.
+  (ashwing_v2, ashwing_value, autodidact_fast, chipzen, clones). The four rule bots (raise_station,
+  sticky_overbettor, tight_sticky, never_fold_pre) are being built since 04:20 UTC by an executor in worktree
+  `Desktop/poker-ai-lab-e6`, branch `holdem-e6` (from holdem-rl 0967e71, not pushed), box dir `~/poker-ai-lab-e6`,
+  2 cores; done = style vector within 0.25 of target on seeds 3 and 7, tests, existing baselines unchanged.
+  Targets from `poker-ai-lab/.cache/style_field.json`. On report: verify, merge into holdem-rl, sync the box
+  only after S2b and M1 end.
 - br_ashwing ended 04:11 UTC at it 580 (last window 92.4%); its chip flow runs; br_autofast ends about 04:17,
   then `tools/m1_eval.sh` starts.
 - **Season 16 swap window closes today, 23:59 UTC.** An S2b candidate can be a swap option only if it
