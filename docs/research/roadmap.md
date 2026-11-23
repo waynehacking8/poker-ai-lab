@@ -298,6 +298,11 @@ probes it reads low, so it is left out of E3.
   existing `_t2` probes (eval seed 3) do not count. `python tools/probe_pool.py R_itN_f2 R_itN_f3 R_itN_f4`
   gives the pooled rate over the 1200 matches, which must be under 70%.
 * **E1, E2 and E4** as in S2.
+* **E5, the extreme bots.** E1 to E4 hold no shover, and that is how the all-in hole went unseen (14.7).
+  `python -m rl.eval_arena --model C --opp jam,jam_half,jam_post,minraiser,station,maniac,nit,random,reference,lag,station_raiser
+  --matches 400 --seed 3 --workers 4`, with the all-in answer on as deployed. No opponent may fall below v4's
+  reading beyond its interval (`logs/allin/fb2_900_on.jsonl` on gb10-d: jam 62.75, jam_half 84.5, jam_post
+  84.5, minraiser 96.0, station 97.75, maniac 85.5, nit 97.5).
 * A fresh verifier confirms the claim. A swap is then put to Wayne.
 
 If E3 is still not met, the finding is recorded, and S3 starts from S2b's final weights.
