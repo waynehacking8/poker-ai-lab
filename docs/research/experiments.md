@@ -903,7 +903,7 @@ engine (`env_set_prior` / `Pool.set_prior`, applied inside the reset before the 
 
 ### 14.15 S2b and the swap candidate: the floor recipe has stopped paying
 
-Roadmap S2b resumed S2 from it 1900 for 300 minutes (`tools/rl_s2.sh s2b ckpt/fb2/it000900.npz 300 s2`), ending
+Roadmap S2b resumed S2 from its final state (screens at it 2300 and on) for 300 minutes (`tools/rl_s2.sh s2b ckpt/fb2/it000900.npz 300 s2`), ending
 at it 3300 (max-minutes, no stop). Screen probes (eval seed 3, 400 matches; lower is sturdier): it 2300 79.25,
 2700 77.75, 3100 82.25, 3300 80.5. Ashwing and Ashwing search stayed at 69.5 to 74.5. None beat S2's it 1800
 (74.5), so the acceptance candidate was `ckpt/s2/it001800.npz` (sha256 4989481c5e7d5d8b).
@@ -921,7 +921,7 @@ at it 3300 (max-minutes, no stop). Screen probes (eval seed 3, 400 matches; lowe
 * **What it gains and loses:** it is much harder to exploit (78.7% against 96.5%) and wins the head to head
   against v4, but it loses about 3 points of field win rate in the league, mostly against the A5 opener and
   the Blueprint clone, and 2.75 points against a pure calling station.
-* **Reading:** across S2 and S2b, nine screens between it 400 and it 3300 sit at 74.5 to 82.25 with no trend
+* **Reading:** across S2 and S2b, the seven screens from it 400 to it 3300 read 74.5 to 88.75 with no downward trend
   after it 400. The exploiter-pool recipe bought one large step in sturdiness (96.5 to about 78) and then
   stopped; more of it does not lower the probe and costs field win rate. The roadmap's next floor step
   ("S3 starts from S2b's final weights") needs a new plan revision rather than more of the same recipe.
