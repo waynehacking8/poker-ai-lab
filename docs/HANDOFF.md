@@ -151,8 +151,13 @@ the working memory. Update it at every step that changes state.
   midpoint band cut makes invariance approximate; no budget) -> all fixed in research 8a6ecb3; review 2
   REVISE (4: index-ordered ties, pi/mixture definitions, X1 in-sample on lam fitting data -> new X1-fit npz,
   outcome with no action) -> all fixed in research 2ba401f. Cap reached; proceeding on standing approval
-  (tell Wayne). EXECUTOR BUILDING X3a since 22:34 UTC in Desktop/poker-ai-lab-x2r (holdem-x2r, exclusive,
-  no push, no long runs: it returns box commands). Then: outcome verifier, then I launch the box runs.
+  (told Wayne). X3a BUILT (holdem-x2r 2ab688a fitpart npz made on gb10-d torch, 3f5fff8 tool/tests/run
+  script, 0ee9436; not pushed): 28 tests, 7/7 planted mutations killed; PC full replay smoke: held-out R1
+  -0.73 vs R4 +0.37 nats, pi0 at lam 0.3-0.4, variant not chosen (unverified until the box run + verifier).
+  FULL RUN LAUNCHED 23:12 UTC on gb10-d ~/poker-ai-lab-x3 (git archive with core.autocrlf=false: plain
+  archive gave CRLF scripts), cores 4-12, logs/x3a/{report.txt,replay.json,sim/,failed,done}; ~80 min,
+  ext:autodidact is the long pole. Outcome verifier running in parallel (may use ~/x3-verify, cores 13-19).
+  Executor installed chipzen-bot 0.7.0 + websockets into the PC Python 3.11.
   X3a = range quality, CPU, no lookahead (tools/x3_range.py,
   tests/test_x3.py on holdem-x2r): log share of the true combo minus prior, at hero decisions. Replays first
   on X1's split (fit / validation picks the pre/post lam variant, frozen / refit / held-out scored once).
