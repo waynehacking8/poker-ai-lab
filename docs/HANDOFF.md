@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 09:35 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 09:45 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -124,6 +124,10 @@ the working memory. Update it at every step that changes state.
   lacks rl/search.py, rl/oppmodel.py). MERGED holdem-rl = b74030e, pushed; search off by default.
   NEXT: X2r spec = policy-improvement rollouts (our policy for us, model for them, match-win utility),
   tested with the ORACLE model offline first; runtime and model work only if it beats the policy.
+  X2r spec research f5d2eef, plan review READY. EXECUTOR running since ~09:45 UTC: worktree
+  C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r, branch holdem-x2r from b74030e, box ~/poker-ai-lab-x2r,
+  cores 4-19; builds tools/x2r_oracle.py + tests, smoke 20 matches, reports the full-run command
+  (4 rule cells x 300, seed 41) for me to launch. Compare to ~/poker-ai-lab-x2s/logs/x2s_judge/off.jsonl.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
