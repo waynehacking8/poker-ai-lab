@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 10:55 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 11:20 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -126,13 +126,13 @@ the working memory. Update it at every step that changes state.
   tested with the ORACLE model offline first; runtime and model work only if it beats the policy.
   X2r BUILT df4e3c3 (holdem-x2r, worktree C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r, not merged; tests +
   8 mutations). N=16 Z=2: pooled -0.7 [-2.9, +1.6] (research 14.17, a87f3e8), overrides 6-9% ~ noise rate.
-  RERUN N=128 Z=2.6 (post hoc: N=16 overrides were noise) since 09:51 UTC, gb10-d ~/poker-ai-lab-x2r,
-  tools/x2r_run.sh, OUT logs/x2r_n128 (stats.txt, done marker). 3 cells done at 10:49: pooled +3.3
-  [+0.9,+5.8] unpaired, paired +3.3 [+1.5,+5.2] p=0.001 (tools/paired_stats.py, c0fa30e). 1.9 s/decision
-  on a box core. never_fold_pre still running. NEXT: fresh-seed confirmation SEED=43, off arm N=1
-  (= policy, test 2) then on arm N=128 Z=2.6 (x2r_run.sh 69a1bec takes SEED; copy only after done).
-  If confirmed: X1 in place of the oracle, and the runtime (0.5 vCPU) question. Overrides: vs raise_station
-  check instead of bet; vs sticky_overbettor fold instead of call (largest gain ~0.07 per override).
+  N=128 Z=2.6 (post hoc) DONE: pooled +3.8 [+1.9,+5.8], paired +3.8 [+2.3,+5.4] (research 14.17 c6eab96).
+  CONFIRMATION RUNNING since 11:01 UTC: SEED=43, logs/x2r_s43_off (N=1 = policy) then logs/x2r_s43_on
+  (N=128 Z=2.6, OFF=s43_off/on.jsonl), done markers, ~80 min. Paired read: cat s43_off rows_on_* into one
+  file, tools/paired_stats.py OFF ON... (c0fa30e). Box tip 69a1bec copied.
+  NEXT X2m (roadmap 1d4a373): --model x1 in x2r_oracle.py (Search range + X1Bot band-inverse opponent),
+  rule cells paired + 6 ext: cells unpaired, N=128 Z=2.6 seed 41. Plan review running. Executor after
+  READY; run after the confirmation passes. If confirmation fails: stop X2m, record, rethink.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
