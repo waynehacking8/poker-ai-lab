@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 11:20 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 11:40 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -131,8 +131,10 @@ the working memory. Update it at every step that changes state.
   (N=128 Z=2.6, OFF=s43_off/on.jsonl), done markers, ~80 min. Paired read: cat s43_off rows_on_* into one
   file, tools/paired_stats.py OFF ON... (c0fa30e). Box tip 69a1bec copied.
   NEXT X2m (roadmap 1d4a373): --model x1 in x2r_oracle.py (Search range + X1Bot band-inverse opponent),
-  rule cells paired + 6 ext: cells unpaired, N=128 Z=2.6 seed 41. Plan review running. Executor after
-  READY; run after the confirmation passes. If confirmation fails: stop X2m, record, rethink.
+  rule cells paired + 6 ext: cells unpaired, N=128 Z=2.6 seed 41. Spec e27b4ff (2 reviews, cap reached;
+  last fixes mechanical, applied as prescribed). EXECUTOR building since 11:40 UTC in the x2r worktree, box
+  dir ~/poker-ai-lab-x2m (NOT x2r), smoke cores 0-1, reports cost-gate projections; I launch the run after
+  the confirmation passes. If confirmation fails: stop X2m, record, rethink.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
