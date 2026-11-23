@@ -282,9 +282,11 @@ measures the headroom with the true model before any runtime or model work.
 changes only the model: X1 in place of the oracle, with the same rollouts, N, Z and gate (no evidence
 condition, as in 14.17). It also adds the six `ext:` cells, which the oracle could not reach.
 
-* **Prerequisite:** the seed 43 confirmation of 14.17 (`logs/x2r_s43_on`). If its pooled paired 95% lower
-  bound (`tools/paired_stats.py`) is not above zero, X2m is not run: the code may be built, the result is
-  recorded and the plan is revised.
+* **Prerequisite:** the seed 43 confirmation of 14.17. Its read, in `~/poker-ai-lab-x2r`:
+  `cat logs/x2r_s43_off/rows_on_*.jsonl > /tmp/s43_off_rows.jsonl; $PY tools/paired_stats.py
+  /tmp/s43_off_rows.jsonl logs/x2r_s43_on/rows_on_*.jsonl`. The pooled row (1200 pairs) decides; the
+  `stats.txt` files in the s43 directories are not this read. If the pooled 95% lower bound is not above zero,
+  X2m is not run: the code may be built, the result is recorded and the plan is revised.
 * **Files:** `tools/x2r_oracle.py`, `tests/test_x2r.py`, `tools/x2r_run.sh`, one line in `tools/README.md`.
   Nothing else changes.
 * **Tool:** `tools/x2r_oracle.py --model x1` (default `oracle`, unchanged). Under `x1`:
@@ -322,9 +324,11 @@ condition, as in 14.17). It also adds the six `ext:` cells, which the oracle cou
      (a fold with nothing to call, a clipped raise that `classify` calls all-in).
 * **Cost gate:** a smoke on gb10-d cores 0-1 (2 workers, 4 matches against raise_station and 4 against
   ext:ashwing, x1, N = 128) records seconds per decision. The projection uses the judge's off-arm hands per
-  cell (rule cells 24k hands in all, `ext:` cells 67k) at the smoke's decisions per hand. Budget: rule cells
-  2.5 box-hours, `ext:` cells 6. If either projection exceeds 1.5 times its budget, the full run is not
-  launched and the plan is revised.
+  cell (rule cells 24k hands in all, `ext:` cells 67k). For each group, projected hours = off-arm hands x
+  logged rollout decisions per hand in that group's smoke (`dec_*.jsonl` lines over smoke hands) x smoke
+  mean seconds per logged decision / 16 workers / 3600; the rule cells use the raise_station smoke, the
+  `ext:` cells the ext:ashwing smoke. Budget: rule cells 2.5 hours, `ext:` cells 6. If either projection
+  exceeds 1.5 times its budget (3.75 or 9 hours), the full run is not launched and the plan is revised.
 * **Run** (gb10-d, cores 4-19, after the prerequisite and the cost gate; one chain, rule cells first):
   * `N=128 Z=2.6 MODEL=x1 OUT=logs/x2m_rule bash tools/x2r_run.sh`
   * `N=128 Z=2.6 MODEL=x1 OUT=logs/x2m_ext CELLS="ext:ashwing ext:ashwing_search ext:ashwing_hive
