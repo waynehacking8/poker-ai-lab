@@ -13,6 +13,10 @@ ABL is "none" or a comma-separated subset of:
   oracle  the true opponent model in place of X1: the exact Bayesian range and fold probability of the
           StyleBot named by --opp (holdem/opponents.py STYLES); evidence from the first decision. Tests
           the decision procedure with model error removed.
+  win     match-win utility in place of chips: W(x) = (1 - exp(-k x / T)) / (1 - exp(-k)) of our chips x
+          out of T (gambler's ruin with an edge; k -> 0 is chip EV), reported in chips at the current stack
+          (divided by W'). k = 2 ln(w / (1 - w)) from the policy's measured win rate w against --opp
+          (WIN_RATE below; a probe of the objective, not a runtime estimate).
 
 The patches are applied before the arena's worker pool forks (Linux), so every worker inherits them.
 """
@@ -34,6 +38,38 @@ from holdem.opponents import STYLES, postflop_strength  # noqa: E402
 from nlhe.cards import card_str  # noqa: E402
 from rl import eval_arena  # noqa: E402
 from rl.oppmodel import STREETS  # noqa: E402
+
+
+# fb2-900 with search off, 100 matches, seed 31 (X2s smoke eval)
+WIN_RATE = {"raise_station": 0.96, "tight_sticky": 0.95, "ext:ashwing": 0.61}
+
+
+def win_utility(cls, k):
+    """Patch the EV formulas to match-win utility in chip units at the current stack."""
+    ctx = {}
+
+    def W(x):
+        return (1 - np.exp(-k * x / ctx["T"])) / (1 - np.exp(-k))
+
+    def to_chips(u):
+        rem, T = ctx["rem"], ctx["T"]
+        return (u - W(rem)) / (k / T * np.exp(-k * rem / T) / (1 - np.exp(-k)))
+
+    def call_ev(pot, c, q):
+        rem = ctx["rem"]
+        return to_chips(q * W(rem + pot) + (1 - q) * W(rem - c))
+
+    def raise_ev(pot, c, r, f, q):
+        rem = ctx["rem"]
+        return to_chips(f * W(rem + pot) + (1 - f) * (q * W(rem + pot + r - c) + (1 - q) * W(rem - r)))
+
+    evs = cls.evs
+
+    def win_evs(self, state, mask, amt, hole, board):
+        ctx["rem"], ctx["T"] = self.tr.state(self.me).rem, sum(self.stacks.values())
+        return evs(self, state, mask, amt, hole, board)
+
+    S.call_ev, S.raise_ev, cls.evs = call_ev, raise_ev, win_evs
 
 
 class Oracle(S.Search):
@@ -131,7 +167,7 @@ class Oracle(S.Search):
 
 def main():
     abl = set(sys.argv[1].split(",")) - {"none"}
-    unknown = abl - {"f0", "exact", "crn", "flat", "soft", "oracle"}
+    unknown = abl - {"f0", "exact", "crn", "flat", "soft", "oracle", "win"}
     if unknown or sys.argv[2] != "--":
         sys.exit(__doc__)
     cls = S.Search
@@ -156,6 +192,9 @@ def main():
         equity = S.equity
         S.equity = lambda rnd, hole, board, ids, wts: equity(
             random.Random(hash((tuple(hole), tuple(board)))), hole, board, ids, wts)
+    if "win" in abl:
+        w = WIN_RATE[sys.argv[sys.argv.index("--opp") + 1]]
+        win_utility(cls, 2 * np.log(w / (1 - w)))
     if "flat" in abl:
         S.update_range = lambda *a: None
     if "soft" in abl:
