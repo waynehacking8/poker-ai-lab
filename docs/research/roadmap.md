@@ -242,103 +242,122 @@ unpaired. The interval resolves a gain of about 4.4 points at 800 matches a side
   **Rollback:** without `--seed-profiles` and without a table entry everything plays as today; nothing is
   deployed.
 
-### X2b. Train one policy on a broad population and judge it on held-out styles
+### X2b. Train one policy on a broad population and judge it on held-out opponents
 
 * **Question:** does a broader training population, and then a per-name profile, move a single policy toward
   the specialists' gains on opponents it never trained on? M1 put the headroom at 11 to 15 points on a known
   bot; M1b showed one network keeps most of two different exploits with half the data each (14.12).
-* **Review 1 (REVISE, 5 blockers, all checked and fixed here):** the first draft trained on the Ashwing and
-  autodidact code that E6 evaluates and on clones of E6 sources; it measured the profile effect only on
-  trained-on clones; it picked the best arm and decided on the same E6 run; its E6 statistic mixed cell
-  sizes; and its start gate, `--out` and core count were missing.
+* **Reviews.** Review 1 (REVISE, 5 blockers): the draft trained on the Ashwing and autodidact code that E6
+  evaluates and on clones of E6 sources; it measured the profile effect only on trained-on clones; it picked
+  the best arm and decided on the same E6 run; its statistic mixed cell sizes; its start gate, `--out` and
+  core count were missing. Review 2 (REVISE, 3 blockers): the grid is the E6 rule bots' own class, and a
+  parameter-space ball rejects almost nothing in 20 dimensions; SolvencyCheck is one of the tight-sticky
+  sources (14.11) but stayed in training; the profile measurement had no tool or pair definition. All were
+  checked first-hand and are fixed below. Two automatic reviews is the cap, so I proceed on Wayne's standing
+  approval; a fresh verifier still gates the result.
 * **Outcome:** three policies trained from fb2-900 with the same recipe, seeds and minutes, differing only in
-  population and seeding, an E6 table that tests each against fb2-900, and the profile effect on held-out
-  named clones.
-* **Held out, by construction.** No arm trains on any E6 family's code or on a clone of an E6 source:
+  population and seeding; a held-out table that tests each against fb2-900; and the profile effect on
+  held-out named clones.
+* **What is held out, and how:**
 
-  | E6 cell | code or source | in training? |
+  | E6 cell | code or style sources (14.11) | relation to training |
   |---|---|---|
-  | `raise_station` | rule bot; style source DeepStack | no; `bot:DeepStack` skipped |
-  | `sticky_overbettor` | rule bot; source PluriBot (no clone) | no |
-  | `tight_sticky` | rule bot; sources r0ckGarden, SHADOW_REAPER, WSmithSimLab (no clones) | no |
-  | `never_fold_pre` | rule bot; sources Chatterbox, 5ur9e, PoetAndCoder, MercuryRetrograde | no; `bot:PoetAndCoder`, `bot:MercuryRetrograde` skipped |
-  | `ext:ashwing`, `ext:ashwing_search`, `ext:ashwing_hive` | vendor Ashwing package (all variants share it) | no `ext:ashwing*` in any arm |
-  | `ext:autodidact` | AutodidactBot (`autodidact_fast` is the same code) | no `ext:autodidact*`; `bot:AutodidactInnovations` skipped |
-  | `ext:wolf`, `ext:wolf_v5` | vendor Wolf | no `ext:wolf*` in any arm |
+  | `ext:ashwing`, `ext:ashwing_search`, `ext:ashwing_hive` | vendor Ashwing package (all variants) | absent: no `ext:ashwing*` in any arm |
+  | `ext:autodidact` | AutodidactBot (`autodidact_fast` is the same code) | absent: no `ext:autodidact*`; `bot:AutodidactInnovations` skipped |
+  | `ext:wolf`, `ext:wolf_v5` | vendor Wolf | absent: no `ext:wolf*` in any arm |
+  | `raise_station` | StyleBot; source DeepStack | same class as the grid; grid styles excluded in style space; `bot:DeepStack` skipped |
+  | `sticky_overbettor` | StyleBot; source PluriBot (no clone) | same class; excluded in style space |
+  | `tight_sticky` | StyleBot; sources r0ckGarden, SHADOW_REAPER, WSmithSimLab, SolvencyCheck, Humo-botv2 | same class; excluded in style space; `bot:SolvencyCheck` skipped |
+  | `never_fold_pre` | StyleBot; sources Chatterbox, 5ur9e, PoetAndCoder, MercuryRetrograde | same class; excluded in style space; `bot:PoetAndCoder`, `bot:MercuryRetrograde` skipped |
 
-  The `arch:k` clones stay in: 14.11 measured that no training or evaluation opponent, archetype clones
-  included, plays these four styles. `tools/x2b_eval.sh` prints `data/clones.npz` meta and each arm's
-  logged opponent keys, and refuses to judge if any skipped key or E6 code path appears.
+  The six `ext:` cells are the held-out test; the four rule cells are reported as same-family
+  generalization and do not decide anything. The `arch:k` clones stay in: 14.11 measured that no training or
+  evaluation opponent, archetype clones included, plays these four styles. `tools/x2b_eval.sh` prints
+  `data/clones.npz` meta and each arm's logged opponent keys, and refuses to judge if a skipped key or an E6
+  code path appears.
 * **Code (holdem-rl, own worktree):**
-  1. `holdem/opponents.py`: `GridStyle(seed)`, a `StyleBot` whose parameters are drawn from the seed:
-     `open_p`, `play_p`, `face_p` uniform in [0, 1] with `play_p <= open_p`; `pre_size` in [2, 4];
-     `bet`, `rr`, `cont` per level uniform in [0, 1], each sorted non-decreasing in hand strength;
-     `bet_size` in [0.33, 2.0]. A draw whose normalized parameter vector (each parameter scaled to [0, 1]
-     by its range, 20 dimensions) lies within Euclidean distance R = 0.6 of any of the four E6 bots is
-     redrawn. Registered as `stylegrid`; `make_baseline("stylegrid", seed)` gives a new draw per seed.
-  2. `rl/sdk_rollout.py` `make_opp`: `stylegrid` builds `GridStyle(seed * 13 + seat)`.
-  3. `tools/rl_x2b.sh ARM`: the launcher; `tools/x2b_eval.sh`: the judge; `tools/x2b_stats.py`: the
-     statistics below.
-  4. `tests/test_style_grid.py`: legality in strict-engine matches, determinism per seed, monotone fold sets,
-     and the rejection rule on 10,000 seeds.
+  1. `holdem/opponents.py`: `GridStyle(seed)`, a `StyleBot` whose 20 parameters are drawn from a parameter
+     seed: `open_p`, `play_p`, `face_p` uniform in [0, 1] with `play_p <= open_p`; `pre_size` in [2, 4];
+     `bet`, `rr`, `cont` per level uniform in [0, 1], each sorted non-decreasing in hand strength; `bet_size`
+     in [0.33, 2.0]. The parameter seed is `ALLOWED[seed % len(ALLOWED)]`, where `ALLOWED` (in the new
+     `holdem/stylegrid_seeds.py`) lists only parameter seeds whose measured style clears the exclusion
+     below. Registered as `stylegrid`.
+  2. `tools/stylegrid_seeds.py` builds `ALLOWED`: for parameter seeds 0 to 599, it plays 120 matches against
+     fb2-900 (`tools/style_map.py sim`, style seed 5) and keeps a seed only if its style vector (the
+     `tools/style_bots_check.py` distance, a missing axis counted as 0.5) is more than 0.35 from each of the
+     four E6 targets and from each of the 11 gap sources named in the table above (their field vectors in
+     `.cache/style_field.json`; 14.11 counts 12 gap bots, the 11 named there are used).
+  3. `rl/sdk_rollout.py` `make_opp`: `stylegrid` builds `GridStyle(seed * 13 + seat)`.
+  4. `tools/rl_x2b.sh ARM` (launcher), `tools/x2b_eval.sh` (E6 judge), `tools/x2b_profile_eval.py`
+     (profile effect, below), `tools/x2b_stats.py` (statistics).
+  5. `tests/test_style_grid.py`: legality in strict-engine matches, determinism per seed, monotone fold sets,
+     and that every drawn parameter seed is in `ALLOWED`.
 * **Arms.** `tools/rl_x2b.sh ARM` exits non-zero unless `logs/swap_acc/done` exists (written when today's
   swap acceptance runs end) and `ckpt/x2b_ARM` does not. It runs `python -m rl.train --out ckpt/x2b_ARM
   --init ckpt/fb2/it000900.npz --workers 2 --sdk-workers 3 --envs 96 --steps 3000 --heur-batch 6000
   --lr 1.5e-4 --clip 0.1 --floor 0.15 --snap-w 0.3 --snap-every 25 --clones data/clones.npz --bot-clones
-  --skip bot:DeepStack,bot:PoetAndCoder,bot:MercuryRetrograde,bot:AutodidactInnovations,bot:Kimiko
+  --skip bot:DeepStack,bot:PoetAndCoder,bot:MercuryRetrograde,bot:AutodidactInnovations,bot:SolvencyCheck
   --seed 7 --max-minutes 180` plus, per arm:
   1. **base:** `--sdk-opps chipzen,ext:sdkref,jam,jam_half`;
-  2. **grid:** `--sdk-opps chipzen,ext:sdkref,jam,jam_half,stylegrid,stylegrid,stylegrid,stylegrid` (half the SDK
-     matches meet a fresh style);
+  2. **grid:** `--sdk-opps chipzen,ext:sdkref,jam,jam_half,stylegrid,stylegrid,stylegrid,stylegrid`;
   3. **seeded:** grid plus `--seed-profiles rl/models/tracker_prior.npz`.
 
-  `bot:Kimiko` is skipped too, as a held-out named clone that is no E6 source (below). The S2 exploiter pool
-  and distill term are left out: they serve the floor, not this question.
+  The S2 exploiter pool and distill term are left out: they serve the floor, not this question.
 * **Judge, after all three arms end, never overlapping training:**
-  * **E6:** fb2-900 and each arm's `latest.npz`, 300 matches per cell on seed 31, all 10 cells, through
-    `rl.eval_arena` (deployed settings, all-in answer on).
-  * **Profile effect:** the seeded arm against the 5 held-out named clones (`bot:DeepStack`,
-    `bot:PoetAndCoder`, `bot:MercuryRetrograde`, `bot:AutodidactInnovations`, `bot:Kimiko`) and, separately,
-    the 5 trained-on ones (`bot:Blueprint`, `bot:SolvencyCheck`, `bot:mr_hide`, `bot:qwentom-leap`,
-    `bot:InfernalMonarch`), 200 C-engine matches each, every seed played twice: hero prior set as
-    `Collector` does, and no prior.
+  * **Held-out cells:** fb2-900 and each arm's `latest.npz` against the six `ext:` cells, 300 matches each,
+    seed 31, through `rl.eval_arena` (deployed settings, all-in answer on). **Same-family cells:** the four
+    rule bots, 300 each, same seed.
+  * **Profile effect (`tools/x2b_profile_eval.py MODEL`):** in the C engine, `install_clones(path,
+    bots=True)`, against the 5 held-out named clones (`bot:DeepStack`, `bot:PoetAndCoder`,
+    `bot:MercuryRetrograde`, `bot:AutodidactInnovations`, `bot:SolvencyCheck`) and separately the 5 trained-on
+    ones (`bot:Blueprint`, `bot:Kimiko`, `bot:mr_hide`, `bot:qwentom-leap`, `bot:InfernalMonarch`), 200
+    pairs each. A pair is two matches with the same env seed (deck stream), the same hero seat (seed mod 2)
+    and the same hero sampling stream (`rl.runtime.Policy`, temperature 1.0 as deployed, seeded by the env
+    seed): one with the hero prior set as `Collector` does, one with none. After each reset the tool reads
+    `env_stats(hero)`; a play counts as "prior applied" when its hand count is at least 20. It prints, per
+    name, the pairs, the plays with the prior applied, the wins with and without, and the paired difference.
+    If any held-out seeded play lacks the prior (fewer than 1,000 applied), the effect is NOT TESTED.
 * **Statistics (`tools/x2b_stats.py`, which prints the estimator, per-cell n and interval method):**
-  * E6 score of a model: the pooled win rate over its 3,000 E6 matches. Every cell has 300, so this equals the
-    unweighted cell mean.
-  * Arm minus fb2-900: Newcombe interval at 98.33% (95% Bonferroni-corrected over the three arms). Pooling
-    across cells treats them as one binomial, which overstates the variance, so the interval is
-    conservative. At p near 0.8 the detectable difference is about 2.5 points.
-  * Population effect: grid minus base, Newcombe 95%.
-  * Profile effect: mean paired difference (prior minus no prior) over the 1,000 held-out pairs, 95% normal
-    interval of the per-pair differences. The trained-on clones' result is reported beside it and does not
-    count.
+  * **Primary, held-out score:** a model's pooled win rate over its 1,800 `ext:`-cell matches (300 per cell,
+    so it equals the cell mean). Arm minus fb2-900: Newcombe interval at 98.33% (95% Bonferroni-corrected
+    over three arms). Pooling heterogeneous cells as one binomial overstates the variance, so the interval
+    is conservative; at p near 0.8 the detectable difference is about 3.2 points.
+  * Same-family score: the same over the four rule cells (1,200 matches), reported, deciding nothing.
+  * Population effect: grid minus base on the held-out score, Newcombe 95%.
+  * Profile effect: mean paired difference over the 1,000 held-out pairs, 95% normal interval of the per-pair
+    differences; the trained-on pairs are reported beside it and do not count.
 * **Acceptance (the finding, whichever way it falls):**
-  1. Grid code tests pass; the rejection rule holds on 10,000 seeds; the nearest of 40 sampled grid bots to
-     each E6 target in style space (`tools/style_map.py sim`, 120 matches each) is reported.
+  1. `ALLOWED` has at least 200 seeds. On a fresh check, 40 randomly chosen allowed seeds, 240 matches each
+     against fb2-900 on style seed 11, each lie more than 0.25 from every E6 target and gap source; one
+     inside fails the acceptance. Grid code tests pass.
   2. Each arm runs 180 minutes without a crash; its training log lists only allowed opponent keys.
-  3. The held-out table above is checked by `tools/x2b_eval.sh` before any E6 match.
-  4. The E6 table (per cell rate and Wilson interval, four models), the three arm-minus-fb2 intervals, the
-     population effect and the held-out profile effect, each recomputable by hand from the per-cell wins.
-* **Decision rule, pre-registered, no selection on E6:** an arm passes when its 98.33% interval against
-  fb2-900 is above zero and no cell has the arm's 95% Wilson upper bound below fb2-900's point estimate. The
-  next base is the first passing arm in the fixed order seeded, grid, base. It then goes through the full
-  king card on fresh seeds (E1 to E5, a fresh verifier, then Wayne). If none passes, the population is not
-  the bottleneck, and the next plan revision turns to decision-time search under X1. The profile effect
-  decides only whether seeding stays in the recipe (interval above zero) or is dropped.
-* **Ownership:** `holdem/opponents.py` (GridStyle only), `rl/sdk_rollout.py` (`make_opp` only),
-  `tools/rl_x2b.sh`, `tools/x2b_eval.sh`, `tools/x2b_stats.py`, `tests/test_style_grid.py`, `tools/README.md`;
-  outputs in `ckpt/x2b_*` and `logs/x2b/`; results in experiments 14.15. No change to `rl/train.py`, the
-  features, the C engine or the network.
-* **Order and budget:** code and tests first (any time, 2 cores). Training after `logs/swap_acc/done`: three
-  arms in parallel, 6 processes each (learner, 2 workers, 3 SDK workers), 18 of gb10-d's 20 cores, 180
-  minutes: 9 box-hours. The judge after training: 40 E6 runs of 300 matches plus 20 clone runs, up to 3 runs
-  in parallel at 6 workers, at most 6 box-hours (the autodidact and Wolf cells dominate; per-run seconds are
-  recorded). **Stop:** a crash stops that arm; two crashes stop X2b until the cause is known. **Rollback:**
-  nothing is deployed; poker-ai-lab-v4 stays entered.
+  3. `tools/x2b_eval.sh` checks the held-out table before any E6 match.
+  4. The E6 tables (held-out and same-family, per cell rate and Wilson interval, four models), the three
+     arm-minus-fb2 intervals, the population effect and the profile effect with its applied counts, each
+     recomputable by hand from the per-cell wins.
+* **Decision rule, pre-registered, no selection on E6:** an arm passes when its held-out 98.33% interval
+  against fb2-900 is above zero and no `ext:` cell has the arm's 95% Wilson upper bound below fb2-900's point
+  estimate. The next base is the first passing arm in the fixed order seeded, grid, base; it then goes
+  through the full king card on fresh seeds (E1 to E5, a fresh verifier, then Wayne). Only a pass on the
+  `ext:` cells supports a universality claim. If none passes, the population is not the bottleneck, and the
+  next plan revision turns to decision-time search under X1. Seeding stays in the recipe only if the
+  held-out profile effect's interval is above zero.
+* **Ownership:** `holdem/opponents.py` (GridStyle only), new `holdem/stylegrid_seeds.py`, `rl/sdk_rollout.py`
+  (`make_opp` only), new `tools/stylegrid_seeds.py`, `tools/rl_x2b.sh`, `tools/x2b_eval.sh`,
+  `tools/x2b_profile_eval.py`, `tools/x2b_stats.py`, `tests/test_style_grid.py`, `tools/README.md`; outputs
+  in `ckpt/x2b_*` and `logs/x2b/`; results in experiments 14.15. No change to `rl/train.py`, the features,
+  the C engine or the network.
+* **Order and budget:** code, tests and `ALLOWED` first (2 cores, at most 1.5 box-hours, any time).
+  Training after `logs/swap_acc/done`: three arms in parallel, 6 processes each (learner, 2 workers, 3 SDK
+  workers), 18 of gb10-d's 20 cores, 180 minutes: 9 box-hours. The judge after training: 40 runs of 300
+  matches plus 4 profile runs, up to 3 in parallel at 6 workers, at most 6 box-hours (the autodidact and
+  Wolf cells dominate; per-run seconds are recorded). **Stop:** a crash stops that arm; two crashes stop
+  X2b until the cause is known. **Rollback:** nothing is deployed; poker-ai-lab-v4 stays entered.
 * **Known limits:** removing the Ashwing and autodidact families makes the training field weaker than S2's,
-  which is the price of a clean held-out test. If an arm passes, the king recipe adds them back. The grid
-  draws one style per match and stays fixed, so it does not train against adaptive opponents. R = 0.6 is a
-  parameter-space guard; the style-space distances in acceptance 1 show how far it really holds E6 out.
+  the price of a clean held-out test; if an arm passes, the king recipe adds them back. The grid draws one
+  style per match and stays fixed, so it does not train against adaptive opponents. Excluding the gap
+  styles from the grid also removes the styles the field shows we miss most; X2b tests generalization,
+  and the king recipe may add them back once it is answered.
 
 ## Evidence that sets the order
 
