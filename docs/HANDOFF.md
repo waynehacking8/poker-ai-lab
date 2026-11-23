@@ -22,9 +22,9 @@ the working memory. Update it at every step that changes state.
   box is quiet: `tools/oppmodel_fit.py bench --data DIR` in a `--cpus 0.5 --memory 256m` container (PC
   p99 0.12 ms on 300 actions). Selected: MLP prior hidden 64 on core+extras features, edges [0.35, 0.8],
   k 20, w 2, k_im 8; 11.8 KB npz, 66 names. Outputs `~/poker-ai-lab-x1/logs/x1/`. I read the fit code: splits,
-  train-only counts and causal in-match counts are right. A fresh outcome verifier runs since 02:56 UTC.
+  train-only counts and causal in-match counts are right. Fresh verifier CONFIRMED (no leakage; reproduced byte for byte). Recorded in research 14.13.
   Replays hide hole cards except at showdown (`hole_cards_hidden`), so ranges cannot be fit from replays
-  directly. To record: experiments 14.13.
+  directly.
 - **Running on gb10-d:**
   1. S2b (main pid 18898), ends about 06:56 UTC plus a final screen; `logs/s2b/` (screen_itNNNNNN.verdict,
      STOP, end.txt). Screens at 2300, 2700, 3100, 3500.
