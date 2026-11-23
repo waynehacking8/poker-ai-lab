@@ -900,3 +900,28 @@ engine (`env_set_prior` / `Pool.set_prior`, applied inside the reset before the 
   Verdict CONFIRMED; its two test gaps (dealer slots, a self-comparing assert) are fixed in 90baa6b.
 * **Open:** whether the live `display_name` equals the replay player name is not checkable offline; M3
   (Season 16 replays of our own matches) answers it before seeding is turned on.
+
+### 14.15 S2b and the swap candidate: the floor recipe has stopped paying
+
+Roadmap S2b resumed S2 from it 1900 for 300 minutes (`tools/rl_s2.sh s2b ckpt/fb2/it000900.npz 300 s2`), ending
+at it 3300 (max-minutes, no stop). Screen probes (eval seed 3, 400 matches; lower is sturdier): it 2300 79.25,
+2700 77.75, 3100 82.25, 3300 80.5. Ashwing and Ashwing search stayed at 69.5 to 74.5. None beat S2's it 1800
+(74.5), so the acceptance candidate was `ckpt/s2/it001800.npz` (sha256 4989481c5e7d5d8b).
+
+| check | rule | S2 it1800 | v4 (fb2-900) | result |
+|---|---|---|---|---|
+| E1 league, pairs 0 to 199 | 23/23 at 80% | 21/23, field 88.0 [86.7, 89.4]; A5 78.5, Blueprint clone 79.2 | 23/23, 91.2; A5 84.5, Blueprint 86.0 | FAIL |
+| E2 real bots (card) | no family below v4 | all cells within v4's intervals | | pass |
+| E3, three fresh probes (seeds 12 to 14) | pooled under 70% | 77.0, 79.0, 80.0; pooled 78.67% [76.3, 80.9] | 96.5% | FAIL (improves on v4) |
+| E4 head to head (card) | at least the 45.0 mirror | 53.25% [48.4, 58.1] | 45.0 | pass |
+| E5 extreme bots (seed 3, 400 each) | none below v4's interval | station 95.0 [92.4, 96.7] against v4 97.75 [95.8, 98.8]; the other 10 within | | FAIL |
+
+* **Verdict: not gated, no swap.** poker-ai-lab-v4 stays entered for Season 16. The E5 rerun reproduced 14.10's
+  numbers exactly (seeded rule bots), and the league result is holdem-league d554b8a.
+* **What it gains and loses:** it is much harder to exploit (78.7% against 96.5%) and wins the head to head
+  against v4, but it loses about 3 points of field win rate in the league, mostly against the A5 opener and
+  the Blueprint clone, and 2.75 points against a pure calling station.
+* **Reading:** across S2 and S2b, nine screens between it 400 and it 3300 sit at 74.5 to 82.25 with no trend
+  after it 400. The exploiter-pool recipe bought one large step in sturdiness (96.5 to about 78) and then
+  stopped; more of it does not lower the probe and costs field win rate. The roadmap's next floor step
+  ("S3 starts from S2b's final weights") needs a new plan revision rather than more of the same recipe.
