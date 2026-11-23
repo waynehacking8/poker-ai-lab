@@ -831,7 +831,7 @@ played 7 matches a minute. `tools/m1_eval.sh` then played each model on seed 21,
 | fb2-900 | 75.5% [72.4, 78.4] | 79.25% [75.0, 82.9] |
 | br_ashwing | **90.25% [88.0, 92.1]** | 78.0% [73.7, 81.8] |
 | br_autofast | 76.4% [73.3, 79.2] | **90.25% [86.9, 92.8]** |
-| br_mix | pending | pending |
+| br_mix | 83.25% [80.5, 85.7] | 87.25% [83.6, 90.2] |
 
 * **Decision statistic:** br_ashwing gains 14.75 points on its target, Newcombe 95% [11.1, 18.4]; br_autofast,
   trained only on the fast variant, gains 11.0 [6.1, 15.9] on the full `ext:autodidact`. Both lower bounds
@@ -855,7 +855,16 @@ played 7 matches a minute. `tools/m1_eval.sh` then played each model on seed 21,
 
   Against a sticky caller the fine-tune raises twice as often before the flop, value-bets thinner and
   bluffs less: a whole-strategy shift, not one leak.
-* **Pending:** M1b (one fine-tune on both bots, `ckpt/br_mix`, `tools/m1b_eval.sh`, same seed and sizes).
+* **M1b, one fine-tune on both bots** (`tools/rl_br.sh br_mix ... ext:ashwing,ext:autodidact_fast 90 4`,
+  455 iterations, `tools/m1b_eval.sh`, same seed and sizes): it keeps most of both exploits. Against Ashwing
+  +7.75 [3.8, 11.7] over fb2-900, 7.0 [3.7, 10.3] under br_ashwing (about half of that gain kept); against
+  autodidact +8.0 [2.8, 13.2] over fb2-900, 3.0 [-1.4, 7.4] under br_autofast (not significantly less).
+  Confound: br_mix got about half of each single fine-tune's data per bot (4 SDK workers split over two bots,
+  455 iterations against 580 for br_ashwing), so the Ashwing shortfall is partly data, not capacity.
+* **Reading for X2:** a single network conditioned only on in-match statistics already carries two different
+  exploits at once, so the gap between fb2-900 and the specialists is mostly its training population. That
+  supports X2 as one policy trained on a broad population with the opponent's profile as input (X2a seeds
+  it); X2b gives each opponent family enough data to separate the population effect from data volume.
 
 ### 14.14 X2a: name-seeded opponent counts in both engines
 
