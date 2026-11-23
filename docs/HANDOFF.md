@@ -75,9 +75,15 @@ exploitability (E3) is a primary metric next to the league and the real bots.
    no stop. Probe 96 to 97% fell to 74.5 to 89.75%, field and E4 level, so acceptance (E3 under 70%) is not
    met and v4 stays. The five review fixes are in holdem-rl a0ba32c. Cards on gb10-d:
    `logs/eval_card/s2-it400.json`, `s2-it1800.json`; chip flow against probe exploiters in `logs/s2/flow/`.
-   Next is S2b (roadmap, plan reviewed twice, second REVISE fixed, then capped): resume S2 for 300 minutes with
-   `bash tools/rl_s2.sh s2b ckpt/fb2/it000900.npz 300 s2` (holdem-rl 2e46a35; resumes at it 1836, pool
-   x070 to x073, cycles from 74, screens 2300 2700 3100 3500). E3 for the candidate uses three fresh probes
+   S2b RUNNING since 2026-11-23 01:56 UTC (ends about 06:56 UTC plus a final screen): `bash tools/rl_s2.sh
+   s2b ckpt/fb2/it000900.npz 300 s2` (holdem-rl 0670e94; resumed at it 1836, pool x070 to x073, cycles from
+   74, screens 2300 2700 3100 3500, logs `logs/s2b/`, end reason `logs/s2b/end.txt`). Plan reviewed twice,
+   second REVISE fixed, then capped; code verifier CONFIRMED after the rotation restart fix (0670e94).
+   S2's it1800 is the best so far: E4 53.25 against the 45.0 mirror, card probe 71.0 (screen 74.5).
+   Acceptance adds E5, the extreme bots, no worse than v4 (`logs/allin/fb2_900_on.jsonl`).
+   Next after S2b: a style map of the real field against our training pool (diversity coverage), then a
+   diversity slice (quality-diversity style grid, diverse exploiters, league exploiters); Wayne asked
+   2026-11-23 how diverse opponents are generated. E3 for the candidate uses three fresh probes
    `R_itN_f2/f3/f4` (train seeds 2 to 4, eval seeds 12 to 14) and `tools/probe_pool.py`.
 1. Swap again only if a candidate beats rl-fb2-900 on the real field bots and ties or beats it on both gates, on fresh seeds; ask Wayne first.
 2. rl-h4-900 (holdem-rl 4500e65): league FAIL 22/23 (A5 79.8; holdem-league f5441a0), h2h vs h4-300 60.5,
