@@ -44,10 +44,11 @@ BOARD_LEN = {"preflop": 0, "flop": 3, "turn": 4, "river": 5}
 # ---------------------------------------------------------------- range
 
 def strength(board):
-    """Strength of every combo on this board: preflop percentile, postflop evaluator score."""
+    """Strength of every combo on this board: preflop percentile, postflop evaluator score (-1 for a combo
+    that shares a card with the board: it cannot occur, and five of a rank crashes the evaluator)."""
     if not board:
         return PREFLOP_STRENGTH
-    return np.array([evaluate([a, b] + board) for a, b in COMBO_LIST])
+    return np.array([-1 if a in board or b in board else evaluate([a, b] + board) for a, b in COMBO_LIST])
 
 
 def ranked(w, s, dead):

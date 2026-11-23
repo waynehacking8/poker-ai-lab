@@ -33,6 +33,19 @@ def test_range_update_direction():
     assert mean["fold"] < PREFLOP_STRENGTH.mean() < mean["raise"]
 
 
+@pytest.mark.parametrize("board", [["5h", "5c", "5s"], ["8c", "8d", "8h", "8s"]])
+def test_strength_on_trips_and_quads_boards(board):
+    """Combos that share a card with the board are impossible; scoring them crashed the evaluator (five of a
+    rank), and the bot then check-folded the rest of the hand, quads included."""
+    from nlhe.cards import cards_from
+    from nlhe.evaluator import evaluate
+    from rl.search import COMBO_LIST, strength
+    b = cards_from(board)
+    s = strength(b)
+    for k, (x, y) in enumerate(COMBO_LIST):
+        assert s[k] == (-1 if x in b or y in b else evaluate([x, y] + b))
+
+
 def test_range_band_weights():
     w = np.ones(len(PREFLOP_STRENGTH))
     update_range(w, P, 4, PREFLOP_STRENGTH, [])
