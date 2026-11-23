@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 03:30 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 04:00 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -19,8 +19,10 @@ the working memory. Update it at every step that changes state.
   15,426 actions in 91 matches: prior+name+in-match 0.5438 vs prior+in-match 0.6237 nats, gain 0.0799
   [0.0681, 0.0923]); acceptance 2 PASS (unseen names, 1,425 actions in 10 matches, 4 names: prior+in-match
   0.7248 vs prior 1.1025, gain 0.3777 [0.1551, 0.5753], weak: 10 matches); acceptance 3 NOT TESTED until the
-  box is quiet: `tools/oppmodel_fit.py bench --data DIR` in a `--cpus 0.5 --memory 256m` container (PC
-  p99 0.12 ms on 300 actions). Selected: MLP prior hidden 64 on core+extras features, edges [0.35, 0.8],
+  box is quiet (PC p99 0.12 ms on 300 actions). Command, in the deployed amd64 image under QEMU (slower than
+  the real host, so a pass is conservative): `docker run --rm --network none --cpus 0.5 --memory 256m
+  --entrypoint python -v $HOME/poker-ai-lab-x1:/x1:ro -w /x1 holdem-rl-fb2-900-allin:latest
+  tools/oppmodel_fit.py bench --data data --model rl/models/oppmodel.npz`. Selected: MLP prior hidden 64 on core+extras features, edges [0.35, 0.8],
   k 20, w 2, k_im 8; 11.8 KB npz, 66 names. Outputs `~/poker-ai-lab-x1/logs/x1/`. I read the fit code: splits,
   train-only counts and causal in-match counts are right. Fresh verifier CONFIRMED (no leakage; reproduced byte for byte). Recorded in research 14.13.
   Replays hide hole cards except at showdown (`hole_cards_hidden`), so ranges cannot be fit from replays
@@ -29,7 +31,7 @@ the working memory. Update it at every step that changes state.
   1. S2b (main pid 18898), ends about 06:56 UTC plus a final screen; `logs/s2b/` (screen_itNNNNNN.verdict,
      STOP, end.txt). Screens at 2300, 2700, 3100, 3500. Screen 2300 (03:18 UTC): probe 79.25% [75.0, 82.9]
      (S2's best screen 74.5), Ashwing 69.5 and ashwing_search 73.0, no stop; main wins 27.4% against its pool.
-  2. M1 best-response runs, 90 minutes each, holdem-rl d643881: `bash tools/rl_br.sh br_ashwing
+  2. M1 training windows at 03:58 UTC: br_ashwing 91.2% (102 matches), br_autofast 87.5% (128). M1 best-response runs, 90 minutes each, holdem-rl d643881: `bash tools/rl_br.sh br_ashwing
      ckpt/fb2/it000900.npz ext:ashwing 90 3` (02:41 UTC, about 6 iterations a minute), and `br_autofast`
      with `ext:autodidact_fast` (02:46 UTC). The first `br_autodidact` run on the full `ext:autodidact` got
      7 matches a minute and was killed; its partial `ckpt/br_autodidact/` is unused. Logs `logs/br_*.out`.
