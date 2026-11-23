@@ -155,6 +155,14 @@ unpaired. The interval resolves a gain of about 4.4 points at 800 matches a side
   without reaching the profile path, the in-match path or the opponent seat; undefined probe states; no
   name rule for SDK and E6 opponents). This revision removes the width change and the C model, and answers
   the rest below.
+* Review 2: REVISE, 3 blockers, each checked first-hand and fixed below: a setter called after `env_reset`
+  would overwrite hands the engine already played inside the reset (`env_reset_stacks` runs `start_hand` and
+  `run` before it returns); per-seat parity could never reach the opponent seat's seeded path through the
+  hero-only caller; the profile check round-tripped synthetic hands, so it could not catch a wrong reading
+  of real replays (all-in amounts, all-ins for less than the call). That is the second automatic REVISE for
+  this unit, so the policy cap is reached; I proceed on Wayne's standing approval ("I accept all the
+  recommendations from you if you think it's worth", 2026-11-23), and the outcome verifier still gates the
+  result.
 
 ### X2a. Name-seeded opponent counts in both engines
 
@@ -182,27 +190,43 @@ unpaired. The interval resolves a gain of about 4.4 points at 800 matches a side
   1. `Tracker(prior=None)` in `rl/features.py`: `st` starts as a copy of `prior` (`NST` floats) or zeros.
   2. `rl/bot.py` `on_match_start`: looks the other seat's `display_name` up in the table and seeds the
      tracker; `rl/sdk_rollout.py` passes no prior.
-  3. C: `void env_set_stats(Pool *p, int i, int seat, const double *in)`, the mirror of the existing
-     `env_stats` getter, called after `env_reset`; wrapper `Pool.set_stats(i, seat, arr)` in
-     `rl/fastenv.py`.
+  3. C: `void env_set_prior(Pool *p, int i, int seat, const double *in)` stores `NST` doubles (or clears
+     them with a null pointer) in a per-env slot that `env_reset_stacks` keeps across its `memset`, like
+     `inj` and `urand`, and copies into `stats[seat]` after the `memset` and before `start_hand`, so hands
+     played inside the reset count on top of the prior. Called before `env_reset`; wrapper
+     `Pool.set_prior(i, seat, arr_or_None)` in `rl/fastenv.py`. A reset with no prior set behaves exactly as
+     today.
   4. Caller: `Collector._new_match` in `rl/train.py`, for a `bot:NAME` opponent with a profile, seeds the
      hero seat's counts (the hero observes the clone). The new flag `--seed-profiles PATH` turns it on;
      without the flag nothing changes.
 * **Acceptance:**
-  1. **Profile counts:** `tools/tracker_profiles.py` reproduces `Tracker.update` on 50 engine hands
-     converted to the replay format, exactly.
-  2. **Parity, both seats:** over seeded C-engine matches with `--seed-profiles`, the C counts after
-     `env_set_stats` and after every finished hand equal a Python `Tracker` seeded the same way and fed the
-     same histories, for both seats, within 1e-9. The test prints the number of compared decisions with a
-     profile, without one, and with in-match evidence (at least one finished hand), for each seat; each must
-     be at least 500, or that branch is NOT TESTED. A mutation that skips the seeding in C only makes it fail.
+  1. **Profile counts on the real replays:** for every name, the unscaled counts from
+     `tools/tracker_profiles.py` equal an independent count from `rl/oppmodel.py` `extract_replay` on the
+     same 330 replays, exactly, for hands (`st[10]`), postflop decisions facing a bet (`st[5]`) and folds
+     among them (`st[6]`), and preflop first actions (`st[11]`). Conversion rule: the deployed `Tracker` reads
+     the live server's `action_history`, so a replay action is converted to what the live server sends for
+     it (the executor establishes that convention from the SDK schema or a recorded live message and cites
+     the source); an `all_in` that does not exceed the amount to call is a call. The tool prints the number
+     of such all-ins. A mutation that leaves all-in amounts as chips added fails the check.
+  2. **Parity, both seats:** the test calls `Pool.set_prior` directly with independent random priors on
+     seat 0 and seat 1 (some matches with none), apart from the `--seed-profiles` caller. At every decision
+     and after every finished hand, the C counts (`env_stats`) equal a Python `Tracker` seeded with the same
+     prior and fed the same histories, for both seats, within 1e-9. The test prints, for seat 0 and seat 1
+     separately, the compared decisions with a prior, without one, and with in-match evidence (at least one
+     finished hand); each must be at least 500, or that branch is NOT TESTED. A named case has the opponent
+     finish hand 1 inside the reset (forced with `env_set_injection`); the C counts must equal prior plus that
+     hand. Mutations that skip the seeding in C, seed the wrong seat, or copy the prior after `start_hand`
+     each make the test fail.
+  2b. **Caller:** with `--seed-profiles`, a `bot:NAME` opponent with a profile gets its prior on the hero seat
+     and nothing on the other seat; every other opponent gets none (unit test on `Collector._new_match`).
   3. **No-op by default:** without `--seed-profiles`, `rl.train` collects byte-identical batches to the
      current code on a fixed seed, and fb2-900 plays byte for byte as before in 200 seeded SDK matches
      against `model:` opponents (no prior anywhere).
   4. **Deployed path:** `rl/bot.py` seeds from a `match_start` message carrying a known name and not from an
      unknown one (unit test), and `deploy/Dockerfile` and `deploy/hf_package.sh` ship the table.
   5. The existing test suite passes.
-* **Ownership:** `rl/features.py`, `rl/fastenv.c`, `rl/fastenv.py`, `rl/bot.py`, `rl/train.py`, `deploy/Dockerfile`,
+* **Ownership:** `rl/features.py`, `rl/fastenv.c`, `rl/fastenv.py`, `rl/bot.py`, `rl/train.py`, `rl/oppmodel.py`
+  (read only, for acceptance 1), `deploy/Dockerfile`,
   `deploy/hf_package.sh`, new `tools/tracker_profiles.py`, `rl/models/tracker_prior.npz`,
   `tests/test_tracker_prior.py`; results in experiments 14.14. Work happens in its own worktree from the
   holdem-rl tip. S2b and M1 use `rl/train.py`, `rl/features.py` and `rl/fastenv.c` on gb10-d: nothing is
