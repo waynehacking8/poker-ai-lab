@@ -314,6 +314,9 @@ def seats(opp_name):
 
 def test_bot_seeds_from_known_name_only():
     from rl.bot import RLBot
+    from rl.features import PRIOR_PATH
+    assert RLBot(seed=1).priors == {}, "seeding is opt-in: the default bot plays as before"
+    assert len(RLBot(seed=1, priors=PRIOR_PATH).priors) >= 40
     bot = RLBot(seed=1)
     prior = [float(k + 1) for k in range(NST)]
     bot.priors = {"Known": prior}

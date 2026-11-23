@@ -16,11 +16,13 @@ from rl.runtime import DEFAULT_MODEL, Policy
 
 
 class RLBot(Bot):
-    def __init__(self, seed=None, model=DEFAULT_MODEL, temperature=1.0, allin=DEFAULT_TABLE):
+    def __init__(self, seed=None, model=DEFAULT_MODEL, temperature=1.0, allin=DEFAULT_TABLE, priors=None):
         super().__init__()
         self.policy = Policy(model, temperature, seed)
         self.tracker = Tracker()
-        self.priors = load_priors()
+        # priors: path of the per-name profile table (rl.features.PRIOR_PATH); off by default, because a policy
+        # not trained on seeded counts reads a profile as 20 hands already seen
+        self.priors = load_priors(priors) if priors else {}
         # RL_ALLIN=off turns the all-in answer off for A/B runs
         self.allin = AllInAnswer(allin) if allin and os.environ.get("RL_ALLIN") != "off" else None
 

@@ -56,3 +56,4 @@ requests, stop on the first HTTP 429, and run one fetcher at a time.
   the deployed bot looks up the other seat's `match_start` `seats[].display_name`; `rl.train --seed-profiles PATH`
   seeds the hero seat for a `bot:NAME` clone with NAME's profile; `arch:` clones, baselines, snapshots, pool
   members, SDK rollouts and every eval get no profile (`Pool.set_prior` takes the counts, used by one reset).
+* `collector_hash.py TREE [real|empty]`: sha256 of three fixed-seed `Collector` batches from TREE, to show a change to the C engine or `rl/train.py` is a no-op (X2a acceptance 3).
