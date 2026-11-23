@@ -99,6 +99,7 @@ class Search:
         self.model = model
         self.rnd = random.Random(seed)
         self.n_obs = 0
+        self.fold_p = {}  # X1's fold probability per raise at the last search decision (for the log)
         self.start_match(None, 0, 0)
 
     def start_match(self, name, me, stack):
@@ -159,10 +160,15 @@ class Search:
     def has_evidence(self):
         return self.model.i is not None or self.n_obs >= MIN_OBS
 
+    def fold_prob(self, st):
+        """X1's probability that the opponent folds in public state `st`."""
+        return float(self.model.predict(st)[FOLD])
+
     def evs(self, state, mask, amt, hole, board):
         """{action index: EV in chips} for each legal action."""
         pot, c, me = float(state.pot), float(state.to_call), self.me
         bet_me = self.tr.street_committed[me]
+        st = self.tr.state(me)
         order, u = ranked(self.w, self._board_strength(board), hole + board)
 
         def eq(lo):
@@ -173,16 +179,20 @@ class Search:
         evs = {}
         if mask[0]:
             evs[0] = 0.0
-        evs[1] = call_ev(pot, c, q)
+        cc = min(c, st.rem)  # a call for more than our stack gets the rest of the bet back
+        evs[1] = call_ev(pot - (c - cc), cc, q)
+        self.fold_p = {}
         for a in range(2, 6):
             if not mask[a]:
                 continue
             r = amt[a] - bet_me
             after = copy.deepcopy(self.tr)
             after.apply(me, "raise", r)
-            f = float(self.model.predict(after.state(1 - me))[FOLD])
+            f = self.fold_prob(after.state(1 - me))
             q_top = eq(f)
-            evs[a] = raise_ev(pot, c, r, f, q if q_top is None else q_top)
+            r_eff = c + min(r - c, st.rem_opp)  # the opponent can match at most its stack
+            evs[a] = raise_ev(pot, c, r_eff, f, q if q_top is None else q_top)
+            self.fold_p[a] = round(f, 3)
         return evs
 
     def decide(self, state, policy_a, mask, amt):
@@ -207,6 +217,7 @@ class Search:
         row = {"hand": state.hand_number, "phase": state.phase, "pot": state.pot, "to_call": state.to_call,
                "stack": state.your_stack, "hole": [card_str(c) for c in hole], "board": [card_str(c) for c in board],
                "policy": policy_a, "search": best,
-               "ev": {str(a): round(v, 1) for a, v in evs.items()}, "override": bool(override)}
+               "ev": {str(a): round(v, 1) for a, v in evs.items()},
+               "fold": {str(a): f for a, f in self.fold_p.items()}, "override": bool(override)}
         with open(path, "a") as fh:
             fh.write(json.dumps(row) + "\n")

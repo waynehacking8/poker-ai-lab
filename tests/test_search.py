@@ -92,6 +92,32 @@ def test_bet_into_a_range_that_always_folds_earns_the_pot():
     assert 0 not in evs and evs[1] > 100  # checking aces on a dry flop is worth more than half the pot
 
 
+@pytest.mark.parametrize("short", [0, 1])
+def test_evs_respect_the_effective_stack(short):
+    """Neither side can win more than the other has: with seat `short` holding 1,100 chips (1,000 behind on
+    the flop), every EV lies between minus our chips at risk and the pot plus the opponent's chips at risk.
+    short=0: the opponent is short and we shove; short=1: we are short and call a 5,000 bet."""
+    s = Search(Stub([0, 1, 0, 0, 0]), seed=1)
+    s.start_match(None, 1, 10000)
+    s.stacks = {0: 10000, 1: 10000, short: 1100}
+    state = flop_state()
+    if short == 1:
+        state.action_history = state.action_history + [
+            {"seat": 0, "action": "raise", "amount": 5000, "phase": "flop"}]
+        state.pot, state.to_call, state.your_stack = 5200, 5000, 1000
+        state.valid_actions, state.max_raise = ["fold", "call"], 1000
+    else:
+        state.opponent_stacks, state.max_raise = [1000], 9900
+    mask, amt = action_table(state, 0)
+    from nlhe.cards import cards_from
+    hole, board = cards_from(state.hole_cards), cards_from(state.board)
+    s._sync(state.action_history, hole, board)
+    evs = s.evs(state, mask, amt, hole, board)
+    assert (5 in evs) == (short == 0)
+    for a, v in evs.items():
+        assert -1000 - 1e-9 <= v <= 200 + 1000 + 1e-9, (a, v)
+
+
 def decide_with(search, evs, policy_a, pot=1000):
     state = flop_state()
     state.pot = pot
