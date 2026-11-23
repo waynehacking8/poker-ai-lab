@@ -1020,7 +1020,7 @@ match-win utility; diagnosis tool `tools/x2s_ablate.py`. All runs fb2-900, 100 m
   lazily, because the deployed image ships neither `rl/search.py` nor `rl/oppmodel.py`; a top-level import
   would have broken the next build (caught before the merge).
 
-### 14.17 X2r: rollout lookahead on the policy, with the true model
+### 14.17 X2r: rollout lookahead on the policy, with the true model, adds about 4 points
 
 Roadmap X2r. Tool: `tools/x2r_oracle.py` on holdem-x2r (df4e3c3; worktree `poker-ai-lab-x2r`, not merged).
 At each decision the policy acts as usual. For each candidate action, N rollouts rebuild the hand by
@@ -1045,8 +1045,25 @@ policy on 20 seeds. Eight mutations were caught.
 
 * **No headroom found.** Matches got shorter: hands per win fell in every cell, for example 31.8 to 20.4
   against tight_sticky. The win rate did not change.
-* **Caveat, power:** with 16 rollouts, a 2 standard-error gate and about 5 candidates, noise alone passes
-  the gate on roughly a tenth of the decisions, close to the observed 6 to 9%. Mean predicted gains per
-  override of 0.02 to 0.04 in match-win probability did not appear in the results, so the overrides are
-  mostly noise. A rerun with N = 128 and Z = 2.6 (corrected for about 5 candidates) is running in
-  `~/poker-ai-lab-x2r/logs/x2r_n128` (`tools/x2r_run.sh`).
+* **The null was a power problem.** With 16 rollouts, a 2 standard-error gate and about 5 candidates, noise
+  alone passes the gate on roughly a tenth of the decisions, close to the observed 6 to 9%, and the predicted
+  gains per override (0.02 to 0.04 in match-win probability) did not appear in the results.
+
+**N = 128, Z = 2.6 (chosen after the N = 16 run, so post hoc; same seeds):**
+
+| cell | off | on | difference [95%] | paired [95%] | b / c | overrides |
+|---|---|---|---|---|---|---|
+| raise_station | 94.7 | 98.0 | +3.3 [+0.3, +6.7] | +3.3 [+1.1, +5.6] | 11 / 1 | 14.3% |
+| sticky_overbettor | 83.0 | 88.0 | +5.0 [-0.7, +10.7] | +5.0 [+0.6, +9.4] | 30 / 15 | 7.1% |
+| tight_sticky | 95.3 | 97.0 | +1.7 [-1.5, +5.0] | +1.7 [-0.9, +4.2] | 10 / 5 | 9.2% |
+| never_fold_pre | 93.3 | 98.7 | +5.3 [+2.2, +8.8] | +5.3 [+2.5, +8.2] | 18 / 2 | 9.1% |
+| pooled | 91.6 | 95.4 | +3.8 [+1.9, +5.8] | +3.8 [+2.3, +5.4] | 69 / 23 | |
+
+* Paired: matches paired on opponent, seed and seat (`tools/paired_stats.py`); b counts matches only the
+  lookahead won, c only the policy. Losses fall from 8.4% to 4.6%.
+* **What the overrides do:** against raise_station, check instead of betting (it raises bets); against
+  sticky_overbettor, fold instead of calling its big bets (the largest gain, about 0.07 per override);
+  against tight_sticky, both folds and calls.
+* **Cost:** about 1.9 s per decision on one box core, so it does not fit the deployed budget as it stands.
+* **Confirmation on fresh seeds** (seed 43, off arm N = 1, which plays exactly as the policy, then N = 128,
+  Z = 2.6) is running in `~/poker-ai-lab-x2r/logs/x2r_s43_off` and `x2r_s43_on`.
