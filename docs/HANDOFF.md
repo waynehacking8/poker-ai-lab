@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 05:35 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 05:33 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -80,9 +80,13 @@ the working memory. Update it at every step that changes state.
   hands played inside env_reset; opponent-seat parity unreachable; profile check synthetic only). All checked
   and fixed (research b675d5e: env_set_prior applied inside reset, direct both-seat priors, real-replay count
   check vs extract_replay, all-in-for-less = call). Cap reached; proceeding on standing approval.
-  X2a EXECUTOR running since 05:35 UTC: worktree C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2a, branch
-  holdem-x2a from 86d4ab9, box dir ~/poker-ai-lab-x2a, 2 cores, 2 box-hours. On report: verify first-hand,
-  fresh verifier, then merge into holdem-rl; sync ~/poker-ai-lab-rl only after S2b and M1 end.
+  X2a BUILT: worktree C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2a, branch holdem-x2a, 25cd281 + 7e54bf4 (mine:
+  RLBot priors=PATH opt-in, off by default so a swap today keeps v4 behavior; tools/collector_hash.py). All
+  acceptance PASS per executor; 10 tests rerun first-hand on box. 51 of 70 names have a profile; all 10 bot:
+  clones covered; replays have no all_in records. The spec's 'copy after start_hand' mutation is
+  indistinguishable by design (start_hand never touches stats); 'after run' is killed. Fresh VERIFIER running
+  (box dir ~/poker-ai-lab-x2a-verify). On CONFIRMED: merge into holdem-rl, push, experiments 14.14; sync
+  ~/poker-ai-lab-rl only after S2b and M1 end. Then X2b spec (arms base, grid, grid+seeded).
 - **M1 preliminary (chip flow, seed 31, 400 matches each, unpaired):** br_ashwing wins 90.2% against Ashwing,
   fb2-900 69.8% (gain about 20 points, interval roughly [15, 26]). The gain is a whole-strategy shift: first
   preflop action raise 64.7% (fb2 32.3%), showdowns where we bet last +531k chips (fb2 -261k), fewer but
