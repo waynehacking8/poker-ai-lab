@@ -31,6 +31,7 @@ Scripts around the Chipzen replays. The replays themselves live in `.cache/chipz
 * `python tools/probe_pool.py NAME...` pools probes with distinct eval seeds: wins, matches, Wilson interval.
 * `bash tools/rl_br.sh OUT INIT OPPS [MINUTES] [NSDK]` fine-tunes INIT against SDK field bots only (best-response
   headroom, roadmap M1).
+* `bash tools/m1_eval.sh [WORKERS]` waits for the rl_br runs, then evaluates fb2-900 and the fine-tunes (roadmap M1).
 * `python tools/style_map.py replays|sim|compare ...` puts the real field (replays) and our opponents (simulated
   against one hero) on one 8-axis style map and lists each field bot's nearest pool member.
 * `bash tools/eval_card.sh NAME POLICY_NPZ INIT_CKPT [KING_NPZ]` writes the eval card of one candidate
