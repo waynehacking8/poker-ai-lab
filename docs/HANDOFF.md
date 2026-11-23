@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 05:33 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 05:45 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -80,13 +80,11 @@ the working memory. Update it at every step that changes state.
   hands played inside env_reset; opponent-seat parity unreachable; profile check synthetic only). All checked
   and fixed (research b675d5e: env_set_prior applied inside reset, direct both-seat priors, real-replay count
   check vs extract_replay, all-in-for-less = call). Cap reached; proceeding on standing approval.
-  X2a BUILT: worktree C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2a, branch holdem-x2a, 25cd281 + 7e54bf4 (mine:
-  RLBot priors=PATH opt-in, off by default so a swap today keeps v4 behavior; tools/collector_hash.py). All
-  acceptance PASS per executor; 10 tests rerun first-hand on box. 51 of 70 names have a profile; all 10 bot:
-  clones covered; replays have no all_in records. The spec's 'copy after start_hand' mutation is
-  indistinguishable by design (start_hand never touches stats); 'after run' is killed. Fresh VERIFIER running
-  (box dir ~/poker-ai-lab-x2a-verify). On CONFIRMED: merge into holdem-rl, push, experiments 14.14; sync
-  ~/poker-ai-lab-rl only after S2b and M1 end. Then X2b spec (arms base, grid, grid+seeded).
+  X2a DONE and MERGED: holdem-rl 90baa6b (pushed), research 14.14 (708230a). Verifier CONFIRMED; its two test
+  gaps fixed (dealer slots st[0], st[1] now checked, big-blind-dealer mutation fails with 139 mismatches).
+  Seeding is OFF by default in RLBot (priors=PATH turns it on). Box ~/poker-ai-lab-rl NOT synced yet: sync
+  after S2b and M1 end. Open: live display_name vs replay player name, answered by M3.
+  NEXT: X2b spec after M1b eval (br_mix window at it 430: ashwing 94%, autodidact_fast 92% on ~50 each).
 - **M1 preliminary (chip flow, seed 31, 400 matches each, unpaired):** br_ashwing wins 90.2% against Ashwing,
   fb2-900 69.8% (gain about 20 points, interval roughly [15, 26]). The gain is a whole-strategy shift: first
   preflop action raise 64.7% (fb2 32.3%), showdowns where we bet last +531k chips (fb2 -261k), fewer but
