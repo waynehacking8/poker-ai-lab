@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 04:20 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 04:27 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -62,15 +62,17 @@ the working memory. Update it at every step that changes state.
   sticky_overbettor, tight_sticky, never_fold_pre) are being built since 04:20 UTC by an executor in worktree
   `Desktop/poker-ai-lab-e6`, branch `holdem-e6` (from holdem-rl 0967e71, not pushed), box dir `~/poker-ai-lab-e6`,
   2 cores; done = style vector within 0.25 of target on seeds 3 and 7, tests, existing baselines unchanged.
-  Targets from `poker-ai-lab/.cache/style_field.json`. On report: verify, merge into holdem-rl, sync the box
-  only after S2b and M1 end.
+  Targets from `poker-ai-lab/.cache/style_field.json`. DONE: holdem-rl 86d4ab9 (merged, pushed; box tree NOT
+  synced yet, sync `holdem/opponents.py` and `tools/style_bots_check.py` after S2b and M1 end). 240 matches vs
+  fb2-900, seeds 3 and 7: distance 0.10 to 0.21 for all four (60 matches: sticky_overbettor 0.37 on seed 7
+  from a sparse fold_pre_raise axis). 23 tests pass; station, lag, jam play byte for byte as before.
 - br_ashwing ended 04:11 UTC at it 580 (last window 92.4%); its chip flow runs; br_autofast ends about 04:17,
   then `tools/m1_eval.sh` starts.
 - **M1 preliminary (chip flow, seed 31, 400 matches each, unpaired):** br_ashwing wins 90.2% against Ashwing,
   fb2-900 69.8% (gain about 20 points, interval roughly [15, 26]). The gain is a whole-strategy shift: first
   preflop action raise 64.7% (fb2 32.3%), showdowns where we bet last +531k chips (fb2 -261k), fewer but
   better-called river shoves (248 vs 635). The formal M1 statistic (`tools/m1_eval.sh`, running since 04:17
-  UTC, ends about 07:00) decides. Files `logs/m1/flow_{fb2,br}_ashwing.txt`.
+  UTC, ends about 07:00) decides. fb2-900 vs ext:ashwing on seed 21: 75.5% [72.4, 78.4] over 800. Files `logs/m1/flow_{fb2,br}_ashwing.txt`.
 - **M1b (04:19 UTC):** `bash tools/rl_br.sh br_mix ckpt/fb2/it000900.npz ext:ashwing,ext:autodidact_fast 90 4`.
   Question: does one network hold both exploits when trained on the mixture? If yes, the generalist's gap is
   the training population, and X2 can be an opponent-conditioned policy (X1 predictions as inputs) trained on
