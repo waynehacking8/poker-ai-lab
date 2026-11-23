@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 06:20 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 06:30 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -90,6 +90,14 @@ the working memory. Update it at every step that changes state.
 - **M1 DONE 06:18 UTC (research be087fe, 14.12):** br_autofast vs ext:autodidact 90.25% vs fb2 79.25%, gain 11.0
   [6.1, 15.9]; vs Ashwing 76.4% (+0.9, no cost, 46.0 hands vs 41.7). Both fine-tunes: big gain on target, no
   win-rate cost elsewhere, slower wins elsewhere. M1b eval of br_mix started at 06:18 (Ashwing first).
+- **M1b half (06:28 UTC):** br_mix vs ext:ashwing 666/800 = 83.25%: +7.75 [3.8, 11.7] over fb2, -7.0 [-10.3, -3.7]
+  under br_ashwing. Confound: br_mix ran 455 iterations with 4 SDK workers split over two bots (about half
+  br_ashwing's Ashwing data). Autodidact half running (about 25 min).
+- **S2b screen 3100:** probe 82.25% [78.2, 85.7], Ashwing 73.25, search 74.5, no stop. S2b screens 79.25, 77.75,
+  82.25 are all above S2's best (it1800 74.5, it400 74.75): continuing the recipe is not lowering the probe.
+  Candidate is S2 it1800 unless screen 3500 or the end beats 74.5. Acceptance after S2b ends (about 07:00):
+  three fresh probes `bash tools/exploit_probe.sh C C s2_it1800_fS S 1S` (S = 2, 3, 4), probe_pool under 70%,
+  then E1, E2, E4, E5 (and E6), fresh verifier, then put the swap to Wayne (window closes 23:59 UTC).
 - **M1b eval CHAINED:** `tools/m1b_eval.sh 6 168504 54302` (holdem-rl 2c9dba7), pid 286300, waits with kill -0
   on br_mix training and m1_eval, then br_mix vs ext:ashwing 800 + ext:autodidact 400, seed 21 ->
   logs/m1/br_mix_*.jsonl, marker logs/m1/mix_done, log logs/m1/m1b_eval.out.
