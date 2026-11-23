@@ -752,7 +752,7 @@ coverage. `tools/style_map.py` (holdem-rl 3ef434e) computes one 8-axis style vec
 * the mean post-flop bet over the pot (halved, capped at 1);
 * the showdown rate.
 
-It reads the 412 Chipzen replays (51 bots with at least 100 hands) and 60 simulated matches of each of our
+It reads the 330 poker replays among the 412 Chipzen replay files (51 bots with at least 100 hands) and 60 simulated matches of each of our
 opponents against fb2-900 (the baselines and extremes, the heuristic bot, the 13 real field bots, three S2
 exploiters, S2's it1800 and fb2-900 itself). Each field bot is matched to its nearest pool member (Euclidean
 distance; a missing axis reads 0.5). Files are in `logs/style/` on gb10-d.

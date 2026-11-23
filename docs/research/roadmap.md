@@ -4,6 +4,126 @@ Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The 
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
+## Revision 2 (2026-11-23): the problem from first principles
+
+Wayne: "The biggest fault that you made is thinking too narrowly." S0, S2 and the diversity slice I had
+proposed after experiments 14.11 were one move made bigger: enlarge the opponent list of a reactive policy.
+Such a policy is only as robust as its training distribution, so every style outside it is a new hole, and
+the all-in jam was one. This revision decomposes the objective first and orders the work by measured headroom.
+
+**Objective.** The most season wins, then fewer hands per win, against a real field that changes between
+seasons. Runtime: 0.5 vCPU, 256 MB, 5 s per action, Python and numpy. Offline: gb10-d.
+
+**Measured facts.**
+* **Short matches.** 330 poker replays: median 26 hands, and 140 (42%) end before the first blind step at
+  hand 21 (`tools/analyze_chipzen_replays.py`). A few big pots decide a match.
+* **The opponent is named at match start.** `seats[].display_name` is "the participant's platform name
+  (for a bot, the bot's name)" (chipzen-sdk `docs/protocol/TRANSPORT-PROTOCOL.md`, main at aa8c55c,
+  2026-11-22). `participant_id` changes every match in the replays (51 ids over Kimiko's 51 matches), so
+  the name is the key. Names carry versions (Deep_Thought-v12, v17, v18).
+* **The field's styles.** 12 of 51 bots play styles none of our opponents play (14.11).
+* **No ground truth yet.** Our bots appear in none of the replays. The Season 16 round robin (24 to 27 Nov)
+  plays v4 against every entrant.
+
+**Levers.** Against one opponent, our result is a floor plus what we exploit on top of it.
+1. **Floor:** what the best response to us wins. It protects against strong, unseen and adaptive bots.
+   S2 and S2b raise it; E3 measures it.
+2. **Exploitation:** what we take beyond the floor. A reactive policy exploits only styles it trained on.
+   An explicit opponent model plus a decision procedure that best-responds to it covers every style the
+   model can express, including unseen ones. This is the adaptive decision model Wayne asked for on
+   2026-11-21: an online model with a population prior, a decision procedure, and a safety blend while the
+   belief is broad.
+3. **Measurement:** real arena results are the judge. The proxies (E1 to E5) are for iteration.
+
+Review: plan-verifier REVISE twice (4 blockers, then 3), each fixed in this text; the second was the cap,
+so no third review ran, and Wayne's standing approval (2026-11-23) carries it.
+
+**Headroom before building.**
+* **M1 (running since 02:41 UTC):** best-response fine-tunes of fb2-900 against one field bot each,
+  90 minutes, 3 SDK workers (`tools/rl_br.sh`): `br_ashwing` against `ext:ashwing`, and `br_autofast`
+  against `ext:autodidact_fast` (the same code as `ext:autodidact` with fewer trials; the full bot played
+  7 matches a minute, too slow to train on). `tools/m1_eval.sh` then plays fb2-900 and both fine-tunes on
+  seed 21, fresh for all three: 800 matches against `ext:ashwing`, 400 against `ext:autodidact`. fb2-900's
+  card reads 72.75% and 74.5% against them (E2). A fine-tune is a lower bound on what exploiting one known
+  opponent is worth; its result against the other bot shows what specializing costs.
+* **M2:** the floor's headroom is E3: a fresh exploiter still wins 71 to 78% after S2 (14.10).
+* **M3:** the Season 16 round robin replays of v4 give the first real results per opponent. They come in
+  within days and move nobody's rating, so no challenge matches are played for measurement.
+
+**Decision rule after M1.** The statistic is the gain: a fine-tune's win rate on its own target minus
+fb2-900's, with a 95% Newcombe interval of the difference. `ext:` bots are unseeded, so the two samples are
+unpaired. The interval resolves a gain of about 4.4 points at 800 matches a side and 6.2 at 400.
+* **Positive** (lower bound above zero on either target): exploitation headroom is real, and X2 is
+  specified right after X1.
+* **Otherwise inconclusive:** a 90-minute reactive fine-tune only bounds headroom from below, so a miss
+  does not show the headroom is small. X2 then waits for M3's per-opponent results and X1's predictive
+  gains.
+* X1 runs in both branches (CPU only, and both need it). The floor work (S2b, then S3) runs in parallel.
+
+**New order.**
+1. S2b finishes (floor). M1 and M3 measure.
+2. **X1 opponent model** (below).
+3. **X2 decision procedure:** a depth-limited search against the X1 model, with our policy as the leaf
+   and rollout value, blended toward the floor policy while the posterior is broad (Ganzfried and
+   Sandholm 2015 safe exploitation; Johanson et al. 2007 restricted Nash response). Acceptance: E2 and
+   held-out style cells (rule bots for the 14.11 gap styles) improve, E3 no worse, decisions inside 1 s
+   at 0.5 vCPU. Specified after X1, and before M3 only if M1 is positive.
+4. S3 (showdown memory) and S4 (range belief) become X1 inputs. S6 becomes X2. S5 and S7 stay as A/B
+   experiments.
+
+### X1. Opponent model
+
+* **Outcome:** a runtime model P(opponent action | public state, opponent name, match so far) and its
+  measured predictive quality.
+* **Data:** the 330 poker replays now (2026-11-19 22:10 to 2026-11-21 11:41 UTC); the Season 16 replays
+  later, as a second test set across a season boundary. Both seats of every replay are modeled. Split by
+  `start_time`: the latest 30% (99 matches, from 2026-11-21 02:26 UTC) are held out. The prior and the
+  profiles are fit on the training split only.
+* **Held-out subsets,** counted before any fitting (2026-11-23):
+  1. **known names:** held-out actions of names with at least N = 200 actions in the training split,
+     15,426 actions in 91 matches;
+  2. **unseen names:** held-out actions from hand 11 on, of names with no training action, 1,425 actions
+     in 10 matches, 4 names.
+
+  A 20% split would leave the unseen subset 5 matches and 2 names, hence 30%. A subset under M = 10
+  matches or 3 names is reported NOT TESTED, never a pass.
+* **Model:** actions in five classes (fold, check or call, bet or raise up to the pot, above the pot,
+  all-in). Three layers:
+  1. a population prior: a small numpy model over public features (street, position, facing bet over pot,
+     stack depth in big blinds, last action);
+  2. a per-name profile: Dirichlet counts per context bucket (street by facing bet bucket), shrunk toward
+     the prior;
+  3. an in-match update of the same counts after every opponent action.
+* **Acceptance:** mean log loss per opponent action, bootstrap 95% interval of the difference over
+  matches, each reported next to its subset sizes:
+  1. on known names, prior plus name plus in-match beats prior plus in-match (the name adds
+     information), interval above zero;
+  2. on unseen names, prior plus in-match beats the prior alone, interval above zero;
+  3. runtime: under `docker run --cpus 0.5 --memory 256m` on gb10-d, replaying the held-out actions in
+     order, update plus prediction under 5 ms at p99, model files under 5 MB. gb10-d is aarch64 and the
+     host x86, so this is a proxy; X2 measures the whole bot on the deployed image.
+* **Non-goals:** hand ranges (S4 later), runtime integration (X2), any upload.
+* **Selection:** every choice is made on a validation split, the latest 20% of the training split by
+  `start_time` (46 of its 231 matches): the prior's features and hidden size, the context bucket edges,
+  the shrinkage strength of the profiles, and the weight of the in-match update. The model is then refit
+  on the whole training split and frozen. Each frozen model is scored on the held-out subsets once.
+* **Stop:** each acceptance has its own outcome.
+  1. Acceptance 1 fails: per-name profiles are not used, and X2 is specified with the prior and the
+     in-match update only.
+  2. Acceptance 2 fails: X1 ends with the finding recorded. A revised in-match update is a new revision,
+     tested on fresh data (the Season 16 replays), or labeled as reusing this held-out set.
+  3. Acceptance 3 fails: X1 stops, the measured p99 and size are recorded, and the next step is chosen in
+     a new plan revision.
+* **Ownership:** X1 owns `rl/oppmodel.py` (the model), `tools/oppmodel_fit.py` (fit, select, score), the
+  artifact `rl/models/oppmodel.npz`, `logs/x1/` on gb10-d, and experiments section 14.13 (14.12 is M1).
+  It touches nothing S2b or M1 owns (`rl/train.py`, the `tools/rl_s2.sh` and `tools/s2_*` scripts,
+  `tools/rl_br.sh`, `tools/m1_eval.sh`, `ckpt/`, `pool_s2b/`, `logs/s2b/`, `logs/m1/`).
+* **Budget:** CPU only, at most 4 box-hours, at most 2 cores on gb10-d while S2b or M1 run. Acceptance 3
+  is measured only on a quiet box (no training or evaluation running).
+* **Limit:** the replays span 37 hours, so names barely change version across the split; the Season 16
+  replays retest acceptance 1 across a season.
+* **Rollback:** nothing is deployed; the king stays v4.
+
 ## Evidence that sets the order
 
 * **Blueprint** (experiments 14.6): fb2-900 wins about 61%. The clearest leak is calling Blueprint's river
