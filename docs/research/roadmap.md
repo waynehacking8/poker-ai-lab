@@ -422,7 +422,7 @@ part the numbers show is weakest.
 * **Ownership:** `holdem/opponents.py` (GridStyle only), new `holdem/stylegrid_seeds.py`, `rl/sdk_rollout.py`
   (`make_opp` only), new `tools/stylegrid_seeds.py`, `tools/rl_x2b.sh`, `tools/x2b_eval.sh`,
   `tools/x2b_profile_eval.py`, `tools/x2b_stats.py`, `tests/test_style_grid.py`, `tools/README.md`; outputs
-  in `ckpt/x2b_*` and `logs/x2b/`; results in experiments 14.16. No change to `rl/train.py`, the features,
+  in `ckpt/x2b_*` and `logs/x2b/`; the arms were not run (Correction); X2s results are experiments 14.16. No change to `rl/train.py`, the features,
   the C engine or the network.
 * **Order and budget:** code, tests and `ALLOWED` first (2 cores, at most 1.5 box-hours, any time).
   Training after `logs/swap_acc/done`: three arms in parallel, 6 processes each (learner, 2 workers, 3 SDK
