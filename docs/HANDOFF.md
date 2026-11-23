@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 03:10 UTC. Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 02:56 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -9,18 +9,22 @@ the working memory. Update it at every step that changes state.
   them worth it (swaps still need his yes; chipzen.ai rate rules hold).
 - **Plan: roadmap Revision 2** (`docs/research/roadmap.md`, research 12db6b1, committed and pushed). Levers: the floor (E3; S2, S2b), exploitation through an explicit opponent model plus a
   decision procedure (X1 model, X2 search with a safety blend), and real-arena measurement (M3: Season 16
-  replays of v4). Headroom is measured first (M1). Review 1 (02:50 UTC): REVISE, 4 blockers: X1 per-name
+  replays of v4). Headroom is measured first (M1). Review 1: REVISE, 4 blockers: X1 per-name
   check must compare against prior plus in-match; X1 held-out subsets, counts, minimum sizes, train-only
   fitting; M1 needs one statistic that 400 matches resolve, and a miss is inconclusive, not "floor leads";
   X1 runtime measured at 0.5 vCPU and 256 MB with a percentile. Review 2: REVISE, 3 blockers (selection
   on a validation split and held-out scored once; a stop for each acceptance; X1 ownership and cores).
   All fixed; the cap was reached, so no third review; Wayne's standing approval carries it (tell him).
-- **X1 executing** since 03:10 UTC: an executor agent in worktree `Desktop/poker-ai-lab-x1`, branch
-  `holdem-x1` (from holdem-rl 05c4865, not pushed), box dir `~/poker-ai-lab-x1`, at most 2 cores. It owns
-  `rl/oppmodel.py`, `tools/oppmodel_fit.py`, `tests/test_oppmodel.py`, `rl/models/oppmodel.npz`. On its
-  report: verify the numbers first-hand, run acceptance 3 (`tools/oppmodel_fit.py bench` in a
-  `--cpus 0.5 --memory 256m` container) only on a quiet box, record experiments 14.13, merge into holdem-rl.
-  If the session restarts and the agent is gone, check the branch for commits before redoing anything.
+- **X1 done** (holdem-rl 0967e71, merged and pushed; box tree synced): acceptance 1 PASS (known names,
+  15,426 actions in 91 matches: prior+name+in-match 0.5438 vs prior+in-match 0.6237 nats, gain 0.0799
+  [0.0681, 0.0923]); acceptance 2 PASS (unseen names, 1,425 actions in 10 matches, 4 names: prior+in-match
+  0.7248 vs prior 1.1025, gain 0.3777 [0.1551, 0.5753], weak: 10 matches); acceptance 3 NOT TESTED until the
+  box is quiet: `tools/oppmodel_fit.py bench --data DIR` in a `--cpus 0.5 --memory 256m` container (PC
+  p99 0.12 ms on 300 actions). Selected: MLP prior hidden 64 on core+extras features, edges [0.35, 0.8],
+  k 20, w 2, k_im 8; 11.8 KB npz, 66 names. Outputs `~/poker-ai-lab-x1/logs/x1/`. I read the fit code: splits,
+  train-only counts and causal in-match counts are right. A fresh outcome verifier runs since 02:56 UTC.
+  Replays hide hole cards except at showdown (`hole_cards_hidden`), so ranges cannot be fit from replays
+  directly. To record: experiments 14.13.
 - **Running on gb10-d:**
   1. S2b (main pid 18898), ends about 06:56 UTC plus a final screen; `logs/s2b/` (screen_itNNNNNN.verdict,
      STOP, end.txt). Screens at 2300, 2700, 3100, 3500.
