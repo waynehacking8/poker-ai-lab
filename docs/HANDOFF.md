@@ -142,18 +142,18 @@ the working memory. Update it at every step that changes state.
   hive -5.3, autodidact +1.0, wolf +1.3. R fails again: -4.6 [-6.6,-2.6] (sticky_overbettor -13.3,
   raise_station -7.7). Research 14.18 046e99e. VERDICT: lookahead with X1 is NOT a candidate; procedure is
   sound (oracle +4.2 confirmed), the model is the limit. holdem-x2r stays unmerged (5ee89f5).
-  ABLATION RUNNING since 21:02 (pre-registered, roadmap 3ff744d): holdem-x2r cf0a867 adds --model
-  oracle-range (oracle range + X1Bot) and x1-range (X1 range + true StyleBot); tools/x2m_ablate.sh in
-  ~/poker-ai-lab-x2m, seed 43 rule cells, N=128 Z=2.6, logs/x2ma_{oracle_range,x1_range}, marker
-  logs/x2ma_done (~2 h). Read: paired_stats vs oracle rows (~/poker-ai-lab-x2r/logs/x2r_s43_on) and vs off
-  (x2m43_rule_off == x2r_s43_off, 1200/1200 identical). Outcome verifier on cf0a867: CONFIRMED (oracle and
-  x1 byte-identical to 5ee89f5 over 120 matches; 6 of 7 mutations killed; gap: x1-range StyleBot seed not
-  pinned, same line as the oracle arm, accepted).
-  Mutations: arms swapped, X1Bot from X1 range, gate z=2 all KILLED; no-sync-at-decide equivalent.
-  NEXT: X3 = lam model (draft in scratchpad x3_draft.md, goes to roadmap after the ablation read):
-  P(k|h,s) = lam*band + (1-lam)*X1 p_k, keeps X1 frequencies for every lam; lam from showdowns (Chipzen
-  shows both hands at all 4,545 replay showdowns, no muck: reveal depends only on actions, no censoring
-  correction). Exploration: preflop raise AUC per bot 0.68 (hoops) .. 0.97 (DeepStack), 0.76 pooled.
+  ABLATION DONE 22:20 UTC (holdem-x2r cf0a867, verifier CONFIRMED; ~/poker-ai-lab-x2m/logs/x2ma_*; research
+  14.19 7b31e0d): paired vs oracle, oracle-range -1.0 [-2.2,+0.2] (continuation loss, not significant),
+  x1-range -9.0 [-11.0,-7.0] (range loss), x1 -8.8. THE ROOT RANGE CARRIES THE WHOLE LOSS. Overrides:
+  sticky_overbettor preflop raise->fold 525 vs 93 with the true range; raise_station check->raise on
+  turn/river 105/157 vs 21/54. Causes not yet separated: X1 frequency (band width) vs reveal (band rule).
+  NEXT: X3 SPEC in roadmap (research 7b31e0d), plan-verifier pending. X3a = range quality, CPU, no
+  lookahead (tools/x3_range.py, tests/test_x3.py on holdem-x2r): log share of the true combo minus prior,
+  at hero decisions; sim seed 47, 200 matches x (4 rule + 5 ext cells); ranges R1 X1 band, R2 band with true
+  frequencies, R3 lam pi0, R4 lam pi0 + in-match showdowns, R5 oracle; replays on X1's split. Gate: R4-R1
+  LB>0 on rule pool, ext pool and held-out replays -> X3b (--model x3, seed 49, confirm 51); else f2>0.5 ->
+  frequency spec; else rethink. lam grid {0,.1..,.9,.95,.99}, pi0 = mean per-name posterior (>=30 shown
+  hands), preflop/postflop lam variant only if held-out LB>0.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
