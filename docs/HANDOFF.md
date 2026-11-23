@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 05:52 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 06:20 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -86,7 +86,10 @@ the working memory. Update it at every step that changes state.
   after S2b and M1 end. Open: live display_name vs replay player name, answered by M3.
   NEXT: X2b spec after M1b eval (br_mix window at it 430: ashwing 94%, autodidact_fast 92% on ~50 each).
 - **M1 05:49 UTC:** br_ashwing vs ext:autodidact 312/400 = 78.0% [73.7, 81.8] vs fb2-900 79.25%: no measurable
-  specialization cost, but matches run 63.9 hands vs 41.3. br_autofast evals running (m1_eval pid 54302).
+  specialization cost, but matches run 63.9 hands vs 41.3.
+- **M1 DONE 06:18 UTC (research be087fe, 14.12):** br_autofast vs ext:autodidact 90.25% vs fb2 79.25%, gain 11.0
+  [6.1, 15.9]; vs Ashwing 76.4% (+0.9, no cost, 46.0 hands vs 41.7). Both fine-tunes: big gain on target, no
+  win-rate cost elsewhere, slower wins elsewhere. M1b eval of br_mix started at 06:18 (Ashwing first).
 - **M1b eval CHAINED:** `tools/m1b_eval.sh 6 168504 54302` (holdem-rl 2c9dba7), pid 286300, waits with kill -0
   on br_mix training and m1_eval, then br_mix vs ext:ashwing 800 + ext:autodidact 400, seed 21 ->
   logs/m1/br_mix_*.jsonl, marker logs/m1/mix_done, log logs/m1/m1b_eval.out.
