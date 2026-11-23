@@ -829,12 +829,18 @@ played 7 matches a minute. `tools/m1_eval.sh` then played each model on seed 21,
 | model | vs ext:ashwing (800) | vs ext:autodidact (400) |
 |---|---|---|
 | fb2-900 | 75.5% [72.4, 78.4] | 79.25% [75.0, 82.9] |
-| br_ashwing | **90.25% [88.0, 92.1]** | pending |
-| br_autofast | pending | pending |
+| br_ashwing | **90.25% [88.0, 92.1]** | 78.0% [73.7, 81.8] |
+| br_autofast | 76.4% [73.3, 79.2] | **90.25% [86.9, 92.8]** |
+| br_mix | pending | pending |
 
-* **Decision statistic:** br_ashwing gains 14.75 points on its target, Newcombe 95% [11.1, 18.4]. The lower
-  bound is above zero, so exploitation headroom is real, and the roadmap's positive branch applies: X2 is
+* **Decision statistic:** br_ashwing gains 14.75 points on its target, Newcombe 95% [11.1, 18.4]; br_autofast,
+  trained only on the fast variant, gains 11.0 [6.1, 15.9] on the full `ext:autodidact`. Both lower bounds
+  are above zero, so exploitation headroom is real, and the roadmap's positive branch applies: X2 is
   specified after X1.
+* **Specialization cost, measured on the other target:** none in win rate (br_ashwing on autodidact
+  -1.25 [-6.9, 4.4]; br_autofast on Ashwing +0.9 [-3.3, 5.1]). It shows up as match length: br_ashwing needs
+  63.9 hands per match against autodidact (fb2-900 41.3), br_autofast 46.0 against Ashwing (fb2-900 41.7).
+  Each fine-tune keeps fb2-900's floor against the other bot but wins it more slowly.
 * **Where the gain comes from** (`tools/chipflow.py`, 400 matches on seed 31, `logs/m1/flow_*_ashwing.txt`):
   fb2-900 won 69.8%, br_ashwing 90.2%.
 
@@ -849,8 +855,7 @@ played 7 matches a minute. `tools/m1_eval.sh` then played each model on seed 21,
 
   Against a sticky caller the fine-tune raises twice as often before the flop, value-bets thinner and
   bluffs less: a whole-strategy shift, not one leak.
-* **Pending:** the autodidact half, the specialization cost on the other bot, and M1b (one fine-tune on
-  both bots, `ckpt/br_mix`).
+* **Pending:** M1b (one fine-tune on both bots, `ckpt/br_mix`, `tools/m1b_eval.sh`, same seed and sizes).
 
 ### 14.14 X2a: name-seeded opponent counts in both engines
 
