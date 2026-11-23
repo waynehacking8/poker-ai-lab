@@ -156,8 +156,13 @@ the working memory. Update it at every step that changes state.
   -0.73 vs R4 +0.37 nats, pi0 at lam 0.3-0.4, variant not chosen (unverified until the box run + verifier).
   FULL RUN LAUNCHED 23:12 UTC on gb10-d ~/poker-ai-lab-x3 (git archive with core.autocrlf=false: plain
   archive gave CRLF scripts), cores 4-12, logs/x3a/{report.txt,replay.json,sim/,failed,done}; ~80 min,
-  ext:autodidact is the long pole. Outcome verifier running in parallel (may use ~/x3-verify, cores 13-19).
-  Executor installed chipzen-bot 0.7.0 + websockets into the PC Python 3.11.
+  ext:autodidact is the long pole. Executor installed chipzen-bot 0.7.0 + websockets into the PC Python.
+  VERIFIER 1 REFUTED (23:40 UTC): (1) sim Hero.on_round_result skips sync on no-showdown hands, so X1 never
+  observes trailing opponent folds: sim R1 != deployed Search (test twin shared the bug); (2) 5 wiring
+  mutations survive (R2/R2l get X1 p, R2l uses lp4, pre/post lam swapped, V = R4-R1); (3) report pools
+  whatever cells exist. Replay path unaffected. First run INVALID for sim (logs/x3a in ~/poker-ai-lab-x3,
+  autodidact killed): do not cite its sim numbers. Its replay part: held-out R4-R1 +1.09 [0.98,1.22],
+  variant not chosen. Executor resumed 23:45 UTC with the three fixes; then fresh verifier 2 (cap 2), rerun.
   X3a = range quality, CPU, no lookahead (tools/x3_range.py,
   tests/test_x3.py on holdem-x2r): log share of the true combo minus prior, at hero decisions. Replays first
   on X1's split (fit / validation picks the pre/post lam variant, frozen / refit / held-out scored once).
