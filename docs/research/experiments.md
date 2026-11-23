@@ -1080,3 +1080,29 @@ Z = 2.6; `~/poker-ai-lab-x2r/logs/x2r_s43_off` and `x2r_s43_on`):
 Unpaired, the pooled difference is +4.2 [+2.3, +6.1]. Losses fall from 7.8% to 3.7%. **With the true model,
 rollout lookahead on top of the policy halves the losses against these bots.** The next question is the
 model we actually have (roadmap X2m).
+
+### 14.18 X2m: the same lookahead with X1 in place of the true rules loses on the rule cells
+
+Roadmap X2m. Tool: `tools/x2r_oracle.py --model x1` on holdem-x2r (4d9c1ed, memo f6777b8, tests f427155; two
+fresh verifiers found the implementation right and the tests short, and every real mutation they found now
+fails a test). N = 128, Z = 2.6, seed 41, 300 matches per cell, paired against the judge's search-off rows.
+
+| cell | off | on | paired [95%] | b / c | overrides |
+|---|---|---|---|---|---|
+| raise_station | 94.7 | 89.3 | -5.3 [-8.6, -2.1] | 5 / 21 | 12.9% |
+| sticky_overbettor | 83.0 | 72.3 | -10.7 [-16.4, -4.9] | 24 / 56 | 9.6% |
+| tight_sticky | 95.3 | 93.7 | -1.7 [-4.5, +1.2] | 7 / 12 | 10.4% |
+| never_fold_pre | 93.3 | 96.0 | +2.7 [-0.4, +5.7] | 15 / 7 | 10.7% |
+| pooled | 91.6 | 87.8 | -3.8 [-5.7, -1.8], p < 0.001 | 51 / 96 | |
+
+* **R fails.** With the true rules the same procedure added +3.8 on these seeds; with X1 it loses 3.8. The
+  procedure is not the problem (14.17); the model is.
+* **Where it loses:** against sticky_overbettor, X1's lookahead turns calls into folds on every street (flop
+  487, turn 298, river 108 overrides, against 136 flop folds with the true rules), and its matches double in
+  length (17.8 to 35.2 hands per win). Against raise_station it raises the river into the bot (219 checks
+  turned into raises) where the true model checks.
+* **Reading:** X1 predicts action frequencies well (14.13), but the rollout opponent and the root range both
+  assume an action reveals a band of hand strength (weak fold, middle call, strong raise). These bots bet and
+  raise with wide ranges, so the model makes every bet look strong and the lookahead folds too much. This is
+  limit 1 of the universal design (ranges from an action model by frequency matching).
+* The `ext:` cells are running (`~/poker-ai-lab-x2m/logs/x2m_ext`); the pre-registered read follows them.
