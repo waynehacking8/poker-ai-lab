@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 02:55 UTC. Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 03:00 UTC. Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -13,17 +13,19 @@ the working memory. Update it at every step that changes state.
   replays of v4). Headroom is measured first (M1). Review 1 (02:50 UTC): REVISE, 4 blockers: X1 per-name
   check must compare against prior plus in-match; X1 held-out subsets, counts, minimum sizes, train-only
   fitting; M1 needs one statistic that 400 matches resolve, and a miss is inconclusive, not "floor leads";
-  X1 runtime measured at 0.5 vCPU and 256 MB with a percentile. Fixing, then a fresh review (cap 2).
+  X1 runtime measured at 0.5 vCPU and 256 MB with a percentile. All four fixed in the draft; review 2
+  (fresh verifier) running since 03:00 UTC. It is the cap: a second REVISE goes to Wayne with options.
 - **Running on gb10-d:**
   1. S2b (main pid 18898), ends about 06:56 UTC plus a final screen; `logs/s2b/` (screen_itNNNNNN.verdict,
      STOP, end.txt). Screens at 2300, 2700, 3100, 3500.
-  2. M1 best-response runs since 02:41 UTC, 90 minutes each, holdem-rl d643881:
-     `bash tools/rl_br.sh br_ashwing ckpt/fb2/it000900.npz ext:ashwing 90 3`, and `br_autodidact` with
-     `ext:autodidact`. Logs `logs/br_*.out`, checkpoints `ckpt/br_*/`. ext:autodidact is slow: no first row
-     after 3 minutes.
-  3. `logs/m1_eval.sh` (from the session scratchpad, not in git yet) waits for both runs, then plays
-     fb2-900, br_ashwing and br_autodidact against ext:ashwing and ext:autodidact, 400 matches, seed 21,
-     into `logs/m1/*.jsonl`, marker `logs/m1/done`. ext: bots are unseeded, so comparisons are unpaired.
+  2. M1 best-response runs, 90 minutes each, holdem-rl d643881: `bash tools/rl_br.sh br_ashwing
+     ckpt/fb2/it000900.npz ext:ashwing 90 3` (02:41 UTC, about 6 iterations a minute), and `br_autofast`
+     with `ext:autodidact_fast` (02:46 UTC). The first `br_autodidact` run on the full `ext:autodidact` got
+     7 matches a minute and was killed; its partial `ckpt/br_autodidact/` is unused. Logs `logs/br_*.out`.
+  3. `bash tools/m1_eval.sh 6` (holdem-rl 05c4865, started 02:46 UTC) waits for both runs, then plays
+     fb2-900, br_ashwing and br_autofast on seed 21: 800 matches against ext:ashwing, 400 against
+     ext:autodidact, into `logs/m1/NAME_OPP.jsonl`, marker `logs/m1/done`, failures in `logs/m1/failed`.
+     ext: bots are unseeded, so the gain is an unpaired difference with a Newcombe interval.
 - **Done 2026-11-23:** style map (holdem-rl 3ef434e `tools/style_map.py`; research 14.11: 12 of 51 field
   bots play 4 styles no opponent of ours plays; data `logs/style/` on gb10-d). Protocol fact: match_start
   `seats[].display_name` is the opponent bot's platform name (chipzen-sdk TRANSPORT-PROTOCOL.md, aa8c55c);
