@@ -1152,3 +1152,38 @@ The pre-registered E read (unpaired Newcombe on the five bots) is +0.9 [-1.8, +3
 * **Next:** limit 1, the opponent model. X1 says how often an opponent acts, not with what hands; the
   lookahead needs the second. The fix is a card-conditioned opponent model (what each action means for the
   hand), learned where cards are seen. Its spec goes in the roadmap before any code.
+
+### 14.19 X2m ablation: X1's range at the root carries the whole loss
+
+Roadmap "X2m result and the ablation". Tool: `tools/x2r_oracle.py --model oracle-range | x1-range` on
+holdem-x2r (cf0a867; a fresh verifier confirmed that the `oracle` and `x1` arms still play byte for byte as
+before over 120 matches, and the tests kill 6 of 7 planted mutations). N = 128, Z = 2.6, seed 43, the four
+rule cells, 300 matches per cell, paired on the same seeds as the reference arms (`tools/x2m_ablate.sh`,
+`~/poker-ai-lab-x2m/logs/x2ma_*`).
+
+Paired against the oracle arm (the true rules for both the range and the rest of the hand; a negative number
+is what the arm loses to it):
+
+| cell | oracle-range (X1 finishes the hand) | x1-range (X1's range at the root) | x1 (both, 14.18) |
+|---|---|---|---|
+| never_fold_pre | +0.0 [-1.3, +1.3] | -4.3 [-6.8, -1.8] | -1.3 [-2.9, +0.3] |
+| raise_station | -0.3 [-2.1, +1.4] | -12.3 [-16.2, -8.5] | -9.0 [-12.4, -5.6] |
+| sticky_overbettor | -3.3 [-7.1, +0.5] | -15.0 [-20.6, -9.4] | -20.3 [-25.9, -14.8] |
+| tight_sticky | -0.3 [-2.1, +1.4] | -4.3 [-7.3, -1.4] | -4.3 [-7.0, -1.7] |
+| pooled | -1.0 [-2.2, +0.2] | -9.0 [-11.0, -7.0] | -8.8 [-10.6, -6.9] |
+
+Against the off arm: `oracle-range` +3.2 [+1.6, +4.7] (the oracle arm's +4.2, nearly all of it), `x1-range`
+-4.8 [-6.9, -2.7].
+
+* **Read (pre-registered):** the range's loss is 9.0 [7.0, 11.0], lower bound above zero; the continuation's
+  loss is 1.0 [-0.2, 2.2]. Only the range clears, so it is fixed first. The range alone accounts for the whole
+  8.8-point gap; the continuation's lean on sticky_overbettor (-3.3) is rechecked after the range is fixed.
+* **Where:** against sticky_overbettor, X1's range turns the policy's preflop raises into folds (525
+  overrides, against 93 with the true range) and its flop and turn calls into folds (480 and 275, against 107
+  and 56). Against raise_station it bets into the bot on the turn and river after it checks (check to raise
+  105 and 157, against 21 and 54).
+* **Mechanism, with the rules in `holdem/opponents.py`:** raise_station checks and calls after the flop with
+  every hand; sticky_overbettor bets 65% of its worst hands. The band rule reads the first's checks as
+  weakness and the second's bets as strength. Two causes are not separated yet: X1's frequencies in that
+  context (a band whose width is wrong) and the band rule itself (an action that says nothing about the cards
+  still cuts the range). X3 separates them before changing either.
