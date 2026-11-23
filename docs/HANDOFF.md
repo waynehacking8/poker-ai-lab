@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 11:58 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 12:05 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -137,7 +137,9 @@ the working memory. Update it at every step that changes state.
   (rule 3.71 h). 65% of time = rl/features hand_strength in rollouts; memoized in the tool f6777b8 (exact,
   test). Re-smoke logs/x2m_smoke2 (cores 0-1, marker /tmp/x2m_s2_done) must give identical decisions and
   a projection under the limits: DONE 11:56, raise_station decisions identical (ext differs: unseeded bot),
-  1.405 / 1.502 s per decision, projections rule 2.18 h, ext 5.50 h: PASS. Verifier running (PC only).
+  1.405 / 1.502 s per decision, projections rule 2.18 h, ext 5.50 h: PASS. Verifier 1 REFUTED the tests only
+  (impl correct, 0 mismatches vs its reference); 3 surviving mutations now fail new test c81f95f (9 tests).
+  Fresh verifier 2 running (PC only). Code under run unchanged since f6777b8 (box x2m dir needs c81f95f copy).
   Launch in ~/poker-ai-lab-x2m (commands in roadmap X2m Run) after verifier CONFIRMED and
   the confirmation passes. If confirmation fails: stop X2m, record, rethink.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
