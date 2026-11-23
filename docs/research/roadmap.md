@@ -383,55 +383,77 @@ fails", so the ablation runs: it splits X1's loss on the rule cells between the 
     hand, sticky_overbettor bets 65% of its worst; on replay showdowns, the chance a preflop raise outranks a
     non-raise is 0.68 to 0.97 per name and 0.76 pooled, where a strict band is 1.0: an exploration, showdown
     hands only).
-* **The λ model** (fixes b and keeps X1 for a): P(class k | combo h, spot s) = λ · [h in band k] + (1 - λ) ·
-  p_k(s), with p = X1's prediction and the band cut as `update_range` cuts it, on this range.
-  * For every λ the frequency of class k over the range is X1's p_k: X1 stays the frequency model.
-  * Range update after class k: w_h ×= λ · [h in band k] + (1 - λ) · p_k (in place of OUTSIDE). λ = 1 is a
-    strict band, λ = 0 says the action tells nothing about the cards.
+* **The λ model** (a reveal model on top of a frequency model p): P(class k | combo h, spot s) = λ · b_k(h) +
+  (1 - λ) · p_k(s), where b_k(h) is the fraction of combo h inside band k. The band is cut on this range as
+  `update_range` cuts it (classes from the bottom: fold, call, raise up to the pot, above the pot, all-in;
+  widths p), but fractionally: each live combo covers the interval of its weight in the cumulative weight,
+  and a combo that straddles an edge counts for the part inside. So the band holds exactly the share p_k of
+  the range.
+  * For every λ the frequency of class k over the range is then exactly p_k: p stays the frequency model.
+  * Range update after class k: w_h ×= λ · b_k(h) + (1 - λ) · p_k (in place of OUTSIDE). λ = 1 is a strict
+    band, λ = 0 says the action tells nothing about the cards.
   * **λ from showdowns.** Chipzen shows both hands at every showdown (4,545 of 10,516 replay hands, no muck),
-    so whether a combo is seen depends only on the actions, and the model's action probabilities do not
-    depend on λ. The likelihood of λ is therefore the product over shown combos of P(combo | its actions,
-    λ): no selection correction.
+    so whether a combo is seen depends only on the actions, and by the line above P(actions) does not depend
+    on λ. The likelihood of λ is therefore the product over shown combos of P(combo | its actions, λ): no
+    selection correction.
   * Grid Λ = {0, 0.1, ..., 0.9, 0.95, 0.99}. One range per grid point; the range used is Σ π(λ) w_λ / Σ w_λ,
     with π the posterior over λ (actions do not move it, so it changes only at showdowns).
-  * Population prior π0: the mean, over names with at least 30 shown hands in the training matches, of each
-    name's posterior from a flat prior. A named opponent starts from π0 times its training likelihood; in a
+  * Population prior π0: the mean, over names with at least 30 shown hands in the fitting matches, of each
+    name's posterior from a flat prior. A named opponent starts from π0 times its fitting likelihood; in a
     match, π is multiplied by the likelihood of each showdown so far.
-  * One variant, pre-registered: a λ for preflop and a λ for later streets (the grid squared). It replaces
-    the single λ only if it beats it on held-out replays with a 95% lower bound above zero.
+  * One variant, pre-registered: a λ for preflop and a λ for later streets (the grid squared). The choice is
+    made on X1's validation split only (below) and frozen before anything is scored on held-out matches.
 * **X3a, range quality** (CPU, no lookahead; `tools/x3_range.py` and `tests/test_x3.py` on holdem-x2r):
   * **Score:** at a hero decision, the log of the share the range gives the opponent's true combo (weights
     normalized over the live combos), minus the same under the prior (uniform over the live combos): the
     nats the actions have told us. Scored only at decisions after the opponent has acted in the hand (before
     that every range is the prior). Per match, the mean over its scored decisions; per cell, the mean over
-    matches; 95% intervals by bootstrap over matches (2,000 resamples), paired where two ranges share matches.
-  * **Simulation:** the policy alone plays (no lookahead), seed 47, 200 matches per cell, the four rule cells
-    and the five `ext:` cells (14.18). The opponent's true cards come from a wrapper around it (its own decide
-    state); a hand updates π only if it reached a showdown. Ranges, side by side on the same matches (none
-    changes play):
-    * R1, X1's band (today);
-    * R2, the band with the true frequencies (rule cells): p_k = Σ_h w*_h P*(k | h) / Σ w*, with w* the
-      oracle's exact range and P* the rule bot's per-combo probabilities (`tools/x2s_ablate.py` Oracle); the
-      raise mass goes to the class of the observed raise;
-    * R3, λ with π0 only;
-    * R4, λ with π0 updated by this match's showdowns;
-    * R5, the oracle's exact range (rule cells): the ceiling.
-  * **Replays:** X1's split (`tools/oppmodel_fit.py`: the latest 30% of matches by start time held out). π0
-    and the per-name likelihoods come from the training 70%. Held-out matches are replayed in order through X1
+    matches. 95% intervals by bootstrap over matches (2,000 resamples), paired: every range is scored on the
+    same matches and decisions.
+  * **Replays first** (X1's split, `tools/oppmodel_fit.py`: matches sorted by start time, the latest 30% held
+    out, the latest 20% of the rest validation, the rest fitting). Matches are replayed in order through X1
     (its in-match counts) per player; each shown combo is scored at the end of its hand from the other
-    player's view (dead cards: that player's hole and the board), for R1, R3, R4 (π0 times the name's training
-    likelihood if the name has one, then this match's earlier showdowns).
-  * **Read, pre-registered:**
-    * Gap = R5 - R1 pooled over the rule cells; f2 = (R2 - R1) / gap is the frequency part, f4 = (R4 - R1) /
-      gap the reveal part. Reported with the λ posterior per cell and per name.
-    * X3b runs if R4 - R1 has a 95% lower bound above zero pooled over the rule cells, pooled over the
-      `ext:` cells, and on held-out replays.
-    * Otherwise, if f2 > 0.5, the fix is X1's frequencies: X3b does not run and a frequency spec replaces it.
-    * Otherwise neither fixes the range: stop and rethink the model.
-  * **Tests** (spec numbers pinned literally): λ = 1 zeroes every combo outside the band and λ = 0 leaves
-    the normalized range unchanged; for random ranges and λ, the update's class frequency over the range
-    equals p_k; R1 equals `update_range` on the same history; R5 equals the Oracle's range; the grid, the
-    30-hand floor, seed 47 and 200 matches as literals; the prior scores 0.
+    player's view (dead cards: that player's hole and the board). Steps, in this order:
+    1. On fitting matches: π0 and the per-name likelihoods, for the single λ and for the variant.
+    2. On validation matches: the variant replaces the single λ only if its score minus the single λ's has a
+       95% lower bound above zero. The decision is printed and frozen.
+    3. π0 and the per-name likelihoods are refit on fitting plus validation matches with the frozen choice.
+    4. Held-out matches are scored once, for R1 and R4 (below).
+  * **Simulation:** the policy alone plays (no lookahead), seed 47, 200 matches per cell, the four rule cells
+    and the five `ext:` cells (14.18), all nameless (π0 from step 3). The opponent's true cards come from a
+    wrapper around it (its own decide state); a hand updates π only if it reached a showdown. Ranges, side by
+    side on the same matches (none changes play). On the rule cells they form a two-by-two, frequency source
+    by reveal model:
+    * R1, X1's frequencies, band with OUTSIDE (today; `update_range` itself);
+    * R2, true frequencies, band with OUTSIDE: p_k = Σ_h w*_h P*(k | h) / Σ w*, with w* the oracle's exact
+      range and P* the rule bot's per-combo probabilities (`tools/x2s_ablate.py` Oracle `_probs`); the raise
+      mass goes to the class of the observed raise;
+    * R4, X1's frequencies, λ (π0, then this match's showdowns);
+    * R2λ, true frequencies, λ (π0, then this match's showdowns, under this model);
+    * R5, the oracle's exact range: the ceiling, reported only.
+
+    On the `ext:` cells only R1 and R4 exist (no true frequencies).
+  * **Read, pre-registered** (pooled over the four rule cells unless named; all differences paired):
+    * Frequency part F = ((R2 - R1) + (R2λ - R4)) / 2; reveal part V = ((R4 - R1) + (R2λ - R2)) / 2; each
+      with its 95% interval. The interaction R2λ - R2 - R4 + R1 and the gap R5 - R1 are reported.
+    * X3b runs if V's lower bound is above zero and R4 - R1 has a lower bound above zero pooled over the
+      `ext:` cells and on held-out replays (the range X3b uses must beat today's where only X1 is available).
+    * A frequency spec (X1's frequencies in the spots where they miss) is written if F's lower bound is above
+      zero: alongside X3b when both parts clear, in its place when only F does.
+    * If neither lower bound is above zero, stop and rethink the model.
+  * **Tests** (spec numbers pinned literally):
+    * for random non-uniform ranges, each class and each λ in the grid, the updated range's band share is p_k
+      to 1e-12, and a cut by the left edge of each combo in place of the fractional cut fails this;
+    * λ = 1 leaves weight only inside the band (straddling combos by their fraction); λ = 0 leaves the
+      normalized range unchanged;
+    * R1 equals `update_range` on the same history; R5 equals the Oracle's range;
+    * the variant decision reads no held-out match: changing held-out data leaves it unchanged;
+    * the grid, the 30-hand floor, seed 47 and 200 matches as literals; the prior scores 0.
+  * **Budget:** build and tests about 3 hours on the PC; runs on gb10-d at most 4 box-hours: replays 1 core,
+    at most 1 hour; simulation one core per cell (9 cores), at most 3 hours.
+  * **Stop:** an acceptance test still failing after two fix rounds; a run past twice its budget; a crash,
+    until its cause is known. The failure is recorded as the finding.
+  * **Rollback:** tools and tests on holdem-x2r only; nothing is deployed; poker-ai-lab-v4 stays entered.
 * **X3b, the lookahead with the λ range:** `tools/x2r_oracle.py --model x3` = (R4 at the root, `X1Bot`
   finishing the hand). Only the root range changes, where the ablation put the loss. N = 128, Z = 2.6, seed
   49, the four rule cells and the five `ext:` cells, each with its own N = 1 off arm, read paired. A
