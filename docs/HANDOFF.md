@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 12:16 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 13:05 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -129,13 +129,15 @@ the working memory. Update it at every step that changes state.
   N=128 Z=2.6 (post hoc) DONE: pooled +3.8 [+1.9,+5.8], paired +3.8 [+2.3,+5.4] (research 14.17 c6eab96).
   CONFIRMED seed 43: paired +4.2 [+2.7,+5.7] p<0.001, all 4 cells positive (research 14.17 5405176).
   X2m (roadmap e27b4ff): x1 model built (4d9c1ed), memo f6777b8 (exact), tests c81f95f (9), run script
-  bc84803. Verifier 1 REFUTED tests only (impl correct); fixed; verifier 2 on tests running (PC only).
+  bc84803. Verifiers 1 and 2 both REFUTED the TESTS only (impl correct: v1 reference 0 mismatches; live log
+  gate check: all 3249 overrides > 2.6 se). All real mutations now killed (f427155, 14 tests). Two REFUTED
+  = cap: no third verifier; surfaced to Wayne. Box x2m code md5 == committed.
   X2m FULL RUN LAUNCHED 12:13 UTC: gb10-d ~/poker-ai-lab-x2m, tools/x2m_run.sh (setsid), cores 4-19:
   logs/x2m_rule (~2.2 h) then logs/x2m_ext (~5.5 h), marker logs/x2m_done, log logs/x2m_run.out.
   READ (pre-registered): R = paired_stats.py judge rows_off.jsonl vs x2m_rule/rows_on_*.jsonl pooled LB>0;
   E = x2s_stats.py logs/x2m_ext pooled Newcombe LB>0. E -> runtime + full card; not E, R -> model work;
   neither -> ablation (oracle range + X1Bot; X1 range + StyleBot). Report rule diff / +3.8 share.
-  If verifier 2 finds an impl defect: stop the run (kill the setsid chain), fix, relaunch.
+  Never re-tar the whole tree into ~/poker-ai-lab-x2m while x2m_run.sh runs (bash script in use).
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
