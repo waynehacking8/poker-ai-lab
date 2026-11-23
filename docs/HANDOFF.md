@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 09:45 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 09:55 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -124,10 +124,13 @@ the working memory. Update it at every step that changes state.
   lacks rl/search.py, rl/oppmodel.py). MERGED holdem-rl = b74030e, pushed; search off by default.
   NEXT: X2r spec = policy-improvement rollouts (our policy for us, model for them, match-win utility),
   tested with the ORACLE model offline first; runtime and model work only if it beats the policy.
-  X2r spec research f5d2eef, plan review READY. EXECUTOR running since ~09:45 UTC: worktree
-  C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r, branch holdem-x2r from b74030e, box ~/poker-ai-lab-x2r,
-  cores 4-19; builds tools/x2r_oracle.py + tests, smoke 20 matches, reports the full-run command
-  (4 rule cells x 300, seed 41) for me to launch. Compare to ~/poker-ai-lab-x2s/logs/x2s_judge/off.jsonl.
+  X2r BUILT df4e3c3 (holdem-x2r, worktree C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r, not merged; tests +
+  8 mutations). N=16 Z=2: pooled -0.7 [-2.9, +1.6] (research 14.17, a87f3e8), overrides 6-9% ~ noise rate.
+  RERUN N=128 Z=2.6 RUNNING since 09:51 UTC: gb10-d ~/poker-ai-lab-x2r, tools/x2r_run.sh, OUT logs/x2r_n128
+  (stats.txt, done marker), cores 4-19, est ~65 min. Pre-registered read: lower bound > 0 -> headroom.
+  If none: universal search route closed for the weak field; NEXT test it where the gap is (ext:ashwing
+  73% vs specialist 90%) with Ashwing's real code as the oracle model, else move to learned exploitation
+  of strong public-code bots plus the floor (Revision 3). M3 (Season 16 replays, 24-27 Nov) sets real gaps.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
