@@ -147,13 +147,15 @@ the working memory. Update it at every step that changes state.
   x1-range -9.0 [-11.0,-7.0] (range loss), x1 -8.8. THE ROOT RANGE CARRIES THE WHOLE LOSS. Overrides:
   sticky_overbettor preflop raise->fold 525 vs 93 with the true range; raise_station check->raise on
   turn/river 105/157 vs 21/54. Causes not yet separated: X1 frequency (band width) vs reveal (band rule).
-  NEXT: X3 SPEC in roadmap (research 7b31e0d), plan-verifier pending. X3a = range quality, CPU, no
-  lookahead (tools/x3_range.py, tests/test_x3.py on holdem-x2r): log share of the true combo minus prior,
-  at hero decisions; sim seed 47, 200 matches x (4 rule + 5 ext cells); ranges R1 X1 band, R2 band with true
-  frequencies, R3 lam pi0, R4 lam pi0 + in-match showdowns, R5 oracle; replays on X1's split. Gate: R4-R1
-  LB>0 on rule pool, ext pool and held-out replays -> X3b (--model x3, seed 49, confirm 51); else f2>0.5 ->
-  frequency spec; else rethink. lam grid {0,.1..,.9,.95,.99}, pi0 = mean per-name posterior (>=30 shown
-  hands), preflop/postflop lam variant only if held-out LB>0.
+  NEXT: X3 SPEC in roadmap. Review 1 REVISE (4: lam absorbs frequency error; variant chosen on held-out;
+  midpoint band cut makes invariance approximate; no budget) -> all fixed in research 8a6ecb3; review 2
+  running since 22:50 UTC (cap 2). X3a = range quality, CPU, no lookahead (tools/x3_range.py,
+  tests/test_x3.py on holdem-x2r): log share of the true combo minus prior, at hero decisions. Replays first
+  on X1's split (fit / validation picks the pre/post lam variant, frozen / refit / held-out scored once).
+  Sim seed 47, 200 matches x (4 rule + 5 ext cells), two-by-two on rule cells: R1 X1+band, R2 true freq+band,
+  R4 X1+lam, R2lam true+lam, R5 oracle (report). F = freq part, V = reveal part, paired bootstrap.
+  V LB>0 and R4-R1 LB>0 on ext pool and held-out replays -> X3b (--model x3, seed 49, confirm 51);
+  F LB>0 -> frequency spec; neither -> rethink. Fractional bands (exact p_k). Budget 4 box-hours.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
