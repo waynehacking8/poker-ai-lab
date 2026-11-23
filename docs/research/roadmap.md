@@ -350,6 +350,25 @@ condition, as in 14.17). It also adds the six `ext:` cells, which the oracle cou
   bluff or size by hand its continuation is a simplification; the ablation separates that from the range.
   With no name, X1 starts every match from the population prior; on Chipzen a named profile can do better.
 
+### X2m result and the ablation (2026-11-23 21:10 UTC)
+
+Experiments 14.18. Seed 41: R fails (-3.8), E holds (+3.1). Seed 43 (paired on its own N = 1 off arm): R fails
+(-4.6 [-6.6, -2.6]), E does not confirm (+0.9 [-1.3, +3.2]). Under the pre-registered read that is "E fails, R
+fails", so the ablation runs: it splits X1's loss on the rule cells between the two places the model enters.
+
+* **Arms** (`tools/x2r_oracle.py --model`, N = 128, Z = 2.6, seed 43, the four rule cells, `tools/x2m_ablate.sh`):
+  * `oracle-range`: the opponent's cards from the oracle's exact range; the hand finished by an `X1Bot` that
+    starts from that range;
+  * `x1-range`: the cards from X1's range; the hand finished by the true StyleBot.
+* **Reference arms, same seeds and pairs:** off (`x2r_s43_off`, equal to `x2m43_rule_off` match for match),
+  oracle +4.2 (`x2r_s43_on`), x1 -4.6 (`x2m43_rule`). The gap to explain is 8.8 points.
+* **Read, pre-registered:** each mixed arm's pooled paired difference against the oracle arm
+  (`paired_stats.py` with the oracle rows as the first argument):
+  * the continuation's loss is oracle minus `oracle-range`, the range's loss is oracle minus `x1-range`;
+  * a part whose loss has a 95% lower bound above zero is a part the next model must fix; if only one does,
+    it is fixed first; the two need not add up to 8.8 (they interact).
+* **Next, either way:** X3, a card-conditioned opponent model, specified after this read.
+
 ### X2a. Name-seeded opponent counts in both engines
 
 * **Outcome:** a per-name table of the tracker's counts (all `NST` slots) from the replays, a way to seed a match's
