@@ -238,6 +238,43 @@ part the numbers show is weakest.
   fold estimates, or the one-street horizon), and that part is the next change.
 * **Budget:** build and tests about 3 hours; judge about 3 box-hours. Nothing is deployed.
 
+### X2r. Does lookahead on top of the policy have headroom? (oracle first)
+
+14.16: a one-street search equals the policy even with the opponent's true rules, so a better X1 alone
+cannot gain. The procedure has to start from the policy. Policy improvement by rollouts (Tesauro and
+Galperin 1996; Bertsekas, rollout algorithms) does: for each of our candidate actions, play the rest of the
+hand with our policy for us and the opponent model for them, and keep the policy's action unless another is
+clearly better. With an exact model this is never worse than the base policy beyond Monte Carlo error. X2r
+measures the headroom with the true model before any runtime or model work.
+
+* **Tool, offline only** (`tools/x2r_oracle.py`, nothing deployed). The hero is fb2-900's `RLBot`, search off,
+  temperature 1.0 as deployed. At each of its decisions:
+  * the policy picks its action as now;
+  * for each legal action of the six-action table, N = 16 rollouts with common random numbers (rollout i
+    uses the same opponent hole cards, board and seeds for every action);
+  * the opponent hole cards are drawn from the exact posterior of the StyleBot named by `--opp`
+    (`tools/x2s_ablate.py` `Oracle`), the rest of the board uniformly;
+  * a rollout rebuilds the hand with `holdem.engine.Hand` at the same stacks, dealer, blinds and hand number.
+    Replay wrappers return the recorded actions up to this decision. Then our seat plays the candidate
+    action, then a deep copy of the hero (no further rollouts inside) and a fresh seeded StyleBot finish the
+    hand;
+  * the value is `rl.search.win_prob` of our end-of-hand chips (field K);
+  * the hero plays the action with the highest mean value only when its mean paired gain over the policy's
+    action exceeds two standard errors; otherwise it plays the policy's action;
+  * every decision is logged: the policy's action, the chosen action, the means and the gain's standard
+    error.
+* **Measure:** the four rule cells (`raise_station`, `sticky_overbettor`, `tight_sticky`, `never_fold_pre`),
+  300 matches each, seed 41. Compare against the judge's search-off run on the same seeds
+  (`logs/x2s_judge/off.jsonl`). Before the full run, one small check: with N = 1 and the gate never met, the
+  hero must play exactly as search off (the same match results on 20 seeds).
+* **Read:** the pooled difference with a Newcombe 95% interval (`tools/x2s_stats.py` layout).
+  * Lower bound above zero: lookahead on the policy has headroom. Next come the runtime question and a
+    model good enough to stand in for the oracle.
+  * Otherwise: against bots this policy already beats 83 to 95% of the time, search on top of it has little
+    headroom, and the work moves to the gap that remains (the strong and adaptive bots) by another lever,
+    chosen in a new revision.
+* **Budget:** build about 3 hours; the run at most 3 box-hours on gb10-d (cores 4 to 19).
+
 ### X2a. Name-seeded opponent counts in both engines
 
 * **Outcome:** a per-name table of the tracker's counts (all `NST` slots) from the replays, a way to seed a match's
