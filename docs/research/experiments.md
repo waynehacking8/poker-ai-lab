@@ -925,3 +925,50 @@ at it 3300 (max-minutes, no stop). Screen probes (eval seed 3, 400 matches; lowe
   after it 400. The exploiter-pool recipe bought one large step in sturdiness (96.5 to about 78) and then
   stopped; more of it does not lower the probe and costs field win rate. The roadmap's next floor step
   ("S3 starts from S2b's final weights") needs a new plan revision rather than more of the same recipe.
+
+### 14.16 X2s, search under X1: the objective was the flaw, not the model
+
+X2s (roadmap) is the smallest end-to-end search: at each decision a one-street value per legal action against
+an X1-updated range, overriding the policy when X1 has evidence and the gain beats 0.05 of the pot. Code on
+holdem-x2s (worktree `poker-ai-lab-x2s`, not merged): f70ce33 build, 2bcedd8 effective stack, 8007e33
+match-win utility; diagnosis tool `tools/x2s_ablate.py`. All runs fb2-900, 100 matches, seed 31, on gb10-d
+(`~/poker-ai-lab-x2s/logs/abl*`); intervals are about plus or minus 9 points.
+
+| configuration | raise_station | tight_sticky | ext:ashwing |
+|---|---|---|---|
+| search off (policy alone) | 96 | 95 | 61 |
+| chip EV, as specified | 71 | 66 | 43 |
+| chip EV, effective stack fixed | 70 | 66 | 49 |
+| + no fold equity (f0) | 71 | 68 | 37 |
+| + river and all-in decisions only (exact) | 80 | 82 | 52 |
+| + 1,000 common runouts (crn) | 72 | 70 | 57 |
+| + range never updated (flat) / softer update (soft) | 82 / 78 | 64 / 65 | 33 / 46 |
+| best chip-EV combination (exact, crn, flat or soft) | 93 | 85 | 57 |
+| **true opponent model (oracle), chip EV** | **59** | **81** | |
+| true model, exact | 77 | 81 | |
+| **true model, match-win utility, K per opponent** | **100** | **98** | |
+| X1, match-win, K per opponent | 94 | 88 | 57 |
+| **X1, match-win, one field K** | 89 | 88 | **71** |
+| X1, match-win, one field K, crn | 89 | 88 | **79** [70.0, 85.8] |
+| true model, match-win, one field K | 99 | 98 | |
+
+* **Bug:** the first EVs ignored the effective stack. A shove counted chips the opponent did not have
+  (half of all shove overrides covered the opponent). Fixed with a failing test first; worth little alone.
+* **Root cause, the objective:** with the opponent's exact rules as the model (`oracle`: exact Bayesian
+  range and fold probability of the StyleBot), the chip-EV search still lost 37 and 14 points to the
+  policy, mostly by shoving preflop coin flips instead of calling (103 of 165 overrides against
+  raise_station). Chip EV is the right objective only between equals. A player with an edge should
+  decline flips the policy declines, because the policy was trained on match wins. With match-win
+  utility, gambler's ruin `W(x) = (1 - exp(-K x / T)) / (1 - exp(-K))`, the same oracle search won 100%
+  and 98%, so search plus an accurate model beats the policy. This was limit 5 in the Correction list.
+* **One K for all opponents:** `K = 2 ln(w / (1 - w))` from v4's league field win rate (91.2%, E1) gives
+  K = 4.68. With it the X1 search reached 71% and 79% against Ashwing (policy 61%). That closes about 60% of
+  the M1 specialist gap (90.25%) with no training on Ashwing. On the stations it trails the policy by 7
+  points, where the true model reaches 98 to 99.
+* **Weakest part now, the opponent model:** X1 against the oracle is 10 points on both stations. The logs
+  show why. X1 gives a 42 to 60% fold chance to river shoves into a bot that never folds (an unobserved
+  bucket falls back to the population). And the band update, 0.1 per action outside the band, compounds,
+  so a station's range collapses to weak hands after three checks.
+* **Next:** match-win utility is in the search (8007e33). A held-out judge (`tools/x2s_judge.sh`: six
+  `ext:` cells and four rule cells, 300 matches each, fresh seed 41, search off against on) measures it
+  before anything else changes.
