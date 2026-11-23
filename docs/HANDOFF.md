@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 09:55 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 10:55 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -126,11 +126,13 @@ the working memory. Update it at every step that changes state.
   tested with the ORACLE model offline first; runtime and model work only if it beats the policy.
   X2r BUILT df4e3c3 (holdem-x2r, worktree C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r, not merged; tests +
   8 mutations). N=16 Z=2: pooled -0.7 [-2.9, +1.6] (research 14.17, a87f3e8), overrides 6-9% ~ noise rate.
-  RERUN N=128 Z=2.6 RUNNING since 09:51 UTC: gb10-d ~/poker-ai-lab-x2r, tools/x2r_run.sh, OUT logs/x2r_n128
-  (stats.txt, done marker), cores 4-19, est ~65 min. Pre-registered read: lower bound > 0 -> headroom.
-  If none: universal search route closed for the weak field; NEXT test it where the gap is (ext:ashwing
-  73% vs specialist 90%) with Ashwing's real code as the oracle model, else move to learned exploitation
-  of strong public-code bots plus the floor (Revision 3). M3 (Season 16 replays, 24-27 Nov) sets real gaps.
+  RERUN N=128 Z=2.6 (post hoc: N=16 overrides were noise) since 09:51 UTC, gb10-d ~/poker-ai-lab-x2r,
+  tools/x2r_run.sh, OUT logs/x2r_n128 (stats.txt, done marker). 3 cells done at 10:49: pooled +3.3
+  [+0.9,+5.8] unpaired, paired +3.3 [+1.5,+5.2] p=0.001 (tools/paired_stats.py, c0fa30e). 1.9 s/decision
+  on a box core. never_fold_pre still running. NEXT: fresh-seed confirmation SEED=43, off arm N=1
+  (= policy, test 2) then on arm N=128 Z=2.6 (x2r_run.sh 69a1bec takes SEED; copy only after done).
+  If confirmed: X1 in place of the oracle, and the runtime (0.5 vCPU) question. Overrides: vs raise_station
+  check instead of bet; vs sticky_overbettor fold instead of call (largest gain ~0.07 per override).
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
