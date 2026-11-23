@@ -34,6 +34,8 @@ Scripts around the Chipzen replays. The replays themselves live in `.cache/chipz
 * `bash tools/m1_eval.sh [WORKERS]` waits for the rl_br runs, then evaluates fb2-900 and the fine-tunes (roadmap M1).
 * `python tools/style_map.py replays|sim|compare ...` puts the real field (replays) and our opponents (simulated
   against one hero) on one 8-axis style map and lists each field bot's nearest pool member.
+* `python tools/style_bots_check.py OUT.json ...` prints the distance of the four rule style bots (STYLES in
+  `holdem/opponents.py`) from their field targets, from a `style_map.py sim` output (roadmap E6).
 * `bash tools/eval_card.sh NAME POLICY_NPZ INIT_CKPT [KING_NPZ]` writes the eval card of one candidate
   (roadmap E2 to E4) to `logs/eval_card/NAME.json` on the box, about 75 minutes.
 * `python tools/replay_conformance.py [REPLAY_DIR] [--show N]` replays every real NLHE hand

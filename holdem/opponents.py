@@ -372,8 +372,101 @@ EXTREMES = {
 }
 
 
+class StyleBot:
+    """Rule bot tuned to a field playing style (tools/style_map.py vectors); evaluation opponent only.
+
+    Preflop: hand percentile p. Unraised: raise at p >= open_p, call or limp at p >= play_p, else fold.
+    Facing a raise: continue at p >= face_p. Postflop: made-hand level 0..4 (a draw counts as at
+    least 1) indexes bet (chance to bet when checked to), rr (raise vs a bet) and cont (continue
+    vs a bet; one draw per decision, so a stronger hand never folds more often than a weaker one).
+    """
+
+    open_p, play_p, face_p, pre_size = 0.5, 0.2, 0.0, 3.0
+    bet = (0.0,) * 5
+    bet_size = 0.66
+    rr = (0.0,) * 5
+    cont = (1.0,) * 5
+
+    def __init__(self, seed=0):
+        self.rng = random.Random(seed)
+
+    def decide(self, state):
+        valid = state.valid_actions
+        u = self.rng.random()
+        if state.phase == "preflop":
+            return self._pre(state, valid)
+        level, draw = postflop_strength(state)
+        i = max(level, 1) if draw else level
+        if state.to_call == 0:
+            if "raise" in valid and u < self.bet[i]:
+                return raise_to(state, self.bet_size * state.pot)
+            return Action.check()
+        if "raise" in valid and u < self.rr[i]:
+            return raise_to(state, my_street_bet(state) + state.to_call + self.bet_size * (state.pot + state.to_call))
+        return call_or_check(state) if u < self.cont[i] else Action.fold()
+
+    def _pre(self, state, valid):
+        bb = max((e["amount"] for e in state.action_history if e["action"] == "post_big_blind"),
+                 default=100)
+        p = preflop_pct(state)
+        if any(e["action"] == "raise" and e["phase"] == "preflop" for e in state.action_history):
+            return call_or_check(state) if p >= self.face_p else check_or_fold(state)
+        if p >= self.open_p and "raise" in valid:
+            return raise_to(state, self.pre_size * bb)
+        return call_or_check(state) if p >= self.play_p or state.to_call == 0 else Action.fold()
+
+
+class RaiseStation(StyleBot):
+    """Raises a third of its hands preflop, then never bets and never folds (field: DeepStack)."""
+
+    name = "raise_station"
+    open_p, play_p = 0.28, 0.04
+
+
+class StickyOverbettor(StyleBot):
+    """Raise or fold preflop, folds to raises, then overbets about 1.4 pot and rarely folds (PluriBot)."""
+
+    name = "sticky_overbettor"
+    open_p, play_p, face_p = 0.38, 0.38, 0.70
+    bet = (0.65, 0.8, 0.95, 1.0, 1.0)
+    bet_size = 1.4
+    rr = (0.0, 0.0, 0.0, 0.5, 0.7)
+    cont = (0.7, 0.9, 1.0, 1.0, 1.0)
+
+
+class TightSticky(StyleBot):
+    """Tight preflop, sticky after the flop (mean of r0ckGarden, SHADOW_REAPER, WSmithSimLab, ...)."""
+
+    name = "tight_sticky"
+    open_p, play_p, face_p = 0.84, 0.6, 0.78
+    bet = (0.12, 0.3, 0.6, 0.8, 0.9)
+    bet_size = 0.65
+    rr = (0.0, 0.0, 0.05, 0.1, 0.15)
+    cont = (0.4, 0.8, 0.95, 1.0, 1.0)
+
+
+class NeverFoldPre(StyleBot):
+    """Plays almost every hand preflop and never folds to a raise (mean of Chatterbox, 5ur9e, ...)."""
+
+    name = "never_fold_pre"
+    open_p, play_p = 0.5, 0.0
+    bet = (0.05, 0.3, 0.7, 0.9, 0.95)
+    bet_size = 0.8
+    rr = (0.0, 0.0, 0.05, 0.1, 0.15)
+    cont = (0.7, 0.9, 1.0, 1.0, 1.0)
+
+
+# Field styles our training and evaluation opponents did not cover; evaluation only, never trained against.
+STYLES = {
+    "raise_station": RaiseStation,
+    "sticky_overbettor": StickyOverbettor,
+    "tight_sticky": TightSticky,
+    "never_fold_pre": NeverFoldPre,
+}
+
+
 def make_baseline(name: str, seed: int = 0):
-    cls = BASELINES[name] if name in BASELINES else EXTREMES[name]
+    cls = BASELINES[name] if name in BASELINES else EXTREMES[name] if name in EXTREMES else STYLES[name]
     try:
         return cls(seed)
     except TypeError:
