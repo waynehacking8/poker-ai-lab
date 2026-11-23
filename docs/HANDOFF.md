@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 07:05 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 06:50 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -99,7 +99,7 @@ the working memory. Update it at every step that changes state.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
-  Plan review 1 running since 07:0x UTC.
+  Plan review 1 running since 06:50 UTC.
 - **S2b screen 3100:** probe 82.25% [78.2, 85.7], Ashwing 73.25, search 74.5, no stop. S2b screens 79.25, 77.75,
   82.25 are all above S2's best (it1800 74.5, it400 74.75): continuing the recipe is not lowering the probe.
   Candidate is S2 it1800 unless screen 3500 or the end beats 74.5. Acceptance after S2b ends (about 07:00):
