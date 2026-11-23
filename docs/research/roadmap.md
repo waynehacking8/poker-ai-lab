@@ -129,6 +129,65 @@ unpaired. The interval resolves a gain of about 4.4 points at 800 matches a side
   replays retest acceptance 1 across a season.
 * **Rollback:** nothing is deployed; the king stays v4.
 
+### M1 result and the X2 choice (2026-11-23 05:01 UTC)
+
+* **M1 is positive.** On seed 21, br_ashwing wins 722 of 800 against `ext:ashwing` (90.25%), fb2-900 604 of
+  800 (75.5%): gain 14.75 points, Newcombe 95% [11.1, 18.4]. The autodidact half and M1b land later and are
+  recorded in experiments 14.12; they do not change the branch.
+* **The gain is a whole-strategy shift** (chip flow, seed 31): the first preflop action is a raise 64.7% of
+  the time (fb2-900 32.3%), showdowns where we bet last turn from -261k to +531k chips, and river shoves
+  fall from 635 to 248 with better equity when called. A search that acts only on river and all-in
+  decisions would miss most of it.
+* **Choice: X2 is a learned decision procedure under the X1 model** first: the policy takes X1's current
+  belief about the opponent as input and is trained to best-respond across a broad population. It shifts
+  whole strategies the way the fine-tune did, costs almost nothing at runtime, and reuses the training
+  stack. Decision-time search against X1 stays the next option if X2 fails E6 (it would need opponent
+  ranges, which X1 does not give, and full-hand continuation values within 1 s at 0.5 vCPU).
+* **The model's contribution is measured, not assumed:** X2b trains an ablation arm with the X1 inputs
+  zeroed on the same population and seeds.
+
+### X2a. X1 features in the policy, in both engines
+
+* **Outcome:** the observation gains an X1 block, computed the same way in `rl/features.py` (deployed bot,
+  SDK rollouts) and `rl/fastenv.c` (C engine: league opponents and the E3 probe), plus a tool that widens a
+  checkpoint with zero input weights so it plays exactly as before.
+* **X1 block, 12 floats:**
+  1. X1's class probabilities at the current decision (5);
+  2. five probe contexts: P(fold) and P(raise) facing a half-pot flop bet, P(fold) facing a pot-sized
+     river bet, P(raise) as the first preflop action, P(fold) facing a 3x preflop raise;
+  3. evidence: log(1 + opponent actions this match) / 5, and 1 if the opponent's name has a profile.
+
+  The opponent name comes from `match_start` `seats[].display_name`. In the C engine a clone uses the name
+  of the bot it was fitted to (`bot:NAME` specs from `data/clones.npz` meta); archetype clones (`arch:k`),
+  baselines and pool members have no profile.
+* **Acceptance:**
+  1. Parity: the Python and C blocks agree within 1e-5 on every hero decision of 200 seeded C-engine
+     matches against a mix of baselines and clones (the `tests/test_rl_env.py` pattern).
+  2. Surgery: the widened fb2-900 plays byte for byte as fb2-900 in 200 seeded SDK matches against
+     `model:` opponents and in 200 seeded C-engine matches.
+  3. Runtime: in the deployed amd64 image at `--cpus 0.5 --memory 256m`, the X1 block adds under 5 ms at
+     p99 per decision.
+  4. The existing test suite passes.
+* **Ownership:** `rl/features.py`, `rl/fastenv.c` and its wrapper, `rl/bot.py`, `rl/sdk_rollout.py`,
+  `deploy/Dockerfile` and `deploy/hf_package.sh` (the new files), a new `tools/widen_ckpt.py`, a new
+  `tests/test_x1_features.py`; results in experiments 14.14. Work happens in its own worktree. S2b and
+  M1 use some of these files, so nothing is synced to `~/poker-ai-lab-rl` on gb10-d before both end.
+* **Non-goals:** training (X2b), any upload, any change to the X1 model.
+* **Budget:** at most 3 box-hours, at most 2 cores while S2b or M1 run. **Stop:** if parity or surgery
+  still fails after two fix rounds, X2a stops, the failure is recorded, and the next step goes to a new
+  plan revision. **Rollback:** the zero-weight widened policy is fb2-900; nothing is deployed.
+
+### X2b. Train and judge (specified after X2a)
+
+* Two arms from the widened fb2-900, same seeds and budget: **X2** (X1 block live) and **X2-ablation** (X1
+  block zeroed).
+* Population: the training-split field bots (`ext:ashwing_v2`, `ext:ashwing_value`, `ext:ashwing_adaptive`,
+  `ext:autodidact_fast`, `chipzen`), the C-engine league (clones with their names, baselines, the exploiter
+  pool), and a style grid: `StyleBot` (holdem/opponents.py) with parameters sampled per match, rejecting a
+  ball around the four E6 bots' parameters, so E6 stays held out.
+* Acceptance in outline: E6 better than fb2-900 on average with no cell below its interval; X2 beats the
+  ablation on E6; E2, E4 and E5 no worse; E3 no worse; decisions inside the runtime budget.
+
 ## Evidence that sets the order
 
 * **Blueprint** (experiments 14.6): fb2-900 wins about 61%. The clearest leak is calling Blueprint's river

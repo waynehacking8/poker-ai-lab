@@ -817,3 +817,37 @@ refit on all 231 training matches and scored once. Mean log loss per action, in 
 * **Limits:** the replays span 37 hours, so a name's profile barely ages across the split; Season 16 replays
   retest it across a season. Replays hide hole cards except at showdown, so the model predicts actions,
   not hands; a range model for X2 needs simulation or showdown data.
+
+### 14.12 M1: exploiting one known opponent is worth about 15 points
+
+Roadmap Revision 2, M1. `tools/rl_br.sh` fine-tuned fb2-900 for 90 minutes against one SDK field bot only
+(3 SDK workers; a 200-decision C-engine mirror per iteration). `br_ashwing` trained against `ext:ashwing`
+(580 iterations). `br_autofast` trained against `ext:autodidact_fast`, because the full `ext:autodidact`
+played 7 matches a minute. `tools/m1_eval.sh` then played each model on seed 21, fresh for all of them.
+`ext:` bots are unseeded, so comparisons are unpaired (Newcombe interval of the difference).
+
+| model | vs ext:ashwing (800) | vs ext:autodidact (400) |
+|---|---|---|
+| fb2-900 | 75.5% [72.4, 78.4] | 79.25% [75.0, 82.9] |
+| br_ashwing | **90.25% [88.0, 92.1]** | pending |
+| br_autofast | pending | pending |
+
+* **Decision statistic:** br_ashwing gains 14.75 points on its target, Newcombe 95% [11.1, 18.4]. The lower
+  bound is above zero, so exploitation headroom is real, and the roadmap's positive branch applies: X2 is
+  specified after X1.
+* **Where the gain comes from** (`tools/chipflow.py`, 400 matches on seed 31, `logs/m1/flow_*_ashwing.txt`):
+  fb2-900 won 69.8%, br_ashwing 90.2%.
+
+  | | fb2-900 | br_ashwing |
+  |---|---|---|
+  | first preflop action: raise / call | 32.3% / 50.0% | 64.7% / 20.6% |
+  | Ashwing's answer: call / raise | 43.5% / 35.6% | 72.5% / 20.0% |
+  | showdowns without all-in, we bet last | 3,270 hands, -261k chips | 4,832 hands, +531k |
+  | all showdowns without all-in | -647k | +299k |
+  | river shoves (folds) | 635 (66%) | 248 (56%), called ones at +364k expected |
+  | opponent folds after the flop | +2.70M | +3.62M |
+
+  Against a sticky caller the fine-tune raises twice as often before the flop, value-bets thinner and
+  bluffs less: a whole-strategy shift, not one leak.
+* **Pending:** the autodidact half, the specialization cost on the other bot, and M1b (one fine-tune on
+  both bots, `ckpt/br_mix`).
