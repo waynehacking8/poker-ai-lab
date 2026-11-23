@@ -12,11 +12,14 @@ from chipzen import Action, Bot
 
 from rl.allin import DEFAULT_TABLE, AllInAnswer
 from rl.features import Tracker, build, load_priors
+from rl.oppmodel import OppModel
 from rl.runtime import DEFAULT_MODEL, Policy
+from rl.search import OPPMODEL, Search
 
 
 class RLBot(Bot):
-    def __init__(self, seed=None, model=DEFAULT_MODEL, temperature=1.0, allin=DEFAULT_TABLE, priors=None):
+    def __init__(self, seed=None, model=DEFAULT_MODEL, temperature=1.0, allin=DEFAULT_TABLE, priors=None,
+                 search=False):
         super().__init__()
         self.policy = Policy(model, temperature, seed)
         self.tracker = Tracker()
@@ -25,6 +28,8 @@ class RLBot(Bot):
         self.priors = load_priors(priors) if priors else {}
         # RL_ALLIN=off turns the all-in answer off for A/B runs
         self.allin = AllInAnswer(allin) if allin and os.environ.get("RL_ALLIN") != "off" else None
+        # search: the X2s search under the opponent model (rl/search.py); it may override the policy's action
+        self.search = Search(OppModel.load(OPPMODEL), seed) if search else None
 
     def on_match_start(self, match_info):
         me = match_info.get("your_seat")
@@ -40,6 +45,9 @@ class RLBot(Bot):
         if self.allin:
             stack = (match_info.get("game_config") or {}).get("starting_stack") or self.allin.total // 2
             self.allin.reset(self.tracker.me, stack)
+        if self.search:
+            stack = (match_info.get("game_config") or {}).get("starting_stack") or 0
+            self.search.start_match(name, self.tracker.me, stack)
 
     def on_round_result(self, message):
         self.tracker.round_result(message.get("result", {}) or {})
@@ -48,6 +56,8 @@ class RLBot(Bot):
                 self.allin.round_result(message.get("result", {}) or {})
             except Exception:
                 pass
+        if self.search:
+            self.search.finish_hand(message.get("result", {}) or {})
 
     def on_round_start(self, message):
         self.tracker.round_start(message)
@@ -59,9 +69,12 @@ class RLBot(Bot):
             a = self.policy.act(f, mask)
             if a == 0:
                 if self.allin and self.allin.should_call(state):
-                    return Action.call()
-                return Action.fold()
-            if self.allin and self.allin.should_fold_first(state):
+                    a = 1
+            elif self.allin and self.allin.should_fold_first(state):
+                a = 0
+            if self.search:
+                a = self.search.decide(state, a, mask, amt)
+            if a == 0:
                 return Action.fold()
             if a == 1:
                 return Action.call() if state.to_call > 0 else Action.check()

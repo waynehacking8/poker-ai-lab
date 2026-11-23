@@ -61,6 +61,7 @@ def main():
     ap.add_argument("--hero", default="rl", choices=("rl", "chipzen", "bp100"),
                     help="chipzen: the heuristic HoldemBot plays hero; bp100: the isolated blueprint (smoke test)")
     ap.add_argument("--temperature", type=float, default=1.0)
+    ap.add_argument("--search", action="store_true", help="hero plays with the X2s search (rl/search.py)")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--legacy-rules", action="store_true", help="match the pre-fix SDK engine (600 cap, old short blind)")
@@ -76,7 +77,7 @@ def main():
     elif args.hero == "bp100":
         hero = make_bp100
     else:
-        hero = functools.partial(make_hero, os.path.abspath(args.model), args.temperature)
+        hero = functools.partial(make_hero, os.path.abspath(args.model), args.temperature, search=args.search)
     names = list(BASELINES) + ["chipzen"] if args.opp == "all" else args.opp.split(",")
     all_rows = []
     for name in names:

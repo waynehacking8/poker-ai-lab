@@ -50,6 +50,7 @@ Scripts around the Chipzen replays. The replays themselves live in `.cache/chipz
 Chipzen blocks the IP for 900 s after a burst of requests. Keep at least 3 s between
 requests, stop on the first HTTP 429, and run one fetcher at a time.
 * `python tools/oppmodel_fit.py fit --data DIR` fits, selects and scores the X1 opponent model (`rl/oppmodel.py`, `rl/models/oppmodel.npz`) on the poker replays; `bench` replays the held-out actions and prints p50 and p99 of update plus prediction (roadmap X1; fit needs torch, bench only numpy).
+* `python -m rl.eval_arena --model rl/models/fb2_it000900.npz --search ...` plays hero with the X2s search (`rl/search.py`); the env var `RL_SEARCH_LOG=FILE` makes every search decision append one JSON line (state, policy and search action, EV of each, override).
 * `python tools/tracker_profiles.py --data DIR` writes `rl/models/tracker_prior.npz` (roadmap X2a): the in-match
   tracker's counts per opponent name summed over the poker replays in DIR (replay actions converted to the live
   `action_history`, run through `Tracker.update`), scaled to 20 hands, names with at least 100 hands. Name rule:
