@@ -18,7 +18,7 @@ import numpy as np
 
 import rl  # noqa: F401
 from rl.fastenv import BASELINE_IDS, EXT, Pool
-from rl.features import D_OBS, NACT
+from rl.features import D_OBS, NACT, load_priors
 
 HID = 256
 NAMES = {v: k for k, v in BASELINE_IDS.items()}
@@ -86,7 +86,10 @@ def sample(logits, mask, rng, greedy=False):
 
 
 class Collector:
-    def __init__(self, n_envs, seed):
+    def __init__(self, n_envs, seed, profiles=None):
+        """profiles: {name: NST counts} (--seed-profiles); a bot:NAME opponent with an entry is seen by the hero
+        through those counts at match start."""
+        self.profiles = profiles
         self.E = n_envs
         self.pool = Pool(n_envs)
         self.rng = np.random.default_rng(seed)
@@ -114,6 +117,10 @@ class Collector:
         ctrl[hero] = EXT
         ctrl[1 - hero] = oc
         self.counter += 1
+        if self.profiles is not None:
+            prof = self.profiles.get(k[4:]) if k.startswith("bot:") else None
+            self.pool.set_prior(i, hero, prof)
+            self.pool.set_prior(i, 1 - hero, None)
         self.pool.reset(i, self.seed + self.counter, ctrl[0], ctrl[1], hero)
         self.opp[i] = k
         if self.ids is not None and k.startswith("snap:"):
@@ -247,10 +254,10 @@ class Collector:
         return dict(obs=cat(O), mask=cat(M), act=cat(A), lp=cat(LP), adv=cat(ADV), ret=cat(RET)), results
 
 
-def worker_main(conn, n_envs, seed, clones_path=None, bots=False):
+def worker_main(conn, n_envs, seed, clones_path=None, bots=False, profiles_path=None):
     if clones_path:
         install_clones(clones_path, bots)
-    col = Collector(n_envs, seed)
+    col = Collector(n_envs, seed, load_priors(profiles_path) if profiles_path else None)
     while True:
         msg = conn.recv()
         if msg is None:
@@ -291,6 +298,8 @@ def main():
     ap.add_argument("--skip", default=None, help="drop these opponent keys from the PFSP pool (comma separated, e.g. arch:1)")
     ap.add_argument("--distill", default=None, help="teacher labels npz from rl.teacher (obs, mask, label)")
     ap.add_argument("--distill-w", type=float, default=0.0, help="weight of the cross entropy toward the teacher action")
+    ap.add_argument("--seed-profiles", default=None, metavar="PATH",
+                    help="profile table (tools/tracker_profiles.py): a bot:NAME opponent with an entry starts the hero's counts from it")
     ap.add_argument("--bot-clones", action="store_true", help="also train on the per-bot clones (default: held out)")
     ap.add_argument("--gen-w", type=float, default=None,
                     help="base weight of generated archetypes (arch:6 and up, from tools/gen_clones.py)")
@@ -333,7 +342,7 @@ def main():
     conns, procs = [], []
     for w in range(args.workers - 1):
         a, b = ctx.Pipe()
-        pr = ctx.Process(target=worker_main, args=(b, args.envs, args.seed * 100 + w + 1, args.clones, args.bot_clones), daemon=True)
+        pr = ctx.Process(target=worker_main, args=(b, args.envs, args.seed * 100 + w + 1, args.clones, args.bot_clones, args.seed_profiles), daemon=True)
         pr.start()
         conns.append(a); procs.append(pr)
     sdk, sdk_path = [], None
@@ -349,7 +358,7 @@ def main():
             procs.append(pr)
     if args.clones:
         install_clones(args.clones, args.bot_clones)
-    local = Collector(args.envs, args.seed * 100)
+    local = Collector(args.envs, args.seed * 100, load_priors(args.seed_profiles) if args.seed_profiles else None)
     base_w = dict(BASE_W)
     for spec in CLONE_IDS:
         base_w[spec] = 1.5 if spec.startswith("arch") else 0.5

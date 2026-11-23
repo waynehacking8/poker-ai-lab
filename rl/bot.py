@@ -11,7 +11,7 @@ import rl  # noqa: F401  (puts chipzen_bot on sys.path)
 from chipzen import Action, Bot
 
 from rl.allin import DEFAULT_TABLE, AllInAnswer
-from rl.features import Tracker, build
+from rl.features import Tracker, build, load_priors
 from rl.runtime import DEFAULT_MODEL, Policy
 
 
@@ -20,6 +20,7 @@ class RLBot(Bot):
         super().__init__()
         self.policy = Policy(model, temperature, seed)
         self.tracker = Tracker()
+        self.priors = load_priors()
         # RL_ALLIN=off turns the all-in answer off for A/B runs
         self.allin = AllInAnswer(allin) if allin and os.environ.get("RL_ALLIN") != "off" else None
 
@@ -29,7 +30,10 @@ class RLBot(Bot):
             for seat in match_info.get("seats", ()) or ():
                 if seat.get("is_self"):
                     me = seat["seat"]
-        self.tracker = Tracker()
+        # the other seat's display name picks the long-run profile the match's counts start from
+        name = next((x.get("display_name") for x in match_info.get("seats", ()) or ()
+                     if x.get("seat") != me and not x.get("is_self")), None)
+        self.tracker = Tracker(self.priors.get(name))
         self.tracker.me = int(me or 0)
         if self.allin:
             stack = (match_info.get("game_config") or {}).get("starting_stack") or self.allin.total // 2

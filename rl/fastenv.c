@@ -29,6 +29,7 @@ typedef struct {
     Ev hist[MAXH]; int nh;
     int actor, to_call, min_raise, max_raise, can_rs;
     double stats[2][NST];
+    double prior[2][NST]; int has_prior[2];   /* env_set_prior: starting counts of the next reset */
     double hs[2][4]; int hs_ok[2][4];
     int bk[2][4], bk_ok[2][4];
     int *inj; int inj_n;          /* injected decks, 52 ints per hand */
@@ -783,14 +784,24 @@ void env_reset_stacks(Pool *p, int i, uint64_t seed, int ctrl0, int ctrl1, int h
     int start_stack = (s0 + s1) / 2;
     Env *e = &p->e[i];
     int *inj = e->inj, inj_n = e->inj_n; double *ur = e->urand; int urn = e->urand_n;
+    double prior[2][NST]; int has_prior[2];
+    memcpy(prior, e->prior, sizeof(prior)); memcpy(has_prior, e->has_prior, sizeof(has_prior));
     memset(e, 0, sizeof(Env));
     e->inj = inj; e->inj_n = inj_n; e->urand = ur; e->urand_n = urn;
+    for (int s = 0; s < 2; s++) if (has_prior[s]) memcpy(e->stats[s], prior[s], sizeof(prior[s]));  /* before start_hand: hands played in the reset count on top */
     { uint64_t m = seed + 0x1234567ULL; e->rs = splitmix(&m); e->rs = splitmix(&e->rs) ^ seed; }  /* hashed: neighbouring seeds must not give shifted streams */
     e->ctrl[0] = ctrl0; e->ctrl[1] = ctrl1; e->hero = hero;
     e->start_stack = start_stack; e->max_hands = max_hands;
     e->stacks[0] = s0; e->stacks[1] = s1; e->phi = 0.5;
     start_hand(e);
     run(e);
+}
+
+/* Starting counts for the next env_reset* of env i, seat's stats (NULL clears). Used once: the reset consumes it. */
+void env_set_prior(Pool *p, int i, int seat, const double *in) {
+    Env *e = &p->e[i];
+    e->has_prior[seat] = in != NULL;
+    if (in) memcpy(e->prior[seat], in, sizeof(double) * NST); else memset(e->prior[seat], 0, sizeof(double) * NST);
 }
 
 void env_set_injection(Pool *p, int i, int *decks, int ndecks, double *ur, int nur) {

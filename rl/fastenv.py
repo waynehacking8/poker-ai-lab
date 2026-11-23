@@ -40,6 +40,7 @@ _lib.fe_set_tables.argtypes = [_d, _d]
 _lib.fe_evaluate.argtypes = [_i, C.c_int]
 _lib.env_reset.argtypes = [C.c_void_p, C.c_int, C.c_uint64, C.c_int, C.c_int, C.c_int, C.c_int, C.c_int]
 _lib.env_set_injection.argtypes = [C.c_void_p, C.c_int, _i, C.c_int, _d, C.c_int]
+_lib.env_set_prior.argtypes = [C.c_void_p, C.c_int, C.c_int, _d]
 _lib.env_apply_raw.argtypes = [C.c_void_p, C.c_int, C.c_int, C.c_int]
 _lib.env_apply_discrete.argtypes = [C.c_void_p, C.c_int, C.c_int]
 _lib.pool_step.argtypes = [C.c_void_p, _i, _i, C.c_int]
@@ -95,6 +96,15 @@ class Pool:
                                0 if decks is None else len(decks),
                                _p(urand, _d) if urand is not None else None,
                                0 if urand is None else len(urand))
+
+    def set_prior(self, i, seat, counts=None):
+        """Start seat's counts of env i's next reset from `counts` (NST floats); None clears. One reset only."""
+        if counts is None:
+            _lib.env_set_prior(self.h, i, seat, None)
+            return
+        a = np.ascontiguousarray(counts, dtype=np.float64)
+        assert a.shape == (NST,)
+        _lib.env_set_prior(self.h, i, seat, _p(a, _d))
 
     def step(self, idx, acts):
         idx = np.ascontiguousarray(idx, dtype=np.int32)

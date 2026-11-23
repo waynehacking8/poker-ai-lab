@@ -24,6 +24,8 @@ COPY deploy/bot.py /bot/bot.py
 COPY rl/__init__.py rl/allin.py rl/bot.py rl/bot_distill.py rl/features.py rl/runtime.py /bot/rl/
 # Match-value tables for answering a near-certain shover (rl/allin.py, tools/allin_tables.py).
 COPY rl/models/allin_v.npz /bot/rl/models/allin_v.npz
+# Per-opponent-name starting counts for the in-match tracker (rl/features.py load_priors, tools/tracker_profiles.py).
+COPY rl/models/tracker_prior.npz /bot/rl/models/tracker_prior.npz
 # Weights: any repo path via --build-arg MODEL=..., installed under a fixed name.
 ARG MODEL=rl/models/distill1.npz
 COPY ${MODEL} /bot/rl/models/weights.npz

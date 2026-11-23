@@ -11,6 +11,7 @@ pot, 5 all-in, with a legality mask and the engine amount of each raise.
 from __future__ import annotations
 
 import math
+import os
 
 from nlhe import preflop as pf
 from nlhe.cards import cards_from, hand_class
@@ -114,10 +115,12 @@ def level_of(hole, board) -> int:
 
 
 class Tracker:
-    """Opponent statistics for one match, from finished hands."""
+    """Opponent statistics for one match, from finished hands.
 
-    def __init__(self):
-        self.st = [0.0] * NST
+    prior: NST counts the match starts from (a per-name profile, tools/tracker_profiles.py), or None."""
+
+    def __init__(self, prior=None):
+        self.st = [0.0] * NST if prior is None else [float(x) for x in prior]
         self.dealer = None
 
     def round_start(self, message):
@@ -216,6 +219,18 @@ class Tracker:
         st[10] += 1
 
     me = 0
+
+
+PRIOR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "tracker_prior.npz")
+
+
+def load_priors(path=PRIOR_PATH):
+    """{opponent name: NST counts} from the profile table, {} when the file is missing."""
+    if not os.path.exists(path):
+        return {}
+    import numpy as np
+    z = np.load(path, allow_pickle=False)
+    return {str(n): [float(x) for x in row] for n, row in zip(z["names"], z["counts"])}
 
 
 def replay(history, phase):

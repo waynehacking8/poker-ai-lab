@@ -12,7 +12,7 @@ git cat-file -e "HEAD:$MODEL" || { echo "$MODEL is not committed at HEAD"; exit 
 mkdir -p "$OUT/rl/models" "$OUT/nlhe/data"
 cp deploy/hf/README.md LICENSE deploy/bot.py deploy/requirements.txt "$OUT/"
 cp rl/__init__.py rl/allin.py rl/bot.py rl/features.py rl/runtime.py "$OUT/rl/"
-cp rl/models/allin_v.npz "$OUT/rl/models/allin_v.npz"
+cp rl/models/allin_v.npz rl/models/tracker_prior.npz "$OUT/rl/models/"
 cp "$MODEL" "$OUT/rl/models/weights.npz"
 cp chipzen_bot/nlhe/__init__.py chipzen_bot/nlhe/cards.py chipzen_bot/nlhe/evaluator.py \
   chipzen_bot/nlhe/preflop.py "$OUT/nlhe/"

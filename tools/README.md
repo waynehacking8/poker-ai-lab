@@ -50,3 +50,9 @@ Scripts around the Chipzen replays. The replays themselves live in `.cache/chipz
 Chipzen blocks the IP for 900 s after a burst of requests. Keep at least 3 s between
 requests, stop on the first HTTP 429, and run one fetcher at a time.
 * `python tools/oppmodel_fit.py fit --data DIR` fits, selects and scores the X1 opponent model (`rl/oppmodel.py`, `rl/models/oppmodel.npz`) on the poker replays; `bench` replays the held-out actions and prints p50 and p99 of update plus prediction (roadmap X1; fit needs torch, bench only numpy).
+* `python tools/tracker_profiles.py --data DIR` writes `rl/models/tracker_prior.npz` (roadmap X2a): the in-match
+  tracker's counts per opponent name summed over the poker replays in DIR (replay actions converted to the live
+  `action_history`, run through `Tracker.update`), scaled to 20 hands, names with at least 100 hands. Name rule:
+  the deployed bot looks up the other seat's `match_start` `seats[].display_name`; `rl.train --seed-profiles PATH`
+  seeds the hero seat for a `bot:NAME` clone with NAME's profile; `arch:` clones, baselines, snapshots, pool
+  members, SDK rollouts and every eval get no profile (`Pool.set_prior` takes the counts, used by one reset).
