@@ -926,7 +926,7 @@ at it 3300 (max-minutes, no stop). Screen probes (eval seed 3, 400 matches; lowe
   stopped; more of it does not lower the probe and costs field win rate. The roadmap's next floor step
   ("S3 starts from S2b's final weights") needs a new plan revision rather than more of the same recipe.
 
-### 14.16 X2s, search under X1: the objective was the flaw, not the model
+### 14.16 X2s, search under X1: match-win utility is required, and a one-street search cannot beat the policy
 
 X2s (roadmap) is the smallest end-to-end search: at each decision a one-street value per legal action against
 an X1-updated range, overriding the policy when X1 has evidence and the gain beats 0.05 of the pot. Code on
@@ -979,6 +979,43 @@ match-win utility; diagnosis tool `tools/x2s_ablate.py`. All runs fb2-900, 100 m
     Every run in the table above had it; it hits about one hand in a few hundred, in every configuration alike.
   * The oracle's call likelihood is wrong when the bot cannot raise (facing an all-in). Its fold probability
     is exact, and we make no later decision in such a hand, so no result above depends on it.
-* **Next:** match-win utility is in the search (8007e33). A held-out judge (`tools/x2s_judge.sh`: six
-  `ext:` cells and four rule cells, 300 matches each, fresh seed 41, search off against on) measures it
-  before anything else changes.
+* **Held-out judge (`tools/x2s_judge.sh`, dbe9e3e, 300 matches per cell, fresh seed 41, `tools/x2s_stats.py`):
+  search on LOSES.**
+
+  | cell | off | on | difference [95%] |
+  |---|---|---|---|
+  | ext:ashwing | 73.0 | 76.3 | +3.3 [-3.6, +10.3] |
+  | ext:ashwing_search | 74.7 | 76.3 | +1.7 [-5.2, +8.5] |
+  | ext:ashwing_hive | 86.7 | 80.3 | -6.3 [-12.3, -0.4] |
+  | ext:autodidact | 76.3 | 74.0 | -2.3 [-9.2, +4.6] |
+  | ext:wolf, ext:wolf_v5 | 94.3 | 83.7 | -10.7 [-15.7, -5.7] |
+  | raise_station | 94.7 | 88.3 | -6.3 [-10.9, -1.9] |
+  | sticky_overbettor | 83.0 | 71.7 | -11.3 [-17.9, -4.6] |
+  | tight_sticky | 95.3 | 86.3 | -9.0 [-13.7, -4.4] |
+  | never_fold_pre | 93.3 | 87.7 | -5.7 [-10.5, -1.0] |
+  | pooled | 86.6 | 80.8 | -5.7 [-7.6, -3.9] |
+
+  The 100-match smoke reading for Ashwing (search off 61%, on 71 to 79%) was mostly noise. On seed 41 the
+  policy alone wins 73%.
+* **Oracle at the judge's size and seed (`x2s_ablate.py oracle`, field K, 300 matches, seed 41):**
+
+  | cell | policy alone | search, true model | search, X1 |
+  |---|---|---|---|
+  | raise_station | 94.7 | 96.7 | 88.3 |
+  | sticky_overbettor | 83.0 | 80.0 | 71.7 |
+  | tight_sticky | 95.3 | 98.3 | 86.3 |
+  | never_fold_pre | 93.3 | 92.0 | 87.7 |
+
+  Pooled, that is 1,099 against 1,101 of 1,200, so the search equals the policy even with the true model.
+* **Reading:**
+  * A one-street search is not a better decision maker than the trained policy, even when it knows the
+    opponent's exact rules. So improving X1 alone cannot produce a gain.
+  * The procedure has to start from the policy and add the model's information. The candidate is policy
+    improvement by rollouts: our policy for us, the model for them, scored in match-win utility. It
+    improves on its base policy when the model is right (Tesauro and Galperin 1996; Bertsekas, rollout
+    algorithms).
+  * The next test is that procedure with the oracle model, offline, before any runtime or model work.
+* **Kept:** match-win utility, the effective stack, the oracle tool, the judge and stats tools. holdem-rl
+  b74030e has the search off by default. It plays byte for byte as c348a59, and the bot imports the search
+  lazily, because the deployed image ships neither `rl/search.py` nor `rl/oppmodel.py`; a top-level import
+  would have broken the next build (caught before the merge).
