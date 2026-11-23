@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 02:56 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 03:15 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -36,6 +36,21 @@ the working memory. Update it at every step that changes state.
      fb2-900, br_ashwing and br_autofast on seed 21: 800 matches against ext:ashwing, 400 against
      ext:autodidact, into `logs/m1/NAME_OPP.jsonl`, marker `logs/m1/done`, failures in `logs/m1/failed`.
      ext: bots are unseeded, so the gain is an unpaired difference with a Newcombe interval.
+  4. Chip flow for M1 (03:14 UTC): `tools/chipflow.py` of fb2-900 against ext:ashwing, 400 matches, seed 31,
+     into `logs/m1/flow_fb2_ashwing.{jsonl,txt}`; after br_ashwing ends the same for `ckpt/br_ashwing/latest.npz`
+     into `logs/m1/flow_br_ashwing.*`, marker `logs/m1/flow.done`. The difference shows which decisions the
+     fine-tune's gain comes from, which is where X2 should act first.
+- **X2 design notes (spec waits for M1; nothing built):** opponent hand ranges from X1's action frequencies
+  by mapping classes onto strength quantiles of the belief range (fold = weakest, raise = strongest, a
+  bluff share later from showdowns), as in DBBR (Ganzfried and Sandholm, AAMAS 2011: model = smallest
+  deviation from a reference strategy that matches observed frequencies). Showdown data is biased
+  (arXiv 2608.09954, 2026-07-20: folds hide cards, missing not at random). Safety: deviate from the policy
+  only where the model's interval separates from the reference (CS-RNR, arXiv 2607.28520, 2026-07-30).
+  Leaf values: the PPO value net (in `ckpt/fb2/it000900.npz`, not in the deployed npz). Cost: the
+  policy's `hand_strength` enumerates every opponent hand per call, so a range needs one 7-card rank per
+  hand and a vectorized strength, not 1326 calls.
+- **Season 16 swap window closes today, 23:59 UTC.** An S2b candidate can be a swap option only if it
+  passes acceptance before then, and only with Wayne's yes.
 - **Done 2026-11-23:** style map (holdem-rl 3ef434e `tools/style_map.py`; research 14.11: 12 of 51 field
   bots play 4 styles no opponent of ours plays; data `logs/style/` on gb10-d). Protocol fact: match_start
   `seats[].display_name` is the opponent bot's platform name (chipzen-sdk TRANSPORT-PROTOCOL.md, aa8c55c);
