@@ -8,6 +8,8 @@ ABL is "none" or a comma-separated subset of:
          that puts us all-in (tests the one-street horizon)
   crn    1,000 runouts drawn from one seed per decision for every action (tests Monte Carlo noise and the
          maximum over noisy estimates)
+  flat   the opponent range is never updated: uniform over the live combos (tests the range model)
+  soft   combos outside an action's band keep weight 0.5 instead of 0.1 (tests the range's confidence)
 
 The patches are applied before the arena's worker pool forks (Linux), so every worker inherits them.
 """
@@ -26,7 +28,7 @@ from rl import eval_arena  # noqa: E402
 
 def main():
     abl = set(sys.argv[1].split(",")) - {"none"}
-    unknown = abl - {"f0", "exact", "crn"}
+    unknown = abl - {"f0", "exact", "crn", "flat", "soft"}
     if unknown or sys.argv[2] != "--":
         sys.exit(__doc__)
     if "f0" in abl:
@@ -47,6 +49,10 @@ def main():
         equity = S.equity
         S.equity = lambda rnd, hole, board, ids, wts: equity(
             random.Random(hash((tuple(hole), tuple(board)))), hole, board, ids, wts)
+    if "flat" in abl:
+        S.update_range = lambda *a: None
+    if "soft" in abl:
+        S.OUTSIDE = 0.5
     sys.argv = [sys.argv[0]] + sys.argv[3:]
     eval_arena.main()
 
