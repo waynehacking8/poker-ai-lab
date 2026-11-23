@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 08:36 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 09:08 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -111,13 +111,14 @@ the working memory. Update it at every step that changes state.
   X2s EXECUTOR running since ~07:50 UTC: worktree C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2s, branch
   holdem-x2s from c348a59, box dir ~/poker-ai-lab-x2s, cores 4-7, 2 box-hours. Builds rl/search.py,
   RLBot(search=True), search log, tests; measures p99 at 0.5 vCPU and a 100-match smoke eval on/off.
-  BUILT f70ce33 (p99 877 ms at 0.5 vCPU). SMOKE (100 matches, seed 31) search ON LOSES: raise_station 96->71,
-  tight_sticky 95->66, ext:ashwing 61->43; overrides 57-64% of decisions, mostly more aggressive.
-  Diagnosis (main session): BUG fixed 2bcedd8, EVs ignored the effective stack (shove EV counted chips the
-  opponent lacks; 77/146 and 146/265 shove overrides covered the opponent). Fold prob now logged.
-  ABLATIONS RUNNING since 08:35 UTC on gb10-d ~/poker-ai-lab-x2s/abl_run.sh, cores 8-15, logs/abl/{res,slog}_
-  CFG_OPP, done marker logs/abl/done: none (fix only), f0 (no fold equity), exact (river + all-in only),
-  crn (1000 runouts, common seed). The weakest part is the config that recovers most; that is the next change.
+  BUILT f70ce33; smoke (chip EV) LOST 25-29 pts. DIAGNOSED (research 14.16, 46b6e51): effective-stack bug
+  (2bcedd8) minor; ROOT CAUSE = chip-EV objective: true-model (oracle) search lost 59/81 vs policy 96/95,
+  match-win utility (gambler's ruin) won 100/98. 8007e33 puts match-win utility in rl/search.py with one
+  field K = 4.68 (v4 league 91.2%): X1 search ext:ashwing 71-79 vs policy 61 (60% of specialist gap), stations
+  88-89 vs 95-96 (oracle 98-99: X1 is now the weakest part: unobserved fold buckets, collapsing band range).
+  HELD-OUT JUDGE RUNNING since 09:02 UTC: gb10-d ~/poker-ai-lab-x2s/tools/x2s_judge.sh (10 cells x 300,
+  seed 41, off then on, cores 4-19), out logs/x2s_judge/{off,on}.jsonl + rows, marker done, ~50 min.
+  Fresh verifier on c348a59..8007e33 running (PC only). Branch holdem-x2s NOT merged/pushed yet.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
