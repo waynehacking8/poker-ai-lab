@@ -770,7 +770,8 @@ distance; a missing axis reads 0.5). Files are in `logs/style/` on gb10-d.
   | loose, never folds preflop | Chatterbox (0.51), 5ur9e (0.50), PoetAndCoder (0.43), MercuryRetrograde (0.42) | fold to a preflop raise 0 to 6%, showdown 0.64 to 0.95 |
 
   Our tight bots (nit, reference, SDK reference) fold to a post-flop bet 66 to 88% of the time, and Wolf has
-  post-flop aggression 0.12. No opponent of ours is tight before the flop and sticky after it.
+  post-flop aggression 0.12. No opponent of ours is tight before the flop and sticky after it. The twelfth
+  bot, BOTV8 (0.43, nearest the heuristic bot), fits none of the four.
 * **Limits:** a pool member's style is measured against fb2-900, and a field bot's against its whole season
   of opponents. Eight axes cannot tell apart bots that differ in hand selection at equal frequencies. The
   C-engine clones (fitted to these replays) are not measured, because the map reads SDK hand histories.
