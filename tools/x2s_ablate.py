@@ -13,11 +13,9 @@ ABL is "none" or a comma-separated subset of:
   oracle  the true opponent model in place of X1: the exact Bayesian range and fold probability of the
           StyleBot named by --opp (holdem/opponents.py STYLES); evidence from the first decision. Tests
           the decision procedure with model error removed.
-  win     match-win utility in place of chips: W(x) = (1 - exp(-k x / T)) / (1 - exp(-k)) of our chips x
-          out of T (gambler's ruin with an edge; k -> 0 is chip EV), reported in chips at the current stack
-          (divided by W'). k = 2 ln(w / (1 - w)) from the policy's measured win rate w against --opp
-          (WIN_RATE below; a probe of the objective, not a runtime estimate).
-  winf    as win, with one k for every opponent from v4's league field win rate (91.2%, E1)
+  chips   chip EV in place of the match-win utility (K -> 0; the first X2s objective)
+  win     the utility's K from the policy's measured win rate w against --opp, K = 2 ln(w / (1 - w))
+          (WIN_RATE below; a probe of the objective, not a runtime estimate); the default K is the field's
 
 The patches are applied before the arena's worker pool forks (Linux), so every worker inherits them.
 """
@@ -43,34 +41,6 @@ from rl.oppmodel import STREETS  # noqa: E402
 
 # fb2-900 with search off, 100 matches, seed 31 (X2s smoke eval)
 WIN_RATE = {"raise_station": 0.96, "tight_sticky": 0.95, "ext:ashwing": 0.61}
-
-
-def win_utility(cls, k):
-    """Patch the EV formulas to match-win utility in chip units at the current stack."""
-    ctx = {}
-
-    def W(x):
-        return (1 - np.exp(-k * x / ctx["T"])) / (1 - np.exp(-k))
-
-    def to_chips(u):
-        rem, T = ctx["rem"], ctx["T"]
-        return (u - W(rem)) / (k / T * np.exp(-k * rem / T) / (1 - np.exp(-k)))
-
-    def call_ev(pot, c, q):
-        rem = ctx["rem"]
-        return to_chips(q * W(rem + pot) + (1 - q) * W(rem - c))
-
-    def raise_ev(pot, c, r, f, q):
-        rem = ctx["rem"]
-        return to_chips(f * W(rem + pot) + (1 - f) * (q * W(rem + pot + r - c) + (1 - q) * W(rem - r)))
-
-    evs = cls.evs
-
-    def win_evs(self, state, mask, amt, hole, board):
-        ctx["rem"], ctx["T"] = self.tr.state(self.me).rem, sum(self.stacks.values())
-        return evs(self, state, mask, amt, hole, board)
-
-    S.call_ev, S.raise_ev, cls.evs = call_ev, raise_ev, win_evs
 
 
 class Oracle(S.Search):
@@ -145,7 +115,8 @@ class Oracle(S.Search):
     def evs(self, state, mask, amt, hole, board):
         pot, c, me = float(state.pot), float(state.to_call), self.me
         bet_me = self.tr.street_committed[me]
-        st = self.tr.state(me)
+        rem, rem_opp = float(state.your_stack), float(min(state.opponent_stacks))
+        T = rem + rem_opp + pot
         w = self.w * ~np.isin(S.COMBOS, hole + board).any(axis=1)
         ids = np.flatnonzero(w > 0)
         q = S.equity(self.rnd, hole, board, ids, w[ids])
@@ -155,20 +126,20 @@ class Oracle(S.Search):
         sel = np.flatnonzero(cont > 0)
         q_top = S.equity(self.rnd, hole, board, sel, cont[sel]) if len(sel) else q
         evs = {0: 0.0} if mask[0] else {}
-        cc = min(c, st.rem)
-        evs[1] = S.call_ev(pot - (c - cc), cc, q)
+        cc = min(c, rem)
+        evs[1] = S.call_ev(pot - (c - cc), cc, q, rem, T)
         self.fold_p = {}
         for a in range(2, 6):
             if mask[a]:
                 r = amt[a] - bet_me
-                evs[a] = S.raise_ev(pot, c, c + min(r - c, st.rem_opp), f, q_top)
+                evs[a] = S.raise_ev(pot, c, c + min(r - c, rem_opp), f, q_top, rem, T)
                 self.fold_p[a] = round(f, 3)
         return evs
 
 
 def main():
     abl = set(sys.argv[1].split(",")) - {"none"}
-    unknown = abl - {"f0", "exact", "crn", "flat", "soft", "oracle", "win", "winf"}
+    unknown = abl - {"f0", "exact", "crn", "flat", "soft", "oracle", "chips", "win"}
     if unknown or sys.argv[2] != "--":
         sys.exit(__doc__)
     cls = S.Search
@@ -193,9 +164,11 @@ def main():
         equity = S.equity
         S.equity = lambda rnd, hole, board, ids, wts: equity(
             random.Random(hash((tuple(hole), tuple(board)))), hole, board, ids, wts)
-    if abl & {"win", "winf"}:
-        w = 0.912 if "winf" in abl else WIN_RATE[sys.argv[sys.argv.index("--opp") + 1]]
-        win_utility(cls, 2 * np.log(w / (1 - w)))
+    if "chips" in abl:
+        S.K = 1e-6
+    if "win" in abl:
+        w = WIN_RATE[sys.argv[sys.argv.index("--opp") + 1]]
+        S.K = 2 * np.log(w / (1 - w))
     if "flat" in abl:
         S.update_range = lambda *a: None
     if "soft" in abl:

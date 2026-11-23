@@ -33,6 +33,7 @@ OUTSIDE = 0.1  # weight of a combo outside the band an action falls in (bluffs a
 RUNOUTS = 200
 MARGIN = 0.05  # of the pot
 MIN_OBS = 10  # opponent actions in this match when the opponent has no named profile
+K = 2 * np.log(0.912 / 0.088)  # edge curvature: v4's league field win rate, 91.2% (E1), as gambler's ruin
 
 COMBO_LIST = list(itertools.combinations(range(52), 2))
 COMBOS = np.array(COMBO_LIST)
@@ -81,15 +82,29 @@ def equity(rnd, hole, board, ids, wts):
     return won / RUNOUTS
 
 
-def call_ev(pot, c, q):
+def win_prob(x, T):
+    """Match-win probability holding x of the T chips in play, for a player with an edge: gambler's ruin
+    with curvature K (K -> 0 is the chip share x / T). Chip EV ignores the edge and takes coin flips that
+    a stronger player should decline (14.16: with the true opponent model, chip EV lost 59% and 81% where
+    the policy won 96% and 95%; this utility won 100% and 98%)."""
+    return np.expm1(-K * x / T) / np.expm1(-K)
+
+
+def in_chips(u, rem, T):
+    """A match-win probability u, relative to folding now with `rem` chips behind, in chips at that stack."""
+    return (u - win_prob(rem, T)) / (K / T * np.exp(-K * rem / T) / -np.expm1(-K))
+
+
+def call_ev(pot, c, q, rem, T):
     """Check or call for `c` (0 when nothing is to call), equity q."""
-    return q * (pot + c) - c
+    return in_chips(q * win_prob(rem + pot, T) + (1 - q) * win_prob(rem - c, T), rem, T)
 
 
-def raise_ev(pot, c, r, f, q):
+def raise_ev(pot, c, r, f, q, rem, T):
     """Bet or raise putting in `r` chips (r > c) when `c` is to call: the opponent folds with probability f
     (we win the pot), otherwise calls and we win with equity q (against the part of the range that calls)."""
-    return f * pot + (1 - f) * (q * (pot + 2 * r - c) - r)
+    won, lost = win_prob(rem + pot + r - c, T), win_prob(rem - r, T)
+    return in_chips(f * win_prob(rem + pot, T) + (1 - f) * (q * won + (1 - q) * lost), rem, T)
 
 
 # ---------------------------------------------------------------- the search
@@ -168,7 +183,8 @@ class Search:
         """{action index: EV in chips} for each legal action."""
         pot, c, me = float(state.pot), float(state.to_call), self.me
         bet_me = self.tr.street_committed[me]
-        st = self.tr.state(me)
+        rem, rem_opp = float(state.your_stack), float(min(state.opponent_stacks))
+        T = rem + rem_opp + pot
         order, u = ranked(self.w, self._board_strength(board), hole + board)
 
         def eq(lo):
@@ -179,8 +195,8 @@ class Search:
         evs = {}
         if mask[0]:
             evs[0] = 0.0
-        cc = min(c, st.rem)  # a call for more than our stack gets the rest of the bet back
-        evs[1] = call_ev(pot - (c - cc), cc, q)
+        cc = min(c, rem)  # a call for more than our stack gets the rest of the bet back
+        evs[1] = call_ev(pot - (c - cc), cc, q, rem, T)
         self.fold_p = {}
         for a in range(2, 6):
             if not mask[a]:
@@ -190,8 +206,8 @@ class Search:
             after.apply(me, "raise", r)
             f = self.fold_prob(after.state(1 - me))
             q_top = eq(f)
-            r_eff = c + min(r - c, st.rem_opp)  # the opponent can match at most its stack
-            evs[a] = raise_ev(pot, c, r_eff, f, q if q_top is None else q_top)
+            r_eff = c + min(r - c, rem_opp)  # the opponent can match at most its stack
+            evs[a] = raise_ev(pot, c, r_eff, f, q if q_top is None else q_top, rem, T)
             self.fold_p[a] = round(f, 3)
         return evs
 

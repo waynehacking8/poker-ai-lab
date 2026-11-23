@@ -16,6 +16,7 @@ from holdem.engine import MatchConfig, play_match  # noqa: E402
 from holdem.opponents import make_baseline  # noqa: E402
 from rl.bot import RLBot  # noqa: E402
 from rl.features import action_table  # noqa: E402
+import rl.search as S  # noqa: E402
 from rl.search import (MARGIN, MIN_OBS, PREFLOP_STRENGTH, Search, call_ev, raise_ev,  # noqa: E402
                        update_range)
 
@@ -39,14 +40,27 @@ def test_range_band_weights():
     assert abs((w == 1.0).mean() - 0.1) < 0.02  # the all-in band is the top 10% of the combos
 
 
-def test_ev_arithmetic():
+def test_ev_arithmetic_in_the_chip_limit(monkeypatch):
+    """K -> 0 turns the match-win utility into chip EV."""
+    monkeypatch.setattr(S, "K", 1e-6)
+    rem, T = 8000.0, 20000.0
     pot, c, r, q = 1000.0, 300.0, 900.0, 0.37
-    assert raise_ev(pot, c, r, 0.0, q) == pytest.approx(q * (pot + 2 * r - c) - r)
+    assert raise_ev(pot, c, r, 0.0, q, rem, T) == pytest.approx(q * (pot + 2 * r - c) - r, abs=1e-2)
+    assert call_ev(pot, c, q, rem, T) == pytest.approx(q * (pot + c) - c, abs=1e-2)
     # at q = 0.5 a minimum raise that is always called gains nothing over calling
     for pot, c, r in ((1000, 300, 600), (400, 0, 100), (7000, 2500, 5000)):
-        assert raise_ev(pot, c, r, 0.0, 0.5) == pytest.approx(call_ev(pot, c, 0.5))
+        assert raise_ev(pot, c, r, 0.0, 0.5, rem, T) == pytest.approx(call_ev(pot, c, 0.5, rem, T), abs=1e-2)
     # a bet into a range that always folds earns the pot
-    assert raise_ev(1000, 0, 700, 1.0, 0.2) == 1000
+    assert raise_ev(1000, 0, 700, 1.0, 0.2, rem, T) == pytest.approx(1000, abs=1e-2)
+
+
+def test_match_win_utility_avoids_flips_with_an_edge():
+    """With the field edge, a 60% all-in for the match is a loss although it gains 2,100 chips on average;
+    a small pot is still valued close to its chips."""
+    rem, T = 9900.0, 20000.0
+    assert 0.6 * (200 + 2 * 9900) - 9900 == pytest.approx(2100)
+    assert raise_ev(200, 0, 9900, 0.0, 0.6, rem, T) < -1000
+    assert call_ev(200, 100, 0.5, rem, T) == pytest.approx(0.5 * 300 - 100, rel=0.1)  # 47.1: the risk premium
 
 
 class Stub:
@@ -88,15 +102,17 @@ def test_bet_into_a_range_that_always_folds_earns_the_pot():
     s._sync(state.action_history, hole, board)
     evs = s.evs(state, mask, amt, hole, board)
     assert {a for a in evs if a >= 2} == {2, 3, 4, 5}
-    assert all(evs[a] == 200 for a in range(2, 6))
+    assert all(evs[a] == pytest.approx(200, rel=0.03) for a in range(2, 6))  # 195: concave in chips
     assert 0 not in evs and evs[1] > 100  # checking aces on a dry flop is worth more than half the pot
 
 
 @pytest.mark.parametrize("short", [0, 1])
-def test_evs_respect_the_effective_stack(short):
+def test_evs_respect_the_effective_stack(short, monkeypatch):
     """Neither side can win more than the other has: with seat `short` holding 1,100 chips (1,000 behind on
     the flop), every EV lies between minus our chips at risk and the pot plus the opponent's chips at risk.
-    short=0: the opponent is short and we shove; short=1: we are short and call a 5,000 bet."""
+    short=0: the opponent is short and we shove; short=1: we are short and call a 5,000 bet. In the chip
+    limit (K -> 0), where the bound is in chips."""
+    monkeypatch.setattr(S, "K", 1e-6)
     s = Search(Stub([0, 1, 0, 0, 0]), seed=1)
     s.start_match(None, 1, 10000)
     s.stacks = {0: 10000, 1: 10000, short: 1100}
@@ -104,7 +120,7 @@ def test_evs_respect_the_effective_stack(short):
     if short == 1:
         state.action_history = state.action_history + [
             {"seat": 0, "action": "raise", "amount": 5000, "phase": "flop"}]
-        state.pot, state.to_call, state.your_stack = 5200, 5000, 1000
+        state.pot, state.to_call, state.your_stack, state.opponent_stacks = 5200, 5000, 1000, [4900]
         state.valid_actions, state.max_raise = ["fold", "call"], 1000
     else:
         state.opponent_stacks, state.max_raise = [1000], 9900
@@ -115,7 +131,7 @@ def test_evs_respect_the_effective_stack(short):
     evs = s.evs(state, mask, amt, hole, board)
     assert (5 in evs) == (short == 0)
     for a, v in evs.items():
-        assert -1000 - 1e-9 <= v <= 200 + 1000 + 1e-9, (a, v)
+        assert -1000 - 1e-2 <= v <= 200 + 1000 + 1e-2, (a, v)
 
 
 def decide_with(search, evs, policy_a, pot=1000):
