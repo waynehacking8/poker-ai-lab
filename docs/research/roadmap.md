@@ -275,6 +275,51 @@ measures the headroom with the true model before any runtime or model work.
     chosen in a new revision.
 * **Budget:** build about 3 hours; the run at most 3 box-hours on gb10-d (cores 4 to 19).
 
+### X2m. Does the lookahead hold with the opponent model we have? (X1 in place of the oracle)
+
+14.17: with the true model, rollouts on top of the policy add +3.8 [+1.9, +5.8] pooled on the four rule cells
+(N = 128, Z = 2.6, chosen after the N = 16 run; a fresh-seed confirmation is pending and gates this step). The
+deployed bot does not have the rules, it has X1. X2m changes only the model: X1 in place of the oracle, with
+the same rollouts and gate, and it adds the six `ext:` cells, which the oracle could not reach.
+
+* **Tool** (`tools/x2r_oracle.py`, offline, nothing deployed): `--model x1` (default `oracle`, unchanged).
+  Under `x1`:
+  * the root range and X1's in-match counts are `rl.search.Search`'s, fed by the hooks the deployed `RLBot`
+    uses (`start_match` with the opponent's display name, `finish_hand` at round_result). Its one-street
+    override is not applied.
+  * the rollout opponent is an `X1Bot` built per rollout from the root range. At each of its decisions it
+    takes X1's class probabilities p for the public state (predict only: rollouts never call `observe`), and
+    its hand's quantile u in its current range by strength on the current board (`ranked` in rl/search.py).
+    It plays the class whose band holds u, the inverse of `update_range`: from the bottom, fold, call, raise
+    up to the pot, above the pot, all-in. Then its range copy is updated with `update_range`. A fold with
+    nothing to call is a check; the raise classes put in 0.75 and 1.5 times the pot after the call beyond
+    the call, clipped to the legal range; a class that is not legal plays call.
+  * the gate is X2r's (Z standard errors of the paired gain) and, as in the deployed search, an override
+    needs evidence (`Search.has_evidence`: a named profile or 10 opponent actions in this match).
+  * the same hero runs in `rl.eval_arena` for the `ext:` cells, with the same decision log.
+* **Checks before the run:**
+  1. under `x1`, N = 1 still plays exactly as the policy (20 seeds);
+  2. `X1Bot` is the inverse of the range update: on fixed public states with a uniform range, its action
+     frequencies over the combos match p within Monte Carlo error;
+  3. a decision's rollouts leave X1's in-match counts, the root range and everything X2r's test 1 checks
+     unchanged.
+* **Measure:** N = 128, Z = 2.6, seed 41, 300 matches per cell. The four rule cells are read paired
+  against the judge's `rows_off.jsonl` (`tools/paired_stats.py`); the six `ext:` cells unpaired against the
+  judge's `off.jsonl` (Newcombe, `tools/x2s_stats.py`), since those bots are unseeded.
+* **Read, pre-registered:**
+  * `ext:` pooled lower bound above zero: the universal procedure gains on real bots. Next come the runtime
+    (0.5 vCPU, about 1 s a decision; the offline cost is about 3 s) and the full card on fresh seeds.
+  * rule cells above zero but `ext:` not: X1 stands in for the rules but not for real bots, so the model is
+    the bottleneck (limit 1, ranges by frequency matching). The oracle tool stays the reference.
+  * rule cells not above zero: the X1 model fails even on rule bots. One ablation splits it: oracle range
+    with `X1Bot`, and X1 range with the true StyleBot.
+  * The share of the oracle's headroom X1 keeps (rule-cell difference over +3.8) is reported either way.
+* **Budget:** build about 3 hours (tests on the PC, smoke on gb10-d cores 0-1 while the confirmation runs);
+  the run on cores 4-19 after it: rule cells about 2.5 box-hours, `ext:` cells at most 6.
+* **Known limits:** `X1Bot` never bluffs beyond its bands and uses two fixed raise sizes, so against bots that
+  bluff or size by hand, its continuation is a simplification; the read separates that from the range by the
+  ablation above.
+
 ### X2a. Name-seeded opponent counts in both engines
 
 * **Outcome:** a per-name table of the tracker's counts (all `NST` slots) from the replays, a way to seed a match's
