@@ -219,9 +219,11 @@ part the numbers show is weakest.
     action falls in (bottom for fold, top for raises, the middle for check or call, in X1's proportions)
     keeps weight 1, all other combos weight 0.1 (bluffs and model error).
   * **EV:** fold 0; check or call `c`: `q * (pot + c) - c`, with `q` our equity against the range (200
-    Monte Carlo runouts); bet or raise putting in `r`: `f * pot + (1 - f) * (q' * (pot + 2r) - r)`, with `f`
-    X1's fold probability for the opponent facing that bet, and `q'` our equity against the range's top
-    `1 - f` (the part that continues). Later streets are ignored.
+    Monte Carlo runouts); bet or raise putting in `r` chips (`r > c`, `c = 0` when nothing is to call):
+    `f * pot + (1 - f) * (q' * (pot + 2r - c) - r)`, with `f` X1's fold probability for the opponent facing
+    it (`to_call = r - c`), and `q'` our equity against the range's top `1 - f` (the part that continues).
+    `pot` already holds the opponent's chips this street. Later streets are ignored. (Review: the first
+    draft omitted `- c`, which credited every raise facing a bet with a phantom `(1 - f) q' c`.)
 * **Safety blend:** play the argmax only when X1 has evidence (a named profile, or at least 10 opponent
   actions this match) and its EV beats the policy's own choice by more than 0.05 of the pot; otherwise the
   policy plays.
