@@ -1081,7 +1081,7 @@ Unpaired, the pooled difference is +4.2 [+2.3, +6.1]. Losses fall from 7.8% to 3
 rollout lookahead on top of the policy halves the losses against these bots.** The next question is the
 model we actually have (roadmap X2m).
 
-### 14.18 X2m: the same lookahead with X1 in place of the true rules loses on the rule cells
+### 14.18 X2m: with X1 in place of the true rules, the lookahead gains on real bots and loses on wide bettors
 
 Roadmap X2m. Tool: `tools/x2r_oracle.py --model x1` on holdem-x2r (4d9c1ed, memo f6777b8, tests f427155; two
 fresh verifiers found the implementation right and the tests short, and every real mutation they found now
@@ -1105,4 +1105,24 @@ fails a test). N = 128, Z = 2.6, seed 41, 300 matches per cell, paired against t
   assume an action reveals a band of hand strength (weak fold, middle call, strong raise). These bots bet and
   raise with wide ranges, so the model makes every bet look strong and the lookahead folds too much. This is
   limit 1 of the universal design (ranges from an action model by frequency matching).
-* The `ext:` cells are running (`~/poker-ai-lab-x2m/logs/x2m_ext`); the pre-registered read follows them.
+
+**The `ext:` cells** (unpaired against the judge's off arm, Newcombe; `~/poker-ai-lab-x2m/logs/x2m_ext`):
+
+| cell | off | on | difference [95%] | overrides |
+|---|---|---|---|---|
+| ext:ashwing | 73.0 | 78.7 | +5.7 [-1.2, +12.5] | 13.9% |
+| ext:ashwing_search | 74.7 | 80.7 | +6.0 [-0.7, +12.6] | 14.0% |
+| ext:ashwing_hive | 86.7 | 85.7 | -1.0 [-6.6, +4.6] | 10.3% |
+| ext:autodidact | 76.3 | 79.3 | +3.0 [-3.7, +9.6] | 12.5% |
+| ext:wolf | 94.3 | 96.3 | +2.0 [-1.5, +5.6] | 9.8% |
+| pooled, five bots | 81.0 | 84.1 | +3.1 [+0.4, +5.8] | |
+
+* `ext:wolf_v5` plays exactly as `ext:wolf` (300 of 300 matches the same on, 299 of 300 off), so it is one
+  bot; the pre-registered six-cell pool, which counts it twice, reads +2.9 [+0.6, +5.3].
+* **E holds, R fails.** Under the pre-registered read the procedure gains on real bots with the model we
+  have, and the largest gains are on the Ashwing family, the gap the roadmap targets (73 against a
+  specialist's 90). It also loses on bots that bet wide (sticky_overbettor -10.7), so it cannot ship as is:
+  a field with such bots would pay for it.
+* **Next:** the same on fresh seeds (seed 43, own off arm with N = 1; `tools/x2m_confirm.sh`, running). Then
+  the model's weak point, limit 1: an action model that says how often, not with what. The fix is a
+  card-conditioned opponent model (what each action means for the hand), learned where cards are seen.
