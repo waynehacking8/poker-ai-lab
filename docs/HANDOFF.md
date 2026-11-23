@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 09:08 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 09:35 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -116,10 +116,14 @@ the working memory. Update it at every step that changes state.
   match-win utility (gambler's ruin) won 100/98. 8007e33 puts match-win utility in rl/search.py with one
   field K = 4.68 (v4 league 91.2%): X1 search ext:ashwing 71-79 vs policy 61 (60% of specialist gap), stations
   88-89 vs 95-96 (oracle 98-99: X1 is now the weakest part: unobserved fold buckets, collapsing band range).
-  HELD-OUT JUDGE RUNNING since 09:02 UTC: gb10-d ~/poker-ai-lab-x2s/tools/x2s_judge.sh (10 cells x 300,
-  seed 41, off then on, cores 4-19), out logs/x2s_judge/{off,on}.jsonl + rows, marker done, ~50 min.
-  Verifier REFUTED 8007e33 on one crash (trips/quads board, strength table); fixed dbe9e3e, swapped into the box
-  before the on arm. Branch holdem-x2s NOT merged/pushed yet; merge after the judge + a fresh verifier on dbe9e3e.
+  HELD-OUT JUDGE DONE 09:25 UTC (research 14.16, 3e1ee83): search ON LOSES pooled 86.6 -> 80.8 [-7.6, -3.9];
+  ashwing +3.3 (ns), wolf -10.7, rule bots -6 to -11. Smoke 'ashwing 79 vs 61' was noise (off = 73 on seed 41).
+  ORACLE at seed 41 x 300 on the 4 rule cells: 1101 vs policy 1099 of 1200 -> a one-street search only EQUALS
+  the policy even with the true model; X1 costs ~8 more. Verifiers: 2x REFUTED (trips-board crash dbe9e3e;
+  short-bb + finish_hand guard e6b27b8), cap reached, no third. Lazy import fix b74030e (deployed image
+  lacks rl/search.py, rl/oppmodel.py). MERGED holdem-rl = b74030e, pushed; search off by default.
+  NEXT: X2r spec = policy-improvement rollouts (our policy for us, model for them, match-win utility),
+  tested with the ORACLE model offline first; runtime and model work only if it beats the policy.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
