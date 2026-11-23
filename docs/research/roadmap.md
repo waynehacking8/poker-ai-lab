@@ -46,6 +46,11 @@ so no third review ran, and Wayne's standing approval (2026-11-23) carries it.
   seed 21, fresh for all three: 800 matches against `ext:ashwing`, 400 against `ext:autodidact`. fb2-900's
   card reads 72.75% and 74.5% against them (E2). A fine-tune is a lower bound on what exploiting one known
   opponent is worth; its result against the other bot shows what specializing costs.
+* **M1b (added 04:19 UTC, after M1's chip flow showed a whole-strategy shift worth about 20 points against
+  Ashwing):** one fine-tune on the mixture `ext:ashwing,ext:autodidact_fast`, same recipe, evaluated like
+  M1. If it holds both exploits, the generalist's gap is its training population, and X2 can be a
+  policy that takes X1's predictions as inputs, trained on a broad population. If it falls well short of the
+  two single fine-tunes, X2 needs explicit conditioning or search.
 * **M2:** the floor's headroom is E3: a fresh exploiter still wins 71 to 78% after S2 (14.10).
 * **M3:** the Season 16 round robin replays of v4 give the first real results per opponent. They come in
   within days and move nobody's rating, so no challenge matches are played for measurement.
