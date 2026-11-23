@@ -778,3 +778,42 @@ distance; a missing axis reads 0.5). Files are in `logs/style/` on gb10-d.
 * **Use:** the gaps are the first targets of the diversity slice. Opponents are trained to hold a gap style
   while winning as much as they can (quality-diversity), not built as random tilts, because 14.2 showed
   weak tilted clones teach nothing. The gap bots that have replays also become held-out evaluation targets.
+
+### 14.13 X1: an explicit opponent model predicts real bots far better than a population prior
+
+Roadmap Revision 2, slice X1 (holdem-rl 0967e71: `rl/oppmodel.py`, `tools/oppmodel_fit.py`,
+`tests/test_oppmodel.py`, `rl/models/oppmodel.npz`). The model predicts an opponent's next action in five
+classes (fold, check or call, bet or raise up to the pot, above the pot, all-in) from the public state,
+in three layers:
+1. a population prior: an MLP with 64 hidden units over street, position, facing bet over pot, effective
+   stack, the previous action, raises this street, call over remaining stack, and pot and own stack in
+   big blinds;
+2. a per-name profile: training counts per context bucket (street by facing bet, edges 0.35 and 0.8 of
+   the pot), shrunk toward the prior with strength k = 20;
+3. an in-match update: this match's counts so far, weight w = 2 (k_im = 8 when the name is unknown).
+
+Data: the 330 poker replays, sorted by start time. The latest 99 are held out, and the rest split into a
+185-match fit part and a 46-match validation part. Every choice was made on validation, and the model was
+refit on all 231 training matches and scored once. Mean log loss per action, in nats:
+
+| held-out subset | actions / matches / names | uniform | prior | prior + in-match | prior + name + in-match |
+|---|---|---|---|---|---|
+| known names (at least 200 training actions) | 15,426 / 91 / 16 | 1.609 | 0.741 | 0.624 | **0.544** |
+| unseen names (hand 11 on) | 1,425 / 10 / 4 | 1.609 | 1.103 | **0.725** | (no profile) |
+
+* **Acceptance 1 PASS:** the name adds 0.080 nats per action over prior plus in-match, 95% match
+  bootstrap [0.068, 0.092], better in 88 of 91 matches. With the baseline's k_im tuned on the held-out set
+  itself (an oracle in the baseline's favor) the gain is still 0.067 [0.056, 0.079].
+* **Acceptance 2 PASS, weak:** in-match updating gains 0.378 [0.155, 0.575] on unseen names. The gain is
+  uneven: 5ur9e (never folds preflop) +1.16, mochi +0.27, WSmithSimLab +0.17, MOTONAKA +0.004. Without
+  5ur9e it is about +0.16. The prior alone is worst exactly on the unusual bots, which is the 14.11 gap.
+* **Acceptance 3 NOT TESTED** (box busy): the file is 11.8 KB and loading imports numpy only; on the PC,
+  300 actions take p99 0.12 ms. The 0.5 vCPU, 256 MB container measurement waits for a quiet box.
+* **Verification:** a fresh verifier reproduced every number from a clean `git archive` (identical fit log
+  and arrays). Scrambling all held-out labels and features left every selected setting and saved array
+  unchanged, so no held-out row reaches the fit. Per-name counts total the 42,219 training rows exactly;
+  in-match counts are read before each update; the replay pot chain matches `pot_after` on all 27,273
+  streets, and all 696 all-in labels empty the stack. Verdict CONFIRMED.
+* **Limits:** the replays span 37 hours, so a name's profile barely ages across the split; Season 16 replays
+  retest it across a season. Replays hide hole cards except at showdown, so the model predicts actions,
+  not hands; a range model for X2 needs simulation or showdown data.
