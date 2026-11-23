@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 04:58 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 05:05 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -69,6 +69,11 @@ the working memory. Update it at every step that changes state.
   from a sparse fold_pre_raise axis). 23 tests pass; station, lag, jam play byte for byte as before.
 - br_ashwing ended 04:11 UTC at it 580 (last window 92.4%); its chip flow runs; br_autofast ends about 04:17,
   then `tools/m1_eval.sh` starts.
+- **M1 POSITIVE (05:01 UTC):** br_ashwing vs ext:ashwing 722/800 = 90.25% vs fb2-900 604/800 = 75.5%, gain 14.75,
+  Newcombe [11.1, 18.4] (research 14.12). X2 chosen: a learned decision procedure under X1 (policy takes X1's
+  belief as input), search kept as the fallback; X2a (X1 block in features.py and fastenv.c, parity,
+  zero-weight widening) and X2b sketch in the roadmap (research 70fa46b). Plan review of X2 choice + X2a
+  running since 05:05 UTC (review 1 for this unit; cap 2).
 - **M1 preliminary (chip flow, seed 31, 400 matches each, unpaired):** br_ashwing wins 90.2% against Ashwing,
   fb2-900 69.8% (gain about 20 points, interval roughly [15, 26]). The gain is a whole-strategy shift: first
   preflop action raise 64.7% (fb2 32.3%), showdowns where we bet last +531k chips (fb2 -261k), fewer but
