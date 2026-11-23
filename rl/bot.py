@@ -12,9 +12,7 @@ from chipzen import Action, Bot
 
 from rl.allin import DEFAULT_TABLE, AllInAnswer
 from rl.features import Tracker, build, load_priors
-from rl.oppmodel import OppModel
 from rl.runtime import DEFAULT_MODEL, Policy
-from rl.search import OPPMODEL, Search
 
 
 class RLBot(Bot):
@@ -29,7 +27,11 @@ class RLBot(Bot):
         # RL_ALLIN=off turns the all-in answer off for A/B runs
         self.allin = AllInAnswer(allin) if allin and os.environ.get("RL_ALLIN") != "off" else None
         # search: the X2s search under the opponent model (rl/search.py); it may override the policy's action
-        self.search = Search(OppModel.load(OPPMODEL), seed) if search else None
+        self.search = None
+        if search:  # imported here: the deployed image ships neither module (deploy/Dockerfile)
+            from rl.oppmodel import OppModel
+            from rl.search import OPPMODEL, Search
+            self.search = Search(OppModel.load(OPPMODEL), seed)
 
     def on_match_start(self, match_info):
         me = match_info.get("your_seat")

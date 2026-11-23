@@ -31,7 +31,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import rl  # noqa: F401,E402
-import rl.bot  # noqa: E402
+
 import rl.search as S  # noqa: E402
 from holdem.opponents import STYLES, postflop_strength  # noqa: E402
 from nlhe.cards import card_str  # noqa: E402
@@ -145,7 +145,7 @@ def main():
     cls = S.Search
     if "oracle" in abl:
         Oracle.BOT = STYLES[sys.argv[sys.argv.index("--opp") + 1]]
-        cls = rl.bot.Search = Oracle
+        cls = S.Search = Oracle  # rl.bot imports the search lazily, from rl.search
     if "f0" in abl:
         S.Search.fold_prob = lambda self, st: 0.0
     if "exact" in abl:

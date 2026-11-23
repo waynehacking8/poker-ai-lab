@@ -228,6 +228,16 @@ def test_search_off_plays_as_before():
         "09cd1df780dca7c1362bf34cdf876f501aac5ccffe333511ec11582e0eb79c51")
 
 
+def test_deployed_bot_does_not_import_the_search():
+    """deploy/Dockerfile ships rl/bot.py without rl/search.py and rl/oppmodel.py: importing the bot must not
+    need them."""
+    import subprocess
+    import sys
+    code = "import sys, rl.bot; print(sorted(m for m in ('rl.search', 'rl.oppmodel') if m in sys.modules))"
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
+    assert out.stdout.strip() == "[]"
+
+
 def test_eval_arena_flag_builds_the_search_hero():
     from rl.eval_arena import make_hero
     assert make_hero("rl/models/best.npz", 1.0, 1, search=True).search is not None
