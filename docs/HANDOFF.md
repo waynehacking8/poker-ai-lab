@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 04:00 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 04:15 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -55,6 +55,12 @@ the working memory. Update it at every step that changes state.
   Leaf values: the PPO value net (in `ckpt/fb2/it000900.npz`, not in the deployed npz). Cost: the
   policy's `hand_strength` enumerates every opponent hand per call, so a range needs one 7-card rank per
   hand and a vectorized strength, not 1326 calls.
+- **Universal test (Wayne asked 04:05 UTC how the universal approach gets approved):** eval card E6 = held-out
+  styles (four gap-style rule bots plus ext:ashwing, ashwing_search, ashwing_hive, autodidact, Wolf family,
+  never used in tuning), E7 = real arena replays (research 59f2d6f). X2 must tune on other bots
+  (ashwing_v2, ashwing_value, autodidact_fast, chipzen, clones). The four rule bots are still to build.
+- br_ashwing ended 04:11 UTC at it 580 (last window 92.4%); its chip flow runs; br_autofast ends about 04:17,
+  then `tools/m1_eval.sh` starts.
 - **Season 16 swap window closes today, 23:59 UTC.** An S2b candidate can be a swap option only if it
   passes acceptance before then, and only with Wayne's yes.
 - **Done 2026-11-23:** style map (holdem-rl 3ef434e `tools/style_map.py`; research 14.11: 12 of 51 field
