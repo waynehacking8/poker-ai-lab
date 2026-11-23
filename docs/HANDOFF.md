@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 07:35 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 07:45 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -103,6 +103,11 @@ the working memory. Update it at every step that changes state.
   listed limits (ranges from action model via frequency matching, leaf values, 1 s at 0.5 vCPU, confidence
   gated safety, match-win objective), grounded in literature and open-source code, then review, build.
   Progress is read against ceilings, not v4 (roadmap Revision 2 table, research 000f1ed).
+- **X2s (Wayne: clean and tidy, no overdesign, avoid local optimum):** smallest end-to-end search under X1
+  (research d86ab03): one-street chip EV per legal action, range from X1 bands by hand strength (others
+  weight 0.1), equity by 200 runouts, blend = argmax only with evidence and EV gap > 0.05 pot, else policy.
+  RLBot(search=True) off by default. Judge: X2b held-out judge + E5, decision log names the weakest part.
+  One plan review running (told: blockers only, no features). Then executor in its own worktree.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
