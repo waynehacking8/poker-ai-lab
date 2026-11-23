@@ -14,6 +14,19 @@ the all-in jam was one. This revision decomposes the objective first and orders 
 **Objective.** The most season wins, then fewer hands per win, against a real field that changes between
 seasons. Runtime: 0.5 vCPU, 256 MB, 5 s per action, Python and numpy. Offline: gb10-d.
 
+**Progress is distance to the ceiling, not to v4** (Wayne, 2026-11-23: "my point was never swapping today,
+because v4 cannot possibly be the best"). v4 is a reference point and the rollback, never the target. Each
+result is read against what is attainable, and the gaps measured so far set the order:
+
+| lever | where we are | ceiling | gap |
+|---|---|---|---|
+| floor: a fresh exploiter's win rate against us (E3) | v4 96.5%; S2 it1800 78.7% | 50% (unexploitable) | about 29 to 47 points |
+| exploitation of a known bot (M1) | v4 75.5% vs Ashwing, 79.25% vs autodidact | the single-bot fine-tune: 90.25% and 90.25% | 11 to 15 points per bot |
+| a strong bot: the real Blueprint (E2) | v4 59.0%, S2 it1800 57.0% | unknown, above 59% | open |
+
+A candidate is worth more only when it moves one of these gaps without opening another. The swap window
+is a side effect: a candidate enters when it is clearly better, whatever the date.
+
 **Measured facts.**
 * **Short matches.** 330 poker replays: median 26 hands, and 140 (42%) end before the first blind step at
   hand 21 (`tools/analyze_chipzen_replays.py`). A few big pots decide a match.
@@ -326,6 +339,9 @@ unpaired. The interval resolves a gain of about 4.4 points at 800 matches a side
   * Population effect: grid minus base on the held-out score, Newcombe 95%.
   * Profile effect: mean paired difference over the 1,000 held-out pairs, 95% normal interval of the per-pair
     differences; the trained-on pairs are reported beside it and do not count.
+  * Ceiling share, the target reading: on `ext:ashwing` and `ext:autodidact`, (arm minus fb2-900) divided by
+    (the M1 specialist minus fb2-900), that is how much of the 15 and 11 point specialist gaps a policy that
+    never trained on those bots closes.
 * **Acceptance (the finding, whichever way it falls):**
   1. `ALLOWED` has at least 200 seeds. On a fresh check, 40 randomly chosen allowed seeds, 240 matches each
      against fb2-900 on style seed 11, each lie more than 0.25 from every E6 target and gap source; one
