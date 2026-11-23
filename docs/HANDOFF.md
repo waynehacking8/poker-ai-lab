@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 13:15 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 16:30 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -135,7 +135,10 @@ the working memory. Update it at every step that changes state.
   X2m FULL RUN LAUNCHED 12:13 UTC: gb10-d ~/poker-ai-lab-x2m, tools/x2m_run.sh (setsid), cores 4-19:
   logs/x2m_rule DONE 13:11: R FAILS, paired -3.8 [-5.7,-1.8] (sticky_overbettor -10.7: folds every street;
   research 14.18 e5289a8). Diagnosis: band model (bets = strong) wrong for wide-range bettors = limit 1.
-  logs/x2m_ext RUNNING since 13:11 (projected <= 5.5 h), marker logs/x2m_done, log logs/x2m_run.out.
+  logs/x2m_ext DONE 16:27: E HOLDS, 5 distinct bots +3.1 [+0.4,+5.8] (wolf_v5 == wolf, dropped; 6-cell
+  +2.9 [+0.6,+5.3]); Ashwing +5.7, ashwing_search +6.0 (research 14.18). CONFIRMATION RUNNING since 16:28:
+  tools/x2m_confirm.sh (5ee89f5) seed 43, off N=1 then on, logs/x2m43_{rule,ext}{_off,}, marker
+  logs/x2m43_done, ~4.5 h. Then: card-conditioned opponent model (limit 1), runtime, full card.
   READ (pre-registered): R = paired_stats.py judge rows_off.jsonl vs x2m_rule/rows_on_*.jsonl pooled LB>0;
   E = x2s_stats.py logs/x2m_ext pooled Newcombe LB>0. E -> runtime + full card; not E, R -> model work;
   neither -> ablation (oracle range + X1Bot; X1 range + StyleBot). Report rule diff / +3.8 share.
