@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 04:27 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 04:58 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -31,6 +31,7 @@ the working memory. Update it at every step that changes state.
   1. S2b (main pid 18898), ends about 06:56 UTC plus a final screen; `logs/s2b/` (screen_itNNNNNN.verdict,
      STOP, end.txt). Screens at 2300, 2700, 3100, 3500. Screen 2300 (03:18 UTC): probe 79.25% [75.0, 82.9]
      (S2's best screen 74.5), Ashwing 69.5 and ashwing_search 73.0, no stop; main wins 27.4% against its pool.
+     Screen 2700 (04:5x UTC): probe 77.75% [73.4, 81.6], Ashwing 74.0, ashwing_search 74.0, no stop.
   2. M1 training windows at 03:58 UTC: br_ashwing 91.2% (102 matches), br_autofast 87.5% (128). M1 best-response runs, 90 minutes each, holdem-rl d643881: `bash tools/rl_br.sh br_ashwing
      ckpt/fb2/it000900.npz ext:ashwing 90 3` (02:41 UTC, about 6 iterations a minute), and `br_autofast`
      with `ext:autodidact_fast` (02:46 UTC). The first `br_autodidact` run on the full `ext:autodidact` got
@@ -72,7 +73,7 @@ the working memory. Update it at every step that changes state.
   fb2-900 69.8% (gain about 20 points, interval roughly [15, 26]). The gain is a whole-strategy shift: first
   preflop action raise 64.7% (fb2 32.3%), showdowns where we bet last +531k chips (fb2 -261k), fewer but
   better-called river shoves (248 vs 635). The formal M1 statistic (`tools/m1_eval.sh`, running since 04:17
-  UTC, ends about 07:00) decides. fb2-900 vs ext:ashwing on seed 21: 75.5% [72.4, 78.4] over 800. Files `logs/m1/flow_{fb2,br}_ashwing.txt`.
+  UTC, ends about 07:00) decides. fb2-900 vs ext:ashwing on seed 21: 75.5% [72.4, 78.4] over 800. fb2-900 vs ext:autodidact: 79.25% [75.0, 82.9] over 400. Files `logs/m1/flow_{fb2,br}_ashwing.txt`.
 - **M1b (04:19 UTC):** `bash tools/rl_br.sh br_mix ckpt/fb2/it000900.npz ext:ashwing,ext:autodidact_fast 90 4`.
   Question: does one network hold both exploits when trained on the mixture? If yes, the generalist's gap is
   the training population, and X2 can be an opponent-conditioned policy (X1 predictions as inputs) trained on
