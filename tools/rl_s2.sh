@@ -18,6 +18,8 @@ OUT=$1; INIT=$2; MIN=${3:-300}; FROM=${4:-}; POOL=pool_$OUT; L=logs/$OUT
 START=1; SCREENS="200 400 600"
 if [ -n "$FROM" ]; then
   [ -f logs/$FROM/end.txt ] && [ -f ckpt/$FROM/state.pt ] || { echo "$FROM: no logs/$FROM/end.txt or ckpt/$FROM/state.pt"; exit 1; }
+  ls pool_$FROM/x*.npz > /dev/null 2>&1 || { echo "pool_$FROM has no x*.npz"; exit 1; }
+  [ -e $POOL ] && { echo "$POOL exists"; exit 1; }
   mkdir -p ckpt/$OUT $L $POOL
   cp ckpt/$FROM/state.pt ckpt/$OUT/state.pt.part && mv ckpt/$OUT/state.pt.part ckpt/$OUT/state.pt
   for f in $(ls pool_$FROM/x*.npz | LC_ALL=C sort | tail -n 4); do

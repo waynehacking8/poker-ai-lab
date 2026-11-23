@@ -92,6 +92,8 @@ class Collector:
         self.rng = np.random.default_rng(seed)
         self.seed = seed * 1000003
         self.opp = [None] * n_envs      # opponent key per env
+        self.opp_id = [None] * n_envs   # with ids: the pool file behind that key when the match started
+        self.ids = None
         self.has_prev = [False] * n_envs
         self.phi_prev = [0.5] * n_envs
         self.started = False
@@ -114,6 +116,8 @@ class Collector:
         self.counter += 1
         self.pool.reset(i, self.seed + self.counter, ctrl[0], ctrl[1], hero)
         self.opp[i] = k
+        if self.ids is not None and k.startswith("snap:"):
+            self.opp_id[i] = self.ids[int(k[5:]) - 1]
         self.has_prev[i] = False
         self.phi_prev[i] = 0.5
 
@@ -123,15 +127,25 @@ class Collector:
             obs = obs * pol["keep"]
         return obs, mask, meta, amts
 
-    def collect(self, params, snaps, weights, T, greedy=False):
+    def collect(self, params, snaps, weights, T, greedy=False, ids=None):
+        """ids (optional): one identity per snaps entry, the pool file name or None. A match whose snap:j
+        slot now holds another identity is restarted unreported, so no result spans two pool files."""
         pol = params
         spol = [None] + list(snaps)
         E = self.E
         allidx = np.arange(E, dtype=np.int32)
+        self.ids = ids
         if not self.started:
             for i in range(E):
                 self._new_match(i, weights, len(snaps))
             self.started = True
+        elif ids is not None:
+            # the previous collect ended every open trajectory with a bootstrap, so a restart loses no step
+            for i in range(E):
+                if self.opp[i].startswith("snap:"):
+                    j = int(self.opp[i][5:]) - 1
+                    if j >= len(ids) or ids[j] != self.opp_id[i]:
+                        self._new_match(i, weights, len(snaps))
         buf = [dict(o=[], m=[], a=[], lp=[], v=[], r=[], d=[]) for _ in range(E)]
         results = []
         collected = 0
@@ -393,11 +407,13 @@ def main():
             weights = {k: pf(k, w0) * 4 for k, w0 in base_w.items()}
             for j in range(1, len(opp_models) + 1):
                 weights[f"snap:{j}"] = pf(f"snap:{j}", pool_w if j <= len(ext) else args.snap_w) * 4
+        # pool slots carry their file name, so a match in progress at a rotation is restarted, not misfiled
+        ids = ext_names + [None] * len(snaps) if args.pool_dir and not args.fixed_opp else None
         for c in conns:
-            c.send((params, opp_models, weights, args.steps))
+            c.send((params, opp_models, weights, args.steps, False, ids))
         if sdk:
             publish_params(params, sdk_path)
-        batches = [local.collect(params, opp_models, weights, args.steps)]
+        batches = [local.collect(params, opp_models, weights, args.steps, False, ids)]
         batches += [c.recv() for c in conns]
         if sdk:
             nh = 0
