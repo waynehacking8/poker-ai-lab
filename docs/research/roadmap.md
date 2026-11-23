@@ -144,8 +144,13 @@ unpaired. The interval resolves a gain of about 4.4 points at 800 matches a side
 | E2 | real bots | Ashwing family, Wolf family, autodidact, SDK reference, seeded Blueprint; win rate and all-in adjusted chip EV per hand (`tools/chipflow.py`) | no family below the previous king |
 | E3 | exploitability | a fresh exploiter from the candidate, 400 iterations in the C engine, then 400 SDK matches against the candidate | lower is better; fb2-900 is 96.5% |
 | E4 | lineage | head to head against fb2-900, 400 seeded matches, seed 3 | at least the fb2-900 mirror on the same seeds (45.0%), with the Wilson interval reported |
+| E5 | extreme bots | jam, jam_half, jam_post, minraiser, station, maniac, lag and the other baselines (defined in S2b) | no opponent below v4's interval |
+| E6 | held-out styles | rule bots for the four 14.11 gap styles (raise then station, sticky over-bettor, tight then sticky, never folds preflop), plus `ext:ashwing`, `ext:ashwing_search`, `ext:ashwing_hive`, `ext:autodidact` and the Wolf family; none of them used in any training, tuning or selection of the candidate | better than the previous king on average, no cell below its interval |
+| E7 | real arena | the entered bot's Chipzen replays per opponent (Season 16 on), with the opponent's name seen or unseen before | the judge of record |
 
 A new king must hold E1, E2 and E4 and improve E3, or improve E2 with E3 no worse.
+Added 2026-11-23 (Revision 2): a method is called universal only when it improves E6, which it was never
+built or tuned on, and E7 confirms it.
 
 ## Budgets and stops (every slice)
 
