@@ -1019,3 +1019,34 @@ match-win utility; diagnosis tool `tools/x2s_ablate.py`. All runs fb2-900, 100 m
   b74030e has the search off by default. It plays byte for byte as c348a59, and the bot imports the search
   lazily, because the deployed image ships neither `rl/search.py` nor `rl/oppmodel.py`; a top-level import
   would have broken the next build (caught before the merge).
+
+### 14.17 X2r: rollout lookahead on the policy, with the true model
+
+Roadmap X2r. Tool: `tools/x2r_oracle.py` on holdem-x2r (df4e3c3; worktree `poker-ai-lab-x2r`, not merged).
+At each decision the policy acts as usual. For each candidate action, N rollouts rebuild the hand by
+replay, play the candidate, then finish the hand with a copy of the policy for us and a fresh StyleBot for
+them. The opponent's cards come from the exact posterior of its rules, the board is common across
+candidates, and the value is `win_prob` at the end of the hand. The hero overrides when the best paired
+gain beats Z standard errors.
+
+Tests (`tests/test_x2r.py`): the rebuilt spot equals the real GameState at every decision, rollouts leave
+the real hero, its tracker and the opponent untouched, and with N = 1 and no gate it plays exactly as the
+policy on 20 seeds. Eight mutations were caught.
+
+**N = 16, Z = 2 (300 matches per cell, seed 41; policy alone from the 14.16 judge on the same seeds):**
+
+| cell | off | on | difference [95%] | overrides |
+|---|---|---|---|---|
+| raise_station | 94.7 | 94.0 | -0.7 [-4.5, +3.2] | 8.9% |
+| sticky_overbettor | 83.0 | 83.0 | +0.0 [-6.0, +6.0] | 6.1% |
+| tight_sticky | 95.3 | 91.3 | -4.0 [-8.2, +0.0] | 7.5% |
+| never_fold_pre | 93.3 | 95.3 | +2.0 [-1.8, +5.9] | 7.8% |
+| pooled | 91.6 | 90.9 | -0.7 [-2.9, +1.6] | |
+
+* **No headroom found.** Matches got shorter: hands per win fell in every cell, for example 31.8 to 20.4
+  against tight_sticky. The win rate did not change.
+* **Caveat, power:** with 16 rollouts, a 2 standard-error gate and about 5 candidates, noise alone passes
+  the gate on roughly a tenth of the decisions, close to the observed 6 to 9%. Mean predicted gains per
+  override of 0.02 to 0.04 in match-win probability did not appear in the results, so the overrides are
+  mostly noise. A rerun with N = 128 and Z = 2.6 (corrected for about 5 candidates) is running in
+  `~/poker-ai-lab-x2r/logs/x2r_n128` (`tools/x2r_run.sh`).
