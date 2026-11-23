@@ -670,3 +670,58 @@ Everything later is judged with this, so it had to repeat exactly.
   The Ashwing bots and autodidact are not seeded. Over four seed-5 runs fb2-900 reads 1183/1600 (73.9%)
   against Ashwing and 1164/1600 (72.75%) against ashwing_search. Single runs spread about plus or minus two
   points.
+
+### 14.10 S2: the league with exploiters (roadmap S2)
+
+`tools/rl_s2.sh s2 ckpt/fb2/it000900.npz 300` (holdem-rl 8739676) on gb10-d, 2026-11-22 19:47 UTC to
+2026-11-23 00:50 UTC. It is the fb2 recipe with a pool of the 4 newest exploiters at `--pool-w 1.0`, plus
+`jam` and `jam_half` in the SDK round robin. An exploiter loop trained a fresh exploiter of the newest main
+weights every 4 to 5 minutes (400 iterations) and dropped it into the pool: 73 cycles. No stop condition fired.
+The run ended at max-minutes, at iteration 1835.
+
+* **Screens** (probe: train seed 1, eval seed 3; Ashwing pair at seed 5; pool statistics since the last
+  screen):
+
+  | iteration | probe | ashwing | ashwing_search | pool share | main against pool |
+  |---|---|---|---|---|---|
+  | 200 | 93.0 [90.1, 95.1] | 73.75 | 71.5 | 27.6% | 20.9% |
+  | 400 | 74.75 [70.3, 78.8] | 70.25 | 70.25 | 38.9% | 19.1% |
+  | 600 | 88.75 [85.3, 91.5] | 65.75 | 72.25 | 36.3% | 22.4% |
+  | 1800 | 74.5 [70.0, 78.5] | 72.0 | 72.5 | 34.9% | 24.3% |
+
+  ashwing at it600 sits under its line (69.5), but ashwing_search does not, so the tripwire (both under)
+  did not fire.
+* **The probe is noisier away from its ceiling.** On it400 the same nominal seeds gave 74.75 (screen) and
+  87.0 (card), and train seed 2 gave 82.0. Together that is 975 of 1200, 81.25%, though all three replay the same
+  400 deals (eval seed 3). On it600 train seeds 1 and 2 gave 88.75 and 89.75. Probe training is not
+  deterministic, and near 97% the binomial spread hid that. One probe cannot rank S2 checkpoints, so S2b
+  judges E3 on three fresh probes with their own eval seeds.
+* **The exploiters got weaker.** Their own win rate against their target, at the end of each 400-iteration
+  cycle, averaged 0.90 over cycles 1 to 10, 0.82 to 0.85 over cycles 11 to 50, 0.80 over cycles 51 to 60, and 0.77 over cycles 61 to 73.
+  Each target was the newest main agent, so the main agent got harder to exploit at a fixed budget.
+* **How a fresh exploiter wins now** (`tools/chipflow.py`, 400 matches, seed 3, each bot against its own
+  400-iteration probe exploiter):
+
+  | | fb2-900 | S2 it1800 |
+  |---|---|---|
+  | matches won | 2.8% | 24.0% |
+  | chips lost per hand | 2.51 bb | 0.84 bb |
+  | post-flop folds, net of the opponent's | -1.61M | -0.95M |
+  | showdowns | -1.02M over 2484 | -0.49M over 6370 |
+  | preflop all-ins after the bot's last raise: count, mean equity | 303, 0.369 | 353, 0.448 |
+  | turn all-ins after the bot's last raise: count, mean equity | 57, 0.309 | 91, 0.352 |
+
+  The leaks are the same as in 14.8 and smaller. The bot still folds too often after the flop, and its
+  shoves are called by better hands. The exploiter against S2 raises first 37.1% preflop, against 21.6%
+  for fb2-900's exploiter.
+* **Card at it400** (`logs/eval_card/s2-it400.json`) against the fb2-900 card: Ashwing 73.5, search 71.0,
+  hive 83.0, v2 84.75; Wolf 95.0, v1 98.0, v2 97.0, v5 95.0, SDK reference 98.25; autodidact 74.5; Blueprint
+  59.25 at +0.27 bb per hand (59.0 and +0.25). All are within the baseline's intervals. E3 87.0. E4 44.75%
+  [40.0, 49.6] against the 45.0 mirror, so the head to head against the entered policy is level.
+* **Verdict:** acceptance not met. E3 needs a probe under 70%, and the lowest was 74.5. Nothing else got
+  worse. The trend in the exploiters' rates and in the chip flow says the run was still improving, so the
+  next step is S2b, which resumes S2 (roadmap).
+* **Bookkeeping fix after the run** (holdem-rl a0ba32c, from the S2 code review): the pool rotated at
+  `it % 10 == 0`, inside a 5-iteration log window, so 4 of every 5 iterations around a rotation were
+  credited to the wrong file. Rotation now happens right after a log row. The state also saves per-file pool
+  win rates, so a resume keeps them. The screen's pool share counts matches, not files, so it is unaffected.

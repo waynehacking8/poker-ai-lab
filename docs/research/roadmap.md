@@ -238,6 +238,72 @@ stop condition 2.
 poker-ai-lab-v4 (image sha256 0291ee39...) stays entered until Wayne approves a swap, and poker-ai-lab-v3
 stays uploaded.
 
+**Result (2026-11-23, experiments 14.10):** no stop fired, and the run ended at max-minutes (iteration
+1835). Acceptance is not met, because E3 stayed above 70%. Screen probes read 93.0, 74.75, 88.75 and 74.5
+at iterations 200, 400, 600 and 1800, and probes repeated on one checkpoint spread from 74.75 to 87.0. The
+Ashwing pair never fell below both lines at once: ashwing read 65.75 to 73.75 (65.75 at it600) and
+ashwing_search 70.25 to 72.5. The it400 card matches the fb2-900 card within its
+intervals, and E4 at it400 reads 44.75 against the 45.0 mirror. The exploiters' own end-of-cycle win rate
+fell from 0.90 (cycles 1 to 10) to 0.77 (cycles 61 to 73). Against a fresh 400-iteration exploiter, the
+chip loss fell from 2.51 bb per hand (fb2-900) to 0.84 (it1800). The leaks are the same ones, smaller:
+post-flop folds, and shoves called by better hands.
+
+### S2b. Continue S2 (revision 1)
+
+S2 was still improving when the clock ran out, so S2b resumes it for another 300 minutes under the same
+recipe. The only recipe change is the bookkeeping fix of holdem-rl a0ba32c: the pool rotates right after a
+log row, so each file's win rate gets its own matches. E3 becomes a pooled probe, because single probes of
+one checkpoint spread about 12 points.
+
+**Owned files** (holdem-rl): `tools/rl_s2.sh`, `tools/s2_exploiters.sh`, `tools/s2_screens.sh`, new
+`tools/probe_pool.py`, `tools/README.md`.
+
+**Non-goals:** no change to `rl/train.py`, the C engine, the features, the network or the recipe flags. No
+upload.
+
+1. **`rl_s2.sh OUT INIT [MINUTES] [FROM]`.** Without FROM nothing changes. With FROM, a finished S2 run:
+   * It refuses unless `logs/FROM/end.txt` and `ckpt/FROM/state.pt` exist and `ckpt/OUT` does not.
+   * It copies `ckpt/FROM/state.pt` to `ckpt/OUT/state.pt` (temp name, then rename). `rl/train.py` resumes
+     from it: weights, optimizer, self-play snapshots, win rates and iteration count. INIT is then unused.
+   * It copies the last 4 files of `pool_FROM`, by name, into `pool_OUT` (temp names, then renames)
+     instead of x000.
+   * The exploiter loop starts at cycle START, one past the number of the last copied file, so new files
+     sort after the copied ones and the pool keeps the 4 newest.
+   * Screens run at IT0 + 400, + 800, + 1200 and + 1600, rounded up to a multiple of 100, where IT0 is the
+     state's iteration. When the run ends past the last one, the last checkpoint is screened as before.
+   * The S2 state predates a0ba32c and carries no per-file pool win rates, so the 4 copied files start
+     at 0.5 until the moving average catches up (a few log rows).
+2. **`s2_exploiters.sh MAIN_PID MAIN_OUT POOL [CYCLES] [START]`.** Cycles run from START (default 1). It
+   refuses to start if `POOL/x{START}.npz` exists.
+3. **`s2_screens.sh MAIN_PID OUT [ITERS]`.** ITERS is the list of screen iterations (default `200 400 600`).
+   Stop condition 1 stays tied to iteration 400, so it cannot fire in S2b.
+4. **`tools/probe_pool.py NAME...`** prints the pooled win rate, match count and Wilson 95% interval of the
+   named `logs/exploit_probe/NAME.json` files.
+
+Started as `rl_s2.sh s2b ckpt/fb2/it000900.npz 300 s2` once the S2 it1800 card has finished.
+
+**Budget:** 300 minutes of main training with the loop and screens, at most 6 box-hours on gb10-d, plus three
+fresh probes for the candidate (about 7 minutes each).
+
+**Stop conditions:** S2's condition 2 (field cost, the same Ashwing lines) and condition 3 (crash).
+
+**Acceptance.** The candidate is the screened checkpoint of S2 or S2b with the lowest screen probe whose
+screen did not trigger condition 2. The screen probe only picks it: as the minimum of about nine noisy
+probes it reads low, so it is left out of E3.
+* **E3:** three fresh probes of the candidate C (`ckpt/R/itN.npz`, screen name `R_itN`), each with its own
+  train seed and its own eval seed. Every screen probe used eval seed 3, so the same 400 deals would carry
+  the selection's luck, and the fresh probes never use seed 3:
+  `bash tools/exploit_probe.sh C C R_itN_fS S 1S` for S = 2, 3, 4 (eval seeds 12, 13 and 14). S2's
+  existing `_t2` probes (eval seed 3) do not count. `python tools/probe_pool.py R_itN_f2 R_itN_f3 R_itN_f4`
+  gives the pooled rate over the 1200 matches, which must be under 70%.
+* **E1, E2 and E4** as in S2.
+* A fresh verifier confirms the claim. A swap is then put to Wayne.
+
+If E3 is still not met, the finding is recorded, and S3 starts from S2b's final weights.
+
+**Rollback:** every new argument is optional, and the old calls behave as in S2. poker-ai-lab-v4 stays
+entered.
+
 ### S3. Showdown memory (step 2, part 1)
 
 * **New tracker statistics** from cards shown at showdown, by street and bet size. Example: shown hand
