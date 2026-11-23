@@ -1,6 +1,39 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-22 18:50 UTC.
+Updated 2026-11-23 02:55 UTC. Read "Now" first; the session context is compacted often, so this file is
+the working memory. Update it at every step that changes state.
+
+## Now
+- **Wayne, 2026-11-23:** "The biggest fault that you made is thinking too narrowly"; reason from first
+  principles. English only in this project, replies included. He accepts my recommendations when I judge
+  them worth it (swaps still need his yes; chipzen.ai rate rules hold).
+- **Plan: roadmap Revision 2** (`docs/research/roadmap.md` in the -research worktree, NOT committed until
+  review passes). Levers: the floor (E3; S2, S2b), exploitation through an explicit opponent model plus a
+  decision procedure (X1 model, X2 search with a safety blend), and real-arena measurement (M3: Season 16
+  replays of v4). Headroom is measured first (M1). Review 1 (02:50 UTC): REVISE, 4 blockers: X1 per-name
+  check must compare against prior plus in-match; X1 held-out subsets, counts, minimum sizes, train-only
+  fitting; M1 needs one statistic that 400 matches resolve, and a miss is inconclusive, not "floor leads";
+  X1 runtime measured at 0.5 vCPU and 256 MB with a percentile. Fixing, then a fresh review (cap 2).
+- **Running on gb10-d:**
+  1. S2b (main pid 18898), ends about 06:56 UTC plus a final screen; `logs/s2b/` (screen_itNNNNNN.verdict,
+     STOP, end.txt). Screens at 2300, 2700, 3100, 3500.
+  2. M1 best-response runs since 02:41 UTC, 90 minutes each, holdem-rl d643881:
+     `bash tools/rl_br.sh br_ashwing ckpt/fb2/it000900.npz ext:ashwing 90 3`, and `br_autodidact` with
+     `ext:autodidact`. Logs `logs/br_*.out`, checkpoints `ckpt/br_*/`. ext:autodidact is slow: no first row
+     after 3 minutes.
+  3. `logs/m1_eval.sh` (from the session scratchpad, not in git yet) waits for both runs, then plays
+     fb2-900, br_ashwing and br_autodidact against ext:ashwing and ext:autodidact, 400 matches, seed 21,
+     into `logs/m1/*.jsonl`, marker `logs/m1/done`. ext: bots are unseeded, so comparisons are unpaired.
+- **Done 2026-11-23:** style map (holdem-rl 3ef434e `tools/style_map.py`; research 14.11: 12 of 51 field
+  bots play 4 styles no opponent of ours plays; data `logs/style/` on gb10-d). Protocol fact: match_start
+  `seats[].display_name` is the opponent bot's platform name (chipzen-sdk TRANSPORT-PROTOCOL.md, aa8c55c);
+  `participant_id` changes every match.
+- **Correction owed to Wayne:** 140 of 330 poker replays (42%) end before hand 21, median 26. I had told him
+  most matches end before the first blind step.
+- **Next:** fix the review, second review, commit the roadmap; read M1 and apply its rule; then X1 or the
+  floor. After S2b ends: three fresh probes `R_itN_f2/f3/f4`, `tools/probe_pool.py`, E1, E2, E4, E5, a fresh
+  verifier, and Wayne's yes before any swap. From 24 Nov: fetch v4's Season 16 replays for M3 (one fetcher,
+  stop on the first 429).
 
 ## Goal and gate
 - Heads-up NLHE bot for Chipzen.ai Season 16. Registration closes Mon 23 Nov 23:59 UTC.
@@ -81,10 +114,9 @@ exploitability (E3) is a primary metric next to the league and the real bots.
    second REVISE fixed, then capped; code verifier CONFIRMED after the rotation restart fix (0670e94).
    S2's it1800 is the best so far: E4 53.25 against the 45.0 mirror, card probe 71.0 (screen 74.5).
    Acceptance adds E5, the extreme bots, no worse than v4 (`logs/allin/fb2_900_on.jsonl`).
-   Next after S2b: a style map of the real field against our training pool (diversity coverage), then a
-   diversity slice (quality-diversity style grid, diverse exploiters, league exploiters); Wayne asked
-   2026-11-23 how diverse opponents are generated. E3 for the candidate uses three fresh probes
-   `R_itN_f2/f3/f4` (train seeds 2 to 4, eval seeds 12 to 14) and `tools/probe_pool.py`.
+   The style map is done (see Now); the diversity slice was replaced by roadmap Revision 2. E3 for the
+   candidate uses three fresh probes `R_itN_f2/f3/f4` (train seeds 2 to 4, eval seeds 12 to 14) and
+   `tools/probe_pool.py`.
 1. Swap again only if a candidate beats rl-fb2-900 on the real field bots and ties or beats it on both gates, on fresh seeds; ask Wayne first.
 2. rl-h4-900 (holdem-rl 4500e65): league FAIL 22/23 (A5 79.8; holdem-league f5441a0), h2h vs h4-300 60.5,
    heuristic 72.0. Not a swap candidate. Lesson: A5 sits on the 80% line; same-seed screening overstates.
