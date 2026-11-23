@@ -146,7 +146,9 @@ the working memory. Update it at every step that changes state.
   oracle-range (oracle range + X1Bot) and x1-range (X1 range + true StyleBot); tools/x2m_ablate.sh in
   ~/poker-ai-lab-x2m, seed 43 rule cells, N=128 Z=2.6, logs/x2ma_{oracle_range,x1_range}, marker
   logs/x2ma_done (~2 h). Read: paired_stats vs oracle rows (~/poker-ai-lab-x2r/logs/x2r_s43_on) and vs off
-  (x2m43_rule_off == x2r_s43_off, 1200/1200 identical). Outcome verifier on cf0a867 running in background.
+  (x2m43_rule_off == x2r_s43_off, 1200/1200 identical). Outcome verifier on cf0a867: CONFIRMED (oracle and
+  x1 byte-identical to 5ee89f5 over 120 matches; 6 of 7 mutations killed; gap: x1-range StyleBot seed not
+  pinned, same line as the oracle arm, accepted).
   Mutations: arms swapped, X1Bot from X1 range, gate z=2 all KILLED; no-sync-at-decide equivalent.
   NEXT: X3 = lam model (draft in scratchpad x3_draft.md, goes to roadmap after the ablation read):
   P(k|h,s) = lam*band + (1-lam)*X1 p_k, keeps X1 frequencies for every lam; lam from showdowns (Chipzen
