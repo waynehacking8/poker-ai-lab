@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 07:22 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 07:35 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -96,6 +96,13 @@ the working memory. Update it at every step that changes state.
 - **M1b DONE 06:47 UTC (research 2f9bb6c):** br_mix vs ext:autodidact 87.25%: +8.0 [2.8, 13.2] over fb2, -3.0
   [-7.4, 1.4] under br_autofast. One net keeps most of both exploits on half the data each -> X2 as one policy
   on a broad population is supported.
+- **RE-CENTERED 2026-11-23 ~07:35 UTC (Wayne: the point is UNIVERSAL, as asked at the start, with the limits I
+  listed):** X2b's grid arms repeated the narrow move (enlarge a reactive policy's opponent list). X2 is back
+  to search under X1 + safety blend (research f56fc6b, roadmap 'Correction'). X2b TRAINING ARMS NOT RUN; its
+  code (style grid, held-out judge, profile eval) is kept as the test bed. Next: X2s spec covering the five
+  listed limits (ranges from action model via frequency matching, leaf values, 1 s at 0.5 vCPU, confidence
+  gated safety, match-win objective), grounded in literature and open-source code, then review, build.
+  Progress is read against ceilings, not v4 (roadmap Revision 2 table, research 000f1ed).
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
