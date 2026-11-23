@@ -71,12 +71,14 @@ exploitability (E3) is a primary metric next to the league and the real bots.
 
 ## Open work
 0. S1 done (research 14.9, baseline card `logs/eval_card/fb2-900.json` on gb10-d; verifier CONFIRMED).
-   S2 running since 2026-11-22 19:47 UTC on gb10-d: `tools/rl_s2.sh s2 ckpt/fb2/it000900.npz 300` (holdem-rl
-   8739676), pool `pool_s2`, logs `logs/s2/` (screens at it 200/400/600, end reason in `logs/s2/end.txt`).
-   Verifier CONFIRMED the code; five non-breaking fixes wait until S2 ends (never edit a running script):
-   flush the PFSP window when the pool changes (rotation misattributes 4 of 5 iterations), read the arrays
-   in the target check, never overwrite an existing STOP, use exit 20 for stop 2 (python's own exit 2 is
-   ambiguous), keep restored pool win rates on resume.
+   S2 done (research 14.10): ran 2026-11-22 19:47 to 2026-11-23 00:50 UTC, ended at max-minutes (it 1835),
+   no stop. Probe 96 to 97% fell to 74.5 to 89.75%, field and E4 level, so acceptance (E3 under 70%) is not
+   met and v4 stays. The five review fixes are in holdem-rl a0ba32c. Cards on gb10-d:
+   `logs/eval_card/s2-it400.json`, `s2-it1800.json`; chip flow against probe exploiters in `logs/s2/flow/`.
+   Next is S2b (roadmap, plan reviewed twice, second REVISE fixed, then capped): resume S2 for 300 minutes with
+   `bash tools/rl_s2.sh s2b ckpt/fb2/it000900.npz 300 s2` (holdem-rl 2e46a35; resumes at it 1836, pool
+   x070 to x073, cycles from 74, screens 2300 2700 3100 3500). E3 for the candidate uses three fresh probes
+   `R_itN_f2/f3/f4` (train seeds 2 to 4, eval seeds 12 to 14) and `tools/probe_pool.py`.
 1. Swap again only if a candidate beats rl-fb2-900 on the real field bots and ties or beats it on both gates, on fresh seeds; ask Wayne first.
 2. rl-h4-900 (holdem-rl 4500e65): league FAIL 22/23 (A5 79.8; holdem-league f5441a0), h2h vs h4-300 60.5,
    heuristic 72.0. Not a swap candidate. Lesson: A5 sits on the 80% line; same-seed screening overstates.
@@ -108,7 +110,8 @@ exploitability (E3) is a primary metric next to the league and the real bots.
   `deploy/hf_package.sh`, or the image fails on import.
 - Live NLHE round_start `stacks` are post-blind; take hand-start stacks from the previous round_result.
 - ~/poker-ai-lab-rl on gb10-d is a copied tree (no git, CRLF files): sync every changed file, deploy/ included.
-  A CRLF shell script there fails at once (`.venv/bin/activate`): check `file x.sh` after syncing.
+  A CRLF shell script there fails at once (`.venv/bin/activate
+`): check `file x.sh` after syncing.
   Images are built from `git archive HEAD` by `deploy/build_on_box.sh`, not from that tree.
 - `ext:` field bots are unseeded, so on/off runs against them differ by chance; `model:`, `policy:` and
   bpopp:v011 are seeded per match (holdem-rl acb29e9) and repeat byte for byte.
