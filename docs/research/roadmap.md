@@ -206,6 +206,36 @@ all-in decisions" was my own strawman, while the planned X2 (New order, item 3) 
 * **Next:** the X2s spec, grounded in the cited work and open-source implementations, then review and
   build.
 
+### X2s. Search under X1: the smallest end-to-end version
+
+Wayne (2026-11-23): "do it clean and tidy, do not overdesign, it might cause a local optimum, not the
+global." So X2s is the simplest complete loop of the universal design: measure it, then improve only the
+part the numbers show is weakest.
+
+* **At each of our decisions,** for each legal action in the policy's action table, a one-street chip EV:
+  * **Opponent range:** weights over the opponent's possible hole cards, uniform at hand start. After each
+    opponent action, X1 gives the five class probabilities at that state; the opponent's combos are ranked
+    by strength (preflop percentile `nlhe.preflop.PCT`; postflop evaluator rank on the board); the band the
+    action falls in (bottom for fold, top for raises, the middle for check or call, in X1's proportions)
+    keeps weight 1, all other combos weight 0.1 (bluffs and model error).
+  * **EV:** fold 0; check or call `c`: `q * (pot + c) - c`, with `q` our equity against the range (200
+    Monte Carlo runouts); bet or raise putting in `r`: `f * pot + (1 - f) * (q' * (pot + 2r) - r)`, with `f`
+    X1's fold probability for the opponent facing that bet, and `q'` our equity against the range's top
+    `1 - f` (the part that continues). Later streets are ignored.
+* **Safety blend:** play the argmax only when X1 has evidence (a named profile, or at least 10 opponent
+  actions this match) and its EV beats the policy's own choice by more than 0.05 of the pot; otherwise the
+  policy plays.
+* **Code:** `rl/search.py` (range, equity, EV, choice, and the public state X1 reads, built from the SDK
+  state); `RLBot(search=True)`, off by default; `tests/test_search.py` (range update, EV signs on
+  constructed spots, the blend, and that `search=False` plays byte for byte as before).
+* **Measure:** fb2-900 with and without search, through X2b's held-out judge (the six `ext:` cells and the
+  four rule cells, 300 matches each, seed 31), plus E5 (seeded, 400 each). Decision time p99 at 0.5 vCPU.
+  Each search decision is logged (state, chosen versus policy action, EV gap) for diagnosis.
+* **Read:** the held-out score difference (Newcombe 95%) and the share of the M1 specialist gap closed on
+  Ashwing and autodidact. Whatever the result, the decision log names the weakest part (range, equity, X1's
+  fold estimates, or the one-street horizon), and that part is the next change.
+* **Budget:** build and tests about 3 hours; judge about 3 box-hours. Nothing is deployed.
+
 ### X2a. Name-seeded opponent counts in both engines
 
 * **Outcome:** a per-name table of the tracker's counts (all `NST` slots) from the replays, a way to seed a match's
