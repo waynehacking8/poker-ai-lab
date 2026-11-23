@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 11:40 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 11:50 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -133,7 +133,10 @@ the working memory. Update it at every step that changes state.
   NEXT X2m (roadmap 1d4a373): --model x1 in x2r_oracle.py (Search range + X1Bot band-inverse opponent),
   rule cells paired + 6 ext: cells unpaired, N=128 Z=2.6 seed 41. Spec e27b4ff (2 reviews, cap reached;
   last fixes mechanical, applied as prescribed). EXECUTOR building since 11:40 UTC in the x2r worktree, box
-  dir ~/poker-ai-lab-x2m (NOT x2r), smoke cores 0-1, reports cost-gate projections; I launch the run after
+  dir ~/poker-ai-lab-x2m (NOT x2r). BUILT 4d9c1ed (7 tests, 3 mutations). Cost gate STOP: ext 10.30 h > 9 h
+  (rule 3.71 h). 65% of time = rl/features hand_strength in rollouts; memoized in the tool f6777b8 (exact,
+  test). Re-smoke logs/x2m_smoke2 (cores 0-1, marker /tmp/x2m_s2_done) must give identical decisions and
+  a projection under the limits; then I launch the run after
   the confirmation passes. If confirmation fails: stop X2m, record, rethink.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
