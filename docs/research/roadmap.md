@@ -278,47 +278,73 @@ measures the headroom with the true model before any runtime or model work.
 ### X2m. Does the lookahead hold with the opponent model we have? (X1 in place of the oracle)
 
 14.17: with the true model, rollouts on top of the policy add +3.8 [+1.9, +5.8] pooled on the four rule cells
-(N = 128, Z = 2.6, chosen after the N = 16 run; a fresh-seed confirmation is pending and gates this step). The
-deployed bot does not have the rules, it has X1. X2m changes only the model: X1 in place of the oracle, with
-the same rollouts and gate, and it adds the six `ext:` cells, which the oracle could not reach.
+(N = 128, Z = 2.6, chosen after the N = 16 run). The deployed bot does not have the rules, it has X1. X2m
+changes only the model: X1 in place of the oracle, with the same rollouts, N, Z and gate (no evidence
+condition, as in 14.17). It also adds the six `ext:` cells, which the oracle could not reach.
 
-* **Tool** (`tools/x2r_oracle.py`, offline, nothing deployed): `--model x1` (default `oracle`, unchanged).
-  Under `x1`:
-  * the root range and X1's in-match counts are `rl.search.Search`'s, fed by the hooks the deployed `RLBot`
-    uses (`start_match` with the opponent's display name, `finish_hand` at round_result). Its one-street
-    override is not applied.
-  * the rollout opponent is an `X1Bot` built per rollout from the root range. At each of its decisions it
-    takes X1's class probabilities p for the public state (predict only: rollouts never call `observe`), and
-    its hand's quantile u in its current range by strength on the current board (`ranked` in rl/search.py).
-    It plays the class whose band holds u, the inverse of `update_range`: from the bottom, fold, call, raise
-    up to the pot, above the pot, all-in. Then its range copy is updated with `update_range`. A fold with
-    nothing to call is a check; the raise classes put in 0.75 and 1.5 times the pot after the call beyond
-    the call, clipped to the legal range; a class that is not legal plays call.
-  * the gate is X2r's (Z standard errors of the paired gain) and, as in the deployed search, an override
-    needs evidence (`Search.has_evidence`: a named profile or 10 opponent actions in this match).
-  * the same hero runs in `rl.eval_arena` for the `ext:` cells, with the same decision log.
-* **Checks before the run:**
-  1. under `x1`, N = 1 still plays exactly as the policy (20 seeds);
-  2. `X1Bot` is the inverse of the range update: on fixed public states with a uniform range, its action
-     frequencies over the combos match p within Monte Carlo error;
-  3. a decision's rollouts leave X1's in-match counts, the root range and everything X2r's test 1 checks
-     unchanged.
-* **Measure:** N = 128, Z = 2.6, seed 41, 300 matches per cell. The four rule cells are read paired
-  against the judge's `rows_off.jsonl` (`tools/paired_stats.py`); the six `ext:` cells unpaired against the
-  judge's `off.jsonl` (Newcombe, `tools/x2s_stats.py`), since those bots are unseeded.
+* **Prerequisite:** the seed 43 confirmation of 14.17 (`logs/x2r_s43_on`). If its pooled paired 95% lower
+  bound (`tools/paired_stats.py`) is not above zero, X2m is not run: the code may be built, the result is
+  recorded and the plan is revised.
+* **Files:** `tools/x2r_oracle.py`, `tests/test_x2r.py`, `tools/x2r_run.sh`, one line in `tools/README.md`.
+  Nothing else changes.
+* **Tool:** `tools/x2r_oracle.py --model x1` (default `oracle`, unchanged). Under `x1`:
+  * the root range and X1's in-match counts are an `rl.search.Search` (with `OppModel.load(OPPMODEL)`) driven
+    by the hooks `RLBot` uses: `start_match(name, me, stack)` with `name = None`, the literal value both
+    harnesses give, since their match_start carries no display name (holdem/engine.py), `_new_hand` and the
+    hand-start stacks at round_start, `finish_hand` at round_result, and `_sync` before each decision. Its
+    one-street override is not applied. With no name, X1 is its population prior plus this match's counts.
+  * the rollout opponent is an `X1Bot`, created per rollout with a copy of the root range w. At each of its
+    decisions:
+    1. the public state comes from a fresh `HandTracker` replayed over the rollout state's whole
+       action_history (both seats; raise-to converted to chips added and the level big blind, exactly as
+       `Search._sync` does); X1 is used through `predict` only, never `observe`;
+    2. u is its own combo's quantile from `ranked(w, strength(board), dead)` with dead = the hero's hole
+       cards plus the current board, the same dead set as `Search._sync` (strength arrays cached per board
+       for the decision);
+    3. it plays the band class k: the class with sum(p[:k]) <= u < sum(p[:k+1]) (all-in when u is past the
+       top), from the bottom fold, call, raise up to the pot, above the pot, all-in;
+    4. class to action: fold, but check when nothing is to call; call or check; raise-to with extra chips
+       of 0.75 (class 2) or 1.5 (class 3) times the pot after the call beyond the call, clipped to the legal
+       raise range; all-in; a raise class that is not legal plays call;
+    5. its range copy is updated with `update_range(w, p, c, strength(board), dead)`, where c is
+       `classify` of the action actually played, the class the root `Search` would assign to it.
+  * gate: X2r's, unchanged (Z standard errors of the paired gain).
+  * `--opp` also accepts `ext:<name>` under `x1` only: the opponent is `functools.partial(rl.field_bots.build,
+    name)` passed to `holdem.arena.run_arena`, as `rl.eval_arena` does for the judge.
+  * `x2r_run.sh` takes `MODEL` (default `oracle`) and `CELLS` (default the four rule cells) as env.
+* **Checks before the run** (`tests/test_x2r.py`):
+  1. under `x1`, N = 1 plays exactly as the policy (20 seeds), and X2r's test 1 holds under `x1`, plus X1's
+     in-match counts and the root range are unchanged by a decision's rollouts;
+  2. the inverse property, exact: on a non-uniform range and a postflop board, for every live combo h with
+     band class k(h), `update_range(w.copy(), p, k, ...)` keeps h's weight and multiplies it by OUTSIDE for
+     every other k (equality to 1e-12). It must fail on three mutations: reversed band order, the opponent's
+     own hole cards in the dead set, and a range update with the band class where the played class differs
+     (a fold with nothing to call, a clipped raise that `classify` calls all-in).
+* **Cost gate:** a smoke on gb10-d cores 0-1 (2 workers, 4 matches against raise_station and 4 against
+  ext:ashwing, x1, N = 128) records seconds per decision. The projection uses the judge's off-arm hands per
+  cell (rule cells 24k hands in all, `ext:` cells 67k) at the smoke's decisions per hand. Budget: rule cells
+  2.5 box-hours, `ext:` cells 6. If either projection exceeds 1.5 times its budget, the full run is not
+  launched and the plan is revised.
+* **Run** (gb10-d, cores 4-19, after the prerequisite and the cost gate; one chain, rule cells first):
+  * `N=128 Z=2.6 MODEL=x1 OUT=logs/x2m_rule bash tools/x2r_run.sh`
+  * `N=128 Z=2.6 MODEL=x1 OUT=logs/x2m_ext CELLS="ext:ashwing ext:ashwing_search ext:ashwing_hive
+    ext:autodidact ext:wolf ext:wolf_v5" bash tools/x2r_run.sh`
+  * Each OUT holds on.jsonl, rows_on_<cell>.jsonl, dec_<cell>.jsonl, the judge's off.jsonl and stats.txt.
 * **Read, pre-registered:**
-  * `ext:` pooled lower bound above zero: the universal procedure gains on real bots. Next come the runtime
-    (0.5 vCPU, about 1 s a decision; the offline cost is about 3 s) and the full card on fresh seeds.
-  * rule cells above zero but `ext:` not: X1 stands in for the rules but not for real bots, so the model is
-    the bottleneck (limit 1, ranges by frequency matching). The oracle tool stays the reference.
-  * rule cells not above zero: the X1 model fails even on rule bots. One ablation splits it: oracle range
-    with `X1Bot`, and X1 range with the true StyleBot.
-  * The share of the oracle's headroom X1 keeps (rule-cell difference over +3.8) is reported either way.
-* **Budget:** build about 3 hours (tests on the PC, smoke on gb10-d cores 0-1 while the confirmation runs);
-  the run on cores 4-19 after it: rule cells about 2.5 box-hours, `ext:` cells at most 6.
+  * R: the pooled 95% lower bound of `paired_stats.py ~/poker-ai-lab-x2s/logs/x2s_judge/rows_off.jsonl
+    logs/x2m_rule/rows_on_*.jsonl` is above zero.
+  * E: the pooled Newcombe 95% lower bound of `x2s_stats.py logs/x2m_ext` is above zero (unpaired: the `ext:`
+    bots are unseeded).
+  * E holds (with R or not): the universal procedure gains on real bots under the model we have. Next come
+    the runtime (0.5 vCPU, about 1 s a decision) and the full card on fresh seeds.
+  * E fails, R holds: X1 stands in for the rules but not for real bots, so the model is the bottleneck (limit
+    1, ranges by frequency matching), with the oracle tool as the reference.
+  * E fails, R fails: the X1 model fails even on rule bots. One ablation on the rule cells splits it: the
+    oracle range with `X1Bot`, and the X1 range with the true StyleBot.
+  * Reported either way: the rule-cell difference over +3.8, the share of the oracle's headroom X1 keeps.
 * **Known limits:** `X1Bot` never bluffs beyond its bands and uses two fixed raise sizes, so against bots that
-  bluff or size by hand, its continuation is a simplification; the read separates that from the range by the
-  ablation above.
+  bluff or size by hand its continuation is a simplification; the ablation separates that from the range.
+  With no name, X1 starts every match from the population prior; on Chipzen a named profile can do better.
 
 ### X2a. Name-seeded opponent counts in both engines
 
