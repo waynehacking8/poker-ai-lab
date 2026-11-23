@@ -5,10 +5,10 @@
 # applies stop conditions 1 and 2; on a stop this writes logs/OUT/STOP (never over an existing one) and kills
 # the main run.
 #
-#   bash tools/s2_screens.sh MAIN_PID OUT
+#   bash tools/s2_screens.sh MAIN_PID OUT [ITERS]        ITERS: screen iterations, default "200 400 600"
 set -u
 cd ~/poker-ai-lab-rl && . .venv/bin/activate
-MAIN=$1; OUT=$2; C=ckpt/$OUT; L=logs/$OUT; prev=0
+MAIN=$1; OUT=$2; ITERS=${3:-200 400 600}; C=ckpt/$OUT; L=logs/$OUT; prev=0
 mkdir -p $L
 stopit() { echo "$(date -u +%FT%TZ) STOP $1"; (set -C; echo "$1" > $L/STOP) 2>/dev/null; kill $MAIN 2>/dev/null; exit 0; }
 screen() {  # ITER
@@ -32,7 +32,7 @@ screen() {  # ITER
   esac
   prev=$1
 }
-for it in 200 400 600; do
+for it in $ITERS; do
   while [ ! -f $C/it$(printf %06d $it).npz ]; do
     [ -f $L/STOP ] && exit 0
     kill -0 $MAIN 2>/dev/null || break 2
