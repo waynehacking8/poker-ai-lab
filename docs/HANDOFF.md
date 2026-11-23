@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 20:55 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 21:05 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -142,8 +142,16 @@ the working memory. Update it at every step that changes state.
   hive -5.3, autodidact +1.0, wolf +1.3. R fails again: -4.6 [-6.6,-2.6] (sticky_overbettor -13.3,
   raise_station -7.7). Research 14.18 046e99e. VERDICT: lookahead with X1 is NOT a candidate; procedure is
   sound (oracle +4.2 confirmed), the model is the limit. holdem-x2r stays unmerged (5ee89f5).
-  NEXT: roadmap spec for X3 = card-conditioned opponent model (what each action means for the hand),
-  judged first by plugging it into the X2r rollouts in place of X1 (oracle = ceiling, X1 = floor).
+  ABLATION RUNNING since 21:02 (pre-registered, roadmap 3ff744d): holdem-x2r cf0a867 adds --model
+  oracle-range (oracle range + X1Bot) and x1-range (X1 range + true StyleBot); tools/x2m_ablate.sh in
+  ~/poker-ai-lab-x2m, seed 43 rule cells, N=128 Z=2.6, logs/x2ma_{oracle_range,x1_range}, marker
+  logs/x2ma_done (~2 h). Read: paired_stats vs oracle rows (~/poker-ai-lab-x2r/logs/x2r_s43_on) and vs off
+  (x2m43_rule_off == x2r_s43_off, 1200/1200 identical). Outcome verifier on cf0a867 running in background.
+  Mutations: arms swapped, X1Bot from X1 range, gate z=2 all KILLED; no-sync-at-decide equivalent.
+  NEXT: X3 = lam model (draft in scratchpad x3_draft.md, goes to roadmap after the ablation read):
+  P(k|h,s) = lam*band + (1-lam)*X1 p_k, keeps X1 frequencies for every lam; lam from showdowns (Chipzen
+  shows both hands at all 4,545 replay showdowns, no muck: reveal depends only on actions, no censoring
+  correction). Exploration: preflop raise AUC per bot 0.68 (hoops) .. 0.97 (DeepStack), 0.76 pooled.
 - **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
   arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
   6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
