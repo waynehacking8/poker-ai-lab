@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 06:30 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 07:05 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -93,6 +93,13 @@ the working memory. Update it at every step that changes state.
 - **M1b half (06:28 UTC):** br_mix vs ext:ashwing 666/800 = 83.25%: +7.75 [3.8, 11.7] over fb2, -7.0 [-10.3, -3.7]
   under br_ashwing. Confound: br_mix ran 455 iterations with 4 SDK workers split over two bots (about half
   br_ashwing's Ashwing data). Autodidact half running (about 25 min).
+- **M1b DONE 06:47 UTC (research 2f9bb6c):** br_mix vs ext:autodidact 87.25%: +8.0 [2.8, 13.2] over fb2, -3.0
+  [-7.4, 1.4] under br_autofast. One net keeps most of both exploits on half the data each -> X2 as one policy
+  on a broad population is supported.
+- **X2b SPEC written (research 64c0ae4):** GridStyle `stylegrid` (20 params, reject within R=0.6 of E6 bots),
+  arms base / grid / grid+seeded from fb2-900, 180 min, 6 cores each, all --bot-clones; judge on E6 (4 rule +
+  6 field cells) and a seeded-vs-unseeded clone check. Training waits until today's swap acceptance runs end.
+  Plan review 1 running since 07:0x UTC.
 - **S2b screen 3100:** probe 82.25% [78.2, 85.7], Ashwing 73.25, search 74.5, no stop. S2b screens 79.25, 77.75,
   82.25 are all above S2's best (it1800 74.5, it400 74.75): continuing the recipe is not lowering the probe.
   Candidate is S2 it1800 unless screen 3500 or the end beats 74.5. Acceptance after S2b ends (about 07:00):
