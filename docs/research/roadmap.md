@@ -386,9 +386,12 @@ fails", so the ablation runs: it splits X1's loss on the rule cells between the 
 * **The λ model** (a reveal model on top of a frequency model p): P(class k | combo h, spot s) = λ · b_k(h) +
   (1 - λ) · p_k(s), where b_k(h) is the fraction of combo h inside band k. The band is cut on this range as
   `update_range` cuts it (classes from the bottom: fold, call, raise up to the pot, above the pot, all-in;
-  widths p), but fractionally: each live combo covers the interval of its weight in the cumulative weight,
-  and a combo that straddles an edge counts for the part inside. So the band holds exactly the share p_k of
-  the range.
+  widths p), but fractionally and by strength groups: the live combos of equal strength form one group (the
+  suit variants of a preflop hand class, or a tie on the board), each group covers the interval of its
+  pooled weight in the cumulative weight, and every member gets the fraction of the group's interval inside
+  the band. So the band holds exactly the share p_k of the range, and no combo's weight depends on its index.
+  R1 and R2 keep today's cut (`update_range`: midpoint quantile, ties by combo index), so the band rows and
+  the λ rows of the read below also differ in this tie rule; V includes it.
   * For every λ the frequency of class k over the range is then exactly p_k: p stays the frequency model.
   * Range update after class k: w_h ×= λ · b_k(h) + (1 - λ) · p_k (in place of OUTSIDE). λ = 1 is a strict
     band, λ = 0 says the action tells nothing about the cards.
@@ -396,8 +399,10 @@ fails", so the ablation runs: it splits X1's loss on the rule cells between the 
     so whether a combo is seen depends only on the actions, and by the line above P(actions) does not depend
     on λ. The likelihood of λ is therefore the product over shown combos of P(combo | its actions, λ): no
     selection correction.
-  * Grid Λ = {0, 0.1, ..., 0.9, 0.95, 0.99}. One range per grid point; the range used is Σ π(λ) w_λ / Σ w_λ,
-    with π the posterior over λ (actions do not move it, so it changes only at showdowns).
+  * Grid Λ = {0, 0.1, ..., 0.9, 0.95, 0.99}. One range per grid point; the range used is Σ_λ π(λ) w_λ / Σ_live w_λ
+    (each grid range normalized over the viewer's live combos, then mixed), with π the posterior over λ
+    (actions do not move it, so it changes only at showdowns, and a hand is always scored with π from the
+    showdowns of earlier hands only).
   * Population prior π0: the mean, over names with at least 30 shown hands in the fitting matches, of each
     name's posterior from a flat prior. A named opponent starts from π0 times its fitting likelihood; in a
     match, π is multiplied by the likelihood of each showdown so far.
@@ -412,35 +417,47 @@ fails", so the ablation runs: it splits X1's loss on the rule cells between the 
     same matches and decisions.
   * **Replays first** (X1's split, `tools/oppmodel_fit.py`: matches sorted by start time, the latest 30% held
     out, the latest 20% of the rest validation, the rest fitting). Matches are replayed in order through X1
-    (its in-match counts) per player; each shown combo is scored at the end of its hand from the other
-    player's view (dead cards: that player's hole and the board). Steps, in this order:
-    1. On fitting matches: π0 and the per-name likelihoods, for the single λ and for the variant.
-    2. On validation matches: the variant replaces the single λ only if its score minus the single λ's has a
-       95% lower bound above zero. The decision is printed and frozen.
-    3. π0 and the per-name likelihoods are refit on fitting plus validation matches with the frozen choice.
-    4. Held-out matches are scored once, for R1 and R4 (below).
+    per player, named as the deployed bot names them (`start_match(player name)`; a name X1 has no counts for
+    plays as unseen) with its in-match counts; each shown combo is scored at the end of its hand from the
+    other player's view (dead cards: that player's hole and the board). Two X1 fits, same selected
+    hyperparameters: X1-fit on the fitting matches only (a new `oppmodel_fit.py` option saves it as
+    `rl/models/oppmodel_fitpart.npz`) and X1 as deployed (`rl/models/oppmodel.npz`, fitting plus validation).
+    Steps, in this order:
+    1. With X1-fit, on fitting matches: π0 and the per-name likelihoods, for the single λ and for the variant.
+    2. With X1-fit, on validation matches: the variant replaces the single λ only if its score minus the
+       single λ's has a 95% lower bound above zero. The decision is printed and frozen.
+    3. With X1 as deployed: π0 and the per-name likelihoods refit on fitting plus validation matches with the
+       frozen choice.
+    4. With X1 as deployed: held-out matches scored once, for R1 and R4 (below). Held-out is the only place
+       where neither X1 nor λ has seen the data.
   * **Simulation:** the policy alone plays (no lookahead), seed 47, 200 matches per cell, the four rule cells
     and the five `ext:` cells (14.18), all nameless (π0 from step 3). The opponent's true cards come from a
     wrapper around it (its own decide state); a hand updates π only if it reached a showdown. Ranges, side by
     side on the same matches (none changes play). On the rule cells they form a two-by-two, frequency source
     by reveal model:
     * R1, X1's frequencies, band with OUTSIDE (today; `update_range` itself);
-    * R2, true frequencies, band with OUTSIDE: p_k = Σ_h w*_h P*(k | h) / Σ w*, with w* the oracle's exact
-      range and P* the rule bot's per-combo probabilities (`tools/x2s_ablate.py` Oracle `_probs`); the raise
+    * R2, true frequencies, band with OUTSIDE: p_k = Σ_h w*_h P*(k | h) / Σ w*, sums over the viewer's live
+      combos, with w* the oracle's exact range and P* the rule bot's per-combo probabilities (`tools/x2s_ablate.py` Oracle `_probs`); the raise
       mass goes to the class of the observed raise;
     * R4, X1's frequencies, λ (π0, then this match's showdowns);
     * R2λ, true frequencies, λ (π0, then this match's showdowns, under this model);
     * R5, the oracle's exact range: the ceiling, reported only.
 
     On the `ext:` cells only R1 and R4 exist (no true frequencies).
-  * **Read, pre-registered** (pooled over the four rule cells unless named; all differences paired):
+  * **Read, pre-registered** (pooled over the four rule cells unless named; all differences paired; a pooled
+    value is the mean of per-cell means, its bootstrap resamples matches within each cell; held-out replays
+    are one pool, resampled by match):
     * Frequency part F = ((R2 - R1) + (R2λ - R4)) / 2; reveal part V = ((R4 - R1) + (R2λ - R2)) / 2; each
       with its 95% interval. The interaction R2λ - R2 - R4 + R1 and the gap R5 - R1 are reported.
-    * X3b runs if V's lower bound is above zero and R4 - R1 has a lower bound above zero pooled over the
-      `ext:` cells and on held-out replays (the range X3b uses must beat today's where only X1 is available).
-    * A frequency spec (X1's frequencies in the spots where they miss) is written if F's lower bound is above
-      zero: alongside X3b when both parts clear, in its place when only F does.
-    * If neither lower bound is above zero, stop and rethink the model.
+    * Four bounds: F, V, R4 - R1 on the `ext:` pool, R4 - R1 on held-out replays. "Clears" means a 95% lower
+      bound above zero, each on its own. One action per outcome, printed by the tool:
+      * V, `ext:` and held-out all clear: X3b runs;
+      * V clears but `ext:` or held-out does not: no X3b; the λ fix does not transfer, recorded, and X3 is
+        revised;
+      * V does not clear: no X3b;
+      * F clears: a frequency spec (X1's frequencies in the spots where they miss) is written, in addition
+        to whichever of the three lines above holds;
+      * neither F nor V clears: stop and rethink the model.
   * **Tests** (spec numbers pinned literally):
     * for random non-uniform ranges, each class and each λ in the grid, the updated range's band share is p_k
       to 1e-12, and a cut by the left edge of each combo in place of the fractional cut fails this;
@@ -448,12 +465,24 @@ fails", so the ablation runs: it splits X1's loss on the rule cells between the 
       normalized range unchanged;
     * R1 equals `update_range` on the same history; R5 equals the Oracle's range;
     * the variant decision reads no held-out match: changing held-out data leaves it unchanged;
+    * permuting combo order within equal-strength groups (preflop, and a paired-board postflop spot) leaves
+      the λ-updated range unchanged to 1e-12 for every grid λ, and a cut by combo index fails this;
+    * a hand's score uses π without its own showdown: changing that hand's shown combo leaves its π unchanged;
+    * on a two-point grid the mixture equals the normalized posterior predictive computed by hand;
+    * R2's p sums to 1 and gives no weight to combos that hold the hero's or the board's cards;
+    * X1-fit's per-name counts equal the counts over fitting matches only, and changing a validation match's
+      actions leaves X1-fit unchanged;
+    * the tool prints the single action the read gives for each of the 16 outcomes of the four bounds;
     * the grid, the 30-hand floor, seed 47 and 200 matches as literals; the prior scores 0.
   * **Budget:** build and tests about 3 hours on the PC; runs on gb10-d at most 4 box-hours: replays 1 core,
     at most 1 hour; simulation one core per cell (9 cores), at most 3 hours.
   * **Stop:** an acceptance test still failing after two fix rounds; a run past twice its budget; a crash,
     until its cause is known. The failure is recorded as the finding.
   * **Rollback:** tools and tests on holdem-x2r only; nothing is deployed; poker-ai-lab-v4 stays entered.
+  * **Review:** two plan reviews, both REVISE (4 and 4 blockers: λ absorbing frequency error, variant
+    chosen on held-out, approximate band cut, no budget; ties cut by index, π and mixture definitions, X1
+    in-sample on the fitting data, an outcome with no action). All fixed; the cap was reached, so no third
+    review, and Wayne's standing approval carries it.
 * **X3b, the lookahead with the λ range:** `tools/x2r_oracle.py --model x3` = (R4 at the root, `X1Bot`
   finishing the hand). Only the root range changes, where the ablation put the loss. N = 128, Z = 2.6, seed
   49, the four rule cells and the five `ext:` cells, each with its own N = 1 off arm, read paired. A
