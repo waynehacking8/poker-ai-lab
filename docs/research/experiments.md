@@ -718,6 +718,17 @@ The run ended at max-minutes, at iteration 1835.
   hive 83.0, v2 84.75; Wolf 95.0, v1 98.0, v2 97.0, v5 95.0, SDK reference 98.25; autodidact 74.5; Blueprint
   59.25 at +0.27 bb per hand (59.0 and +0.25). All are within the baseline's intervals. E3 87.0. E4 44.75%
   [40.0, 49.6] against the 45.0 mirror, so the head to head against the entered policy is level.
+* **Card at it1800** (`logs/eval_card/s2-it1800.json`): Ashwing 69.25, search 72.5, hive 84.25, v2 81.75;
+  Wolf 95.0, v1 96.5, v2 96.75, v5 95.0, SDK reference 99.5; autodidact 74.25; Blueprint 57.0 at +0.22 bb per
+  hand. All are within the fb2-900 card's intervals. E3 71.0 [66.4, 75.2], and a second probe (train seed 2)
+  78.25. **E4 53.25% [48.4, 58.1] against the 45.0 mirror:** the first candidate that beats the entered policy
+  head to head on the seeded pairs.
+* **Extreme bots** (E5, added to S2b's acceptance after Wayne asked how diverse the opponents are; 400 matches,
+  seed 3, all-in answer on), v4 then it400 then it1800: jam 62.75, 63.0, 63.0; jam_half 84.5, 85.0, 83.25;
+  jam_post 84.5, 84.25, 84.0; minraiser 96.0, 96.25, 95.25; station 97.75, 96.5, 95.0; maniac 85.5, 84.75,
+  83.5; nit 97.5, 98.25, 98.25; random 84.5, 83.75, 86.25; reference 98.5, 98.25, 99.5; lag 94.5, 90.75,
+  92.25; station_raiser 96.5, 95.5, 96.75. Two readings sit under v4's interval: station at it1800 (95.0
+  against [95.8, 98.8]) and lag at it400 (90.75 against [91.8, 96.3]).
 * **Verdict:** acceptance not met. E3 needs a probe under 70%, and the lowest was 74.5. Nothing else got
   worse. The trend in the exploiters' rates and in the chip flow says the run was still improving, so the
   next step is S2b, which resumes S2 (roadmap).
