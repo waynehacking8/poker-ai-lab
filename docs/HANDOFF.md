@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 07:00 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 07:08 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -107,6 +107,16 @@ the working memory. Update it at every step that changes state.
   X2b CODE EXECUTOR running since 07:00 UTC: worktree C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2b, branch
   holdem-x2b from 2c9dba7, box dir ~/poker-ai-lab-x2b, 2 cores, 1.5 box-hours. Builds code, tests, ALLOWED;
   smoke runs only. Training gate: logs/swap_acc/done (I write it when swap acceptance runs end).
+- **S2b ENDED 07:02 UTC (max-minutes):** screens 2300 79.25, 2700 77.75, 3100 82.25, 3300 80.5; none beats S2's
+  it1800 (74.5). CANDIDATE = ckpt/s2/it001800.npz (sha256 4989481c5e7d5d8b).
+  Swap acceptance RUNNING: `tools/swap_acc.sh s2_it1800 ckpt/s2/it001800.npz` (holdem-rl c348a59), pid 351133,
+  probes f2+f3 then f4+E5 -> logs/swap_acc/s2_it1800/ (probe_pool.txt, e5.jsonl, runs_done). League gate
+  RUNNING from the PC: league_add.sh ... holdem-s2cand rl-s2-1800 rl.bot_s2_1800 S2b1800Bot (branch holdem-s2cand
+  d14ae63, worktree C:\Users\WEI-CHENG\Desktop\poker-ai-lab-s2cand; npz holds value weights too, export
+  policy-only before any upload). E2/E4 reuse logs/eval_card/s2-it1800.json (E4 53.25% vs mirror 45.0; E2
+  within noise of fb2). Then: fresh verifier (incl. league pairs 200-399), write logs/swap_acc/done (X2b gate),
+  put the swap to Wayne with both rules: S2b slice bar E3 pooled < 70% vs king rule (hold E1, E2, E4; improve E3
+  vs 96.5). Window closes 23:59 UTC.
 - **S2b screen 3100:** probe 82.25% [78.2, 85.7], Ashwing 73.25, search 74.5, no stop. S2b screens 79.25, 77.75,
   82.25 are all above S2's best (it1800 74.5, it400 74.75): continuing the recipe is not lowering the probe.
   Candidate is S2 it1800 unless screen 3500 or the end beats 74.5. Acceptance after S2b ends (about 07:00):
