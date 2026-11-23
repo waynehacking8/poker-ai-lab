@@ -57,7 +57,10 @@ class RLBot(Bot):
             except Exception:
                 pass
         if self.search:
-            self.search.finish_hand(message.get("result", {}) or {})
+            try:
+                self.search.finish_hand(message.get("result", {}) or {})
+            except Exception:
+                self.search._new_hand()
 
     def on_round_start(self, message):
         self.tracker.round_start(message)

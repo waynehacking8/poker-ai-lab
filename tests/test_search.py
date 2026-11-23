@@ -147,6 +147,30 @@ def test_evs_respect_the_effective_stack(short, monkeypatch):
         assert -1000 - 1e-2 <= v <= 200 + 1000 + 1e-2, (a, v)
 
 
+def test_short_big_blind_keeps_the_level():
+    """A big blind posted all-in for 63 chips is still a 100 big blind (the engine records the chips paid; X1
+    divides its features by the big blind of the level, as in training)."""
+    s = Search(Stub([0, 1, 0, 0, 0]), seed=1)
+    s.start_match(None, 1, 10000)
+    s.stacks = {0: 19937, 1: 63}
+    s._sync([{"seat": 0, "action": "post_small_blind", "amount": 50, "phase": "preflop"},
+             {"seat": 1, "action": "post_big_blind", "amount": 63, "phase": "preflop"}], None, None)
+    assert s.tr.bb == 100
+
+
+def test_round_result_survives_a_search_error(monkeypatch):
+    """finish_hand runs outside decide's guard: an error there must not reach the SDK, and the next hand
+    starts from a clean search state."""
+    bot = RLBot(seed=1, search=True)
+    bot.search.n_done = 7
+
+    def boom(result):
+        raise RuntimeError("x")
+    monkeypatch.setattr(bot.search, "finish_hand", boom)
+    bot.on_round_result({"result": {}})
+    assert bot.search.n_done == 0 and bot.search.tr is None
+
+
 def decide_with(search, evs, policy_a, pot=1000):
     state = flop_state()
     state.pot = pot

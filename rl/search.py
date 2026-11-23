@@ -144,7 +144,9 @@ class Search:
         for ev in history[self.n_done:]:
             kind, seat, amt, phase = ev["action"], ev["seat"], ev["amount"], ev["phase"]
             if self.tr is None:
-                bb = next(e["amount"] for e in history if e["action"] == "post_big_blind")
+                # the level's big blind: a short stack posts less (the engine records the chips paid)
+                bb = max(2 * e["amount"] if e["action"] == "post_small_blind" else e["amount"]
+                         for e in history if e["action"] in ("post_small_blind", "post_big_blind"))
                 self.tr = HandTracker(self.stacks, bb)
             if STREETS.index(phase) != self.tr.street:
                 self.tr.new_street(STREETS.index(phase))
