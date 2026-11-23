@@ -969,6 +969,16 @@ match-win utility; diagnosis tool `tools/x2s_ablate.py`. All runs fb2-900, 100 m
   show why. X1 gives a 42 to 60% fold chance to river shoves into a bot that never folds (an unobserved
   bucket falls back to the population). And the band update, 0.1 per action outside the band, compounds,
   so a station's range collapses to weak hands after three checks.
+* **Verifier (fresh context, 2026-11-23):**
+  * The EV arithmetic matched an independent chip-flow model on 20,000 random spots (max relative error
+    2.5e-8).
+  * Search off plays byte for byte as c348a59. The tracker and X1 bookkeeping matched the engine at 1,406
+    decisions.
+  * One crash: on a trips or quads board the strength table scored impossible combos, the evaluator raised,
+    and the bot check-folded the rest of that hand. It was fixed in dbe9e3e before the judge's search-on arm.
+    Every run in the table above had it; it hits about one hand in a few hundred, in every configuration alike.
+  * The oracle's call likelihood is wrong when the bot cannot raise (facing an all-in). Its fold probability
+    is exact, and we make no later decision in such a hand, so no result above depends on it.
 * **Next:** match-win utility is in the search (8007e33). A held-out judge (`tools/x2s_judge.sh`: six
   `ext:` cells and four rule cells, 300 matches each, fresh seed 41, search off against on) measures it
   before anything else changes.
