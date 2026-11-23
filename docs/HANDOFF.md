@@ -1,6 +1,6 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-23 05:05 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-23 05:25 UTC (box clock). Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 ## Now
@@ -72,8 +72,13 @@ the working memory. Update it at every step that changes state.
 - **M1 POSITIVE (05:01 UTC):** br_ashwing vs ext:ashwing 722/800 = 90.25% vs fb2-900 604/800 = 75.5%, gain 14.75,
   Newcombe [11.1, 18.4] (research 14.12). X2 chosen: a learned decision procedure under X1 (policy takes X1's
   belief as input), search kept as the fallback; X2a (X1 block in features.py and fastenv.c, parity,
-  zero-weight widening) and X2b sketch in the roadmap (research 70fa46b). Plan review of X2 choice + X2a
-  running since 05:05 UTC (review 1 for this unit; cap 2).
+  zero-weight widening) and X2b sketch in the roadmap (research 70fa46b). Review 1: REVISE, 5 blockers (no C
+  interface for X1, width change breaks 56-wide consumers, vacuous parity, undefined probe states, no name rule).
+  Revised (research cad6d7f): X2a now seeds the existing tracker counts (NST=15) from a per-name replay profile
+  scaled to 20 hands; obs stays 56 wide; C gets env_set_stats; train.py --seed-profiles; E6 always nameless.
+  X2b arms: base, grid (StyleBot grid), grid+seeded. Review 2 (the last automatic one) running since 05:2x UTC.
+  If it says REVISE again: per policy, stop resubmitting, but Wayne's standing approval lets me proceed on my
+  recommendation after fixing what it names; record that in the roadmap.
 - **M1 preliminary (chip flow, seed 31, 400 matches each, unpaired):** br_ashwing wins 90.2% against Ashwing,
   fb2-900 69.8% (gain about 20 points, interval roughly [15, 26]). The gain is a whole-strategy shift: first
   preflop action raise 64.7% (fb2 32.3%), showdowns where we bet last +531k chips (fb2 -261k), fewer but
