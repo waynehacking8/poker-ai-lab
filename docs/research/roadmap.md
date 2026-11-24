@@ -582,6 +582,103 @@ ashwing_search 74.7% to 83.3%. The full read goes to experiments 14.21.
   score generalization.
 * **D5, live challenge matches:** the most real data, but outward-facing; only with Wayne's yes.
 
+#### D2a. Can a clone fitted to arena logs play like the real bot? (GPU; spec, 2026-11-24)
+
+* **Why now:** it needs no fetched data. The bots whose code we run generate their own logs, so the true
+  answer is known, and it puts gb10-d's idle GPU on the question that decides how D uses the archive.
+* **Why today's clones miss** (first principles, `league/fit.py` on holdem-league): an action table indexed by
+  (street, position, facing class, stack bucket, strength bucket), fitted with EM over the hidden cards.
+  It has no memory: nothing of the line earlier in the hand, nothing of the match so far. Ashwing's adaptive
+  bots and autodidact condition on both (autodidact keeps opponent statistics), so a table cannot express
+  them, whatever the data size.
+* **Bots:** `ext:ashwing`, `ext:autodidact_fast` and `ext:wolf` (one adaptive Python family, one bot with an
+  opponent model, one deterministic JavaScript bot). Seeded through `set_seed` (holdem-x2r 30cfa1a).
+* **Data (CPU), written in the Chipzen replay JSON shape that `league/replays.py` reads,** so the same
+  parsers later read the real archive. Only what the arena shows: every action and amount, the board, and
+  hole cards only at showdowns, for both players. The true hole cards of every hand go to a separate file,
+  read only by the evaluation.
+  * Fitting logs: seed 61, 5,000 matches per bot; match k's opponent is hero k mod 6 of (fb2-900's policy,
+    the old heuristic bot holdem-chipzen 102b05e, raise_station, sticky_overbettor, tight_sticky,
+    never_fold_pre). The sizes 100, 1,000 and 5,000 are the first matches by index (nested).
+  * Held-out logs for read 2: seed 62, 1,000 matches per bot, the same hero mix.
+* **Clone (GPU, torch on gb10-d), `tools/d2_clone.py`:**
+  * **One feature builder** over replay-shaped events (`league/replays.py`: a raise's amount is the chips
+    added). At play time the engine's `action_history` is first converted into that shape (raise-to and
+    `all_in` become chips added), then the same builder runs. Nothing else computes features.
+  * Inputs per decision: the bot's two hole cards and the board (52-way multi-hot each); the combo's hand
+    strength on this board (`rl.features.hand_strength`, the deployed bot's function); street (4) and
+    button (1); pot, to-call, both stacks in big blinds (log1p); facing class (`league/context.py`
+    facing_class, one-hot NFCL); the last 12 actions of the hand, each (actor is the bot, `act_code` one-hot
+    5, `size_frac` clipped to 4), zero-padded; the match so far, from the bot's seat: its opponent's count of
+    each `act_code` per street (20 counts) divided by that opponent's decisions on the street, and the hand
+    number.
+  * Outputs: the action code over `act_code`'s 5 classes, masked by `legal_mask`; for a raise, its size
+    bucket by `BET_EDGES` (4 buckets), played at the median `size_frac` of that bucket in the fitting logs.
+  * Network: MLP, two hidden layers of 256, ReLU; Adam, learning rate 1e-3, batch 4,096.
+  * EM over hidden cards: the prior is uniform over the combos that hold no board card (no hole card is known
+    in a hand without a showdown). An action's likelihood is P(code), times P(size bucket | raise) when the
+    code is a raise. Start: 5 epochs on showdown hands only. Then 8 iterations, each an E-step (on the GPU,
+    every live combo weighted by the prior times the product of the likelihoods of every action the bot took
+    in the hand, normalized) and an M-step (2 epochs of weighted cross entropy on both heads with the same
+    weights, over K = 32 combos per hand drawn from the posterior, each with weight 1/32). Showdown hands keep
+    their known combo with weight 1. Fixed iteration count, no convergence rule.
+* **Baseline:** the `league/fit.py` table clone (its own buckets, 8 EM iterations) fitted on the same
+  5,000-match logs.
+* **Read 1, strength against us (the decision read):** fb2-900 (search off) plays 3,000 matches, seed 63, against
+  each of: the real bot; a **control**, the real bot again with its `set_seed` offset by 1,000,003 (an
+  independent run of the true bot); the neural clone at 1,000 and 5,000 matches; the table clone at 5,000.
+  Within one bot every cell uses the same seed pairs; rows pair on (seed, hero_seat), the cell is the arm.
+  `tools/d2_read.py` computes, per cell against the real bot, the paired difference (b - c) / n with a normal
+  interval at z = 1.645 (90%). A cell passes when that interval lies within ±5 points (an equivalence test).
+  * Power: at a 60% win rate the unpaired standard error of the difference is 1.26 points and the 90%
+    half-width 2.08, so a true clone passes when the observed gap is under 2.92 points: probability 0.979
+    per cell, without the pairing's gain. A perfect method passes control and clone for one bot with
+    probability 0.958.
+  * Each bot is judged on its own; no rule needs all three. The control must pass before that bot's clone
+    verdicts count; a failed control gets one rerun on seed 64, and a second failure stops that bot unjudged
+    (a harness fault to find, not a method result). Wolf is deterministic, so its control is identical by
+    construction and only checks the harness.
+* **Read 2, how close the actions are:** per-decision log-likelihood of the bot's actual action with the
+  true cards, on the held-out logs, neural clone against the table clone.
+* **What it decides, per bot:** the neural method is trusted for a bot when its clone passes read 1; the
+  smallest passing size (1,000 or 5,000) is how many matches per name D needs for bots like it, and D1's
+  per-name counts say for how many names that is reachable. A 5,000-match clone that fails is the finding
+  for that bot: replay clones are not trusted for bots like it, and D leans on the parametric styles (D3) and
+  real-arena evaluation. Read 2 reports all three sizes (100, 1,000, 5,000) for both methods.
+* **Acceptance tests** (`tests/test_d2.py`, each shown to fail on a planted fault):
+  1. the generated JSON passes `league/replays.check_conservation`, and hole cards appear only in hands
+     that reached a showdown (fails if a hole card is written in a hand without one);
+  2. for recorded hands, the input vector built from the replay JSON equals the one built from the live
+     engine state at the same decision, match counts included (fails if a raise amount is read as raise-to);
+  3. the fit code path never opens the true-cards file;
+  4. a raise's likelihood includes the size-bucket factor;
+  5. `tools/d2_read.py` on two row files with different opponent labels pairs 3,000 rows and uses z = 1.645;
+  6. the seeds 61, 62, 63, 64, the offset, the sizes, 12 actions, K = 32, 8 iterations, 3,000 matches, ±5
+     and 90% as literals.
+* **Budget, in two stages.**
+  * Stage 1, build and timing: the tests above, then three measured rates on gb10-d: generation matches per
+    core-hour per bot with the hero mix; one EM iteration on the 1,000-match logs; clone against fb2-900
+    matches per core-hour over 40 matches. Measured so far (fb2-900's policy against each bot, one gb10-d
+    core, 40 matches, 2026-11-24): `ext:ashwing` 720, `ext:autodidact_fast` 510, `ext:wolf` 1,570 matches
+    per core-hour.
+  * Stage 2's budget is computed from stage 1's rates and written here before stage 2 starts. Caps:
+    generation plus read 1 at most 8 box-hours on cores 4-19, fits at most 3 GPU-hours. Over a cap, drop
+    `ext:wolf` first (its control is trivial and its family is the easiest for us), then cut read 1 to the
+    5,000-match clones.
+* **Stop:** a stage past twice its computed budget stops; the bots and sizes that finished are recorded and
+  judged, the rest are not. An acceptance test still failing after two fix rounds stops the slice.
+* **Code:** a new branch holdem-d2 off holdem-x2r d4c3cb8, with `league/` brought in from holdem-league
+  d554b8a (holdem-x2r has no `league/`) (`tools/d2_generate.py`, `tools/d2_clone.py`,
+  `tools/d2_eval.sh`, `tests/test_d2.py` with the numbers above pinned literally: seeds 61, 62, 63, the offset,
+  sizes and the other literals of test 6). Nothing reaches the deployed bot.
+* **Review:** plan review 1 REVISE (3 blockers: a pass rule that a perfect clone failed most of the time and no
+  control; unnamed buckets, inputs, prior, split and seeds; a budget without measured rates). Plan review 2
+  REVISE (5 blockers: no tool could pair cells with different opponent names, and z was 1.96; no test that
+  fitting features equal play features or that logs show only what the arena shows; the all-three-bots rule
+  passed a perfect method only about 56% of the time and a failed control had no next step; the EM and play
+  costs were unmeasured; the size head's place in the likelihood was open). All fixed here. The cap was
+  reached, so no third review; Wayne's standing approval (2026-11-23) carries it.
+
 ### R1. Can the lookahead run in the arena?
 
 * **Why:** the arena gives 0.5 vCPU x86 and 5 s per action (we budget 1 s). X3b's lookahead takes about
