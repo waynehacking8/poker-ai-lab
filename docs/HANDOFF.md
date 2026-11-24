@@ -220,7 +220,7 @@ the working memory. Update it at every step that changes state.
   standing approval (research 076be7d). Rates measured (fb2-900 policy vs bot, core 0, 40 matches):
   ashwing 720, autodidact_fast 510, wolf 1,570 matches per core-hour. Worktree Desktop\poker-ai-lab-d2,
   branch holdem-d2 (239e2b6 = holdem-x2r d4c3cb8 + league/ from holdem-league d554b8a). STAGE 1 EXECUTOR
-  dispatched ~08:0x UTC: generate/clone/read/eval tools, 6 acceptance tests, timing on gb10-d core 0 + GPU
+  dispatched ~07:15 UTC: generate/clone/read/eval tools, 6 acceptance tests, timing on gb10-d core 0 + GPU
   only (~/poker-ai-lab-d2). Then outcome verifier, then stage 2 budget into the roadmap, then stage 2 on
   cores 4-19 after the R1 queue.
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
