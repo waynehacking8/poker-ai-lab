@@ -176,6 +176,12 @@ the working memory. Update it at every step that changes state.
   X3b BUILD dispatched 02:2x UTC to an executor in poker-ai-lab-x2r: `--model x3` (R4 root, X1Bot
   continuation), rl/models/x3_pi0.json, tools/x3b_run.sh (seed 49, off arms N=1, rule + 5 ext), tests and
   mutations. Then: outcome verifier, run on gb10-d, read (both pools LB > 0 -> confirm seed 51).
+  BUILT holdem-x2r d0008b9 (not pushed): X3Root reuses x3_range.Ranges; 70 tests pass; 5/5 mutations
+  killed; 4 old arms byte identical on rule cells (PC); ext cells not reproducible on the PC, so no ext byte
+  check yet. Also touched holdem/engine.py: round_result carries community_cards at showdowns (risk: any
+  bot reading round_result). Timing x3 ~ x1 (1.4 to 1.6 s per decision at N=128). Run: `bash
+  tools/x3b_run.sh` (SEED 49 default, PY/CORES/WORKERS as x2r_run.sh). Verifier 1 running (also checks ext
+  byte identity and the engine change on gb10-d, cores 13-19, ~/x3b-verify).
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
