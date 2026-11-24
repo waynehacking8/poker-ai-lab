@@ -5,6 +5,8 @@ Scripts around the Chipzen replays. The replays themselves live in `.cache/chipz
 
 * `python tools/fetch_chipzen_replays.py OUT_DIR [MAX_MATCHES] [DELAY]` downloads completed
   heads-up poker replays from the public API, skipping files already on disk.
+* `OUT=~/chipzen-replays bash tools/fetch_chipzen_all.sh` runs that fetcher in passes until a pass saves
+  nothing: the whole public archive, over days. On HTTP 429 it waits 30 minutes and resumes.
 * `python tools/analyze_chipzen_replays.py .cache/chipzen-replays` prints the match format
   (blind steps, match lengths) and field tendencies.
 * `python tools/match_ceiling.py [chipzen_bot/nlhe/data/preflop_equity.json]` solves the
