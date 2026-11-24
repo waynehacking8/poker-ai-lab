@@ -216,7 +216,13 @@ the working memory. Update it at every step that changes state.
   N=32 ext, x3 N=8 rule, x3 N=8 ext; marker logs/r1_queue_done. GPU: D2a spec written (roadmap D2a,
   uncommitted in the research worktree until plan review): EM-fitted neural clones with hand and match
   memory, data from the seeded ext bots, fidelity = win-rate gap vs the real code at 100/1k/10k matches.
-  Plan-verifier 1 running.
+  Plan-verifier 1 running. D2a: reviews 1 and 2 REVISE (3 + 5 blockers), all fixed, cap reached, carried on
+  standing approval (research 076be7d). Rates measured (fb2-900 policy vs bot, core 0, 40 matches):
+  ashwing 720, autodidact_fast 510, wolf 1,570 matches per core-hour. Worktree Desktop\poker-ai-lab-d2,
+  branch holdem-d2 (239e2b6 = holdem-x2r d4c3cb8 + league/ from holdem-league d554b8a). STAGE 1 EXECUTOR
+  dispatched ~08:0x UTC: generate/clone/read/eval tools, 6 acceptance tests, timing on gb10-d core 0 + GPU
+  only (~/poker-ai-lab-d2). Then outcome verifier, then stage 2 budget into the roadmap, then stage 2 on
+  cores 4-19 after the R1 queue.
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
