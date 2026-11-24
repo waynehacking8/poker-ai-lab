@@ -169,7 +169,14 @@ the working memory. Update it at every step that changes state.
   counts == extract_replay on all 330 matches; sim parity with Search). Test debt, code correct: 7 replay-leg
   mutations survive (viewer name/seat, dead cards, step-3 cut, held-out model, variant by mean, held-out
   pairing); X1-fit hyperparameters were themselves selected on validation (spec's rule). Add tests if the
-  replay leg is reused. 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
+  replay leg is reused. X3a DONE 02:06 UTC (research 1b9dcb6, experiments 14.20): F +0.48 [0.45,0.51],
+  V +0.20 [0.18,0.22], R4-R1 ext +0.33 [0.30,0.35], held-out +1.09 [0.98,1.22]: all clear -> X3b runs AND a
+  frequency spec is owed. R1 is below the uniform prior (rule -0.34, held-out -0.73). Interaction -0.45:
+  lambda mostly guards against wrong frequencies (lambda adds -0.02 under true freq). pi0 mean lambda 0.35.
+  X3b BUILD dispatched 02:2x UTC to an executor in poker-ai-lab-x2r: `--model x3` (R4 root, X1Bot
+  continuation), rl/models/x3_pi0.json, tools/x3b_run.sh (seed 49, off arms N=1, rule + 5 ext), tests and
+  mutations. Then: outcome verifier, run on gb10-d, read (both pools LB > 0 -> confirm seed 51).
+  Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
   without login): 44 bots, round robin of 8 rounds x 22 fixtures, Tue 24 Nov 00:00 to Fri 27 Nov 23:59 UTC
