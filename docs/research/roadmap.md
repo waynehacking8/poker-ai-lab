@@ -483,6 +483,11 @@ fails", so the ablation runs: it splits X1's loss on the rule cells between the 
     chosen on held-out, approximate band cut, no budget; ties cut by index, π and mixture definitions, X1
     in-sample on the fitting data, an outcome with no action). All fixed; the cap was reached, so no third
     review, and Wayne's standing approval carries it.
+**Result (2026-11-24 02:06 UTC, experiments 14.20):** F +0.48 [0.45, 0.51], V +0.20 [0.18, 0.22], R4 - R1
++0.33 [0.30, 0.35] on `ext:` and +1.09 [0.98, 1.22] on held-out replays: all clear, so X3b runs and a frequency
+spec is written. Today's range R1 scores below the uniform prior (-0.34 rule pool, -0.73 held-out). The
+interaction (-0.45) is as large as V: λ mainly guards against wrong frequencies.
+
 * **X3b, the lookahead with the λ range:** `tools/x2r_oracle.py --model x3` = (R4 at the root, `X1Bot`
   finishing the hand). Only the root range changes, where the ablation put the loss. N = 128, Z = 2.6, seed
   49, the four rule cells and the five `ext:` cells, each with its own N = 1 off arm, read paired. A

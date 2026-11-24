@@ -1187,3 +1187,51 @@ Against the off arm: `oracle-range` +3.2 [+1.6, +4.7] (the oracle arm's +4.2, ne
   weakness and the second's bets as strength. Two causes are not separated yet: X1's frequencies in that
   context (a band whose width is wrong) and the band rule itself (an action that says nothing about the cards
   still cuts the range). X3 separates them before changing either.
+
+### 14.20 X3a: today's range is worse than no range; the λ range fixes it, and frequency error is the larger part
+
+Roadmap X3a. Tool: `tools/x3_range.py` on holdem-x2r 4e51db8 (a first run was invalid: the simulation
+skipped X1's update on hands without a showdown; fixed, and a fresh verifier confirmed the fix), run by
+`tools/x3_run.sh` on gb10-d (`~/poker-ai-lab-x3v2/logs/x3a`), 23:46 to 02:06 UTC. Score: nats the actions
+told us about the opponent's true combo (log share of the true combo minus the uniform prior's), at hero
+decisions after the opponent acted; 0 is "no better than knowing nothing".
+
+| cell | R1 (today) | R2 (true freq, band) | R4 (X1 freq, λ) | R2λ (true freq, λ) | R5 (exact) |
+|---|---|---|---|---|---|
+| never_fold_pre | +0.012 | +0.453 | +0.231 | +0.376 | +0.815 |
+| raise_station | -0.803 | +0.467 | +0.019 | +0.286 | +0.554 |
+| sticky_overbettor | -0.158 | +0.175 | +0.001 | +0.211 | +0.632 |
+| tight_sticky | -0.397 | +0.379 | +0.095 | +0.502 | +0.955 |
+| rule pool | -0.336 | +0.369 | +0.086 | +0.344 | +0.739 |
+| ext:ashwing | -0.050 | | +0.237 | | |
+| ext:ashwing_hive | -0.118 | | +0.248 | | |
+| ext:ashwing_search | -0.083 | | +0.234 | | |
+| ext:autodidact | +0.095 | | +0.277 | | |
+| ext:wolf | -0.289 | | +0.187 | | |
+| held-out replays (99 matches) | -0.727 | | +0.366 | | |
+
+200 matches per simulated cell, seed 47. Pooled reads, 95% intervals (bootstrap over matches, paired):
+
+* F (frequency part) +0.481 [+0.453, +0.511]; V (reveal part) +0.199 [+0.177, +0.222]; interaction
+  -0.447 [-0.479, -0.416]; gap R5 - R1 +1.075 [+1.031, +1.119].
+* R4 - R1: `ext:` pool +0.325 [+0.301, +0.352]; held-out replays +1.093 [+0.978, +1.221] (R4 above R1 in 97
+  of 99 matches).
+* All four bounds clear. Printed action: **X3b runs, and a frequency spec is written.**
+* λ: the pre/post-flop variant was not chosen (validation, 46 matches: +0.005 [-0.006, +0.017]). π0 puts
+  0.31 on λ = 0.3 and 0.30 on λ = 0.4 (mean 0.35); nothing above 0.7.
+
+Read:
+* **Today's range misleads.** R1 is below zero on every rule cell but one, on 4 of 5 `ext:` cells and on
+  held-out replays (-0.73): X1's band with OUTSIDE = 0.1 puts less weight on the true combo than the uniform
+  prior does. This is the 14.19 loss from the other side.
+* **The λ range fixes the sign everywhere,** most on real data (held-out +1.09). Real bots reveal about a
+  third of what a strict band assumes (λ ≈ 0.35).
+* **The interaction is as large as V,** so the two parts are not separate effects. Simple effects (rule pool):
+  λ adds +0.42 with X1's frequencies but -0.02 with the true ones; the true frequencies add +0.70 under the
+  band and +0.26 under λ. λ mostly protects against wrong frequencies. With right frequencies the band is
+  nearly as good as λ (R2 +0.369 vs R2λ +0.344), and per cell λ helps where the bot reveals little
+  (sticky_overbettor, tight_sticky) and hurts where the band fits (raise_station -0.18, never_fold_pre -0.08).
+* **Ceiling:** R4 closes 0.42 of the 1.08 gap. True frequencies reach about two thirds of it; the last third
+  (R5 - R2) is what a strength-ordered band cannot express. So frequency is the larger lever, which is what
+  the frequency spec targets.
+* Not yet known: whether a better range wins matches. X3b measures that.
