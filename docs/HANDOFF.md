@@ -234,6 +234,12 @@ the working memory. Update it at every step that changes state.
   blocking test, M-step weights untested, open-spy gaps). FIXED holdem-d2 d810798 (test 1 judges showdown
   from actions + fit known count; test 3 fit identical without the true file; test 4 board blocking + rows
   weights); all 3 plants now fail. Verifier 2 (cap 2) running on d810798, core 0 + GPU, ~/d2-verify2.
+  D2a VERIFIER 2 REFUTED d810798 (cap reached): code still correct, but 13+ result-changing plants pass
+  (test 4's posterior check is vacuous with an untrained net; no fit-side parity; play sampling/sizes,
+  judge rule, control offset, rerun logic, start epochs, EM sampling untested). Plants: scratchpad
+  runner/plants.py. Decision (standing approval, no third verifier): an executor closes every listed plant
+  and makes the plant runner permanent in the repo; the acceptance is the runner itself (all killed).
+  Stage 2 waits for that and for r1_queue_done.
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
