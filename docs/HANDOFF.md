@@ -245,6 +245,11 @@ the working memory. Update it at every step that changes state.
   /tmp/d2_queue.sh (pid 2008260) in ~/poker-ai-lab-d2s2 (3f0d58d) waits for r1_queue_done, then
   d2_eval.sh OUT=logs/d2 cores 4-19 + GPU; markers logs/d2_queue_start, logs/d2_queue_end, failures in
   logs/d2/failed, output logs/d2_eval.out. Budget ~1.7 box-hours (2.7 if controls rerun).
+  R1 DONE 09:32 UTC (research 0c7f1d0, experiments 14.22): N=32 fits (box mean 0.25-0.43 s, max 1.0 s) and
+  keeps the gain: ext +2.8 [+0.9,+4.7] paired, rule pool +0.1 [-1.6,+1.8] (sticky -3.0). N=8 loses ~12 on
+  both. Deploy path = lookahead at N=32, no distillation. Not a candidate (rule lower -1.6). Next: X4 spec
+  (frequencies, sticky_overbettor first), to run on cores 0-3 while D2a holds 4-19.
+  D2a STAGE 2 STARTED 09:32 UTC (generating ext:ashwing at 10:07 UTC). Fetcher: 3,711 files at 10:07 UTC.
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
