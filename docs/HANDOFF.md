@@ -181,7 +181,14 @@ the working memory. Update it at every step that changes state.
   check yet. Also touched holdem/engine.py: round_result carries community_cards at showdowns (risk: any
   bot reading round_result). Timing x3 ~ x1 (1.4 to 1.6 s per decision at N=128). Run: `bash
   tools/x3b_run.sh` (SEED 49 default, PY/CORES/WORKERS as x2r_run.sh). Verifier 1 running (also checks ext
-  byte identity and the engine change on gb10-d, cores 13-19, ~/x3b-verify).
+  byte identity and the engine change on gb10-d, cores 13-19, ~/x3b-verify). VERIFIER 1 CONFIRMED d0008b9
+  (tests 70 pass; 9 planted mutations killed; old arms byte identical incl. ext:wolf and seeded ashwing and
+  autodidact on the box; N=1 x3 == x1 == plain policy on all 9 cells; community_cards read by nothing else).
+  Note: ext:ashwing* (Random(None)) and ext:autodidact (global random) are unseeded, so their cells are not
+  paired run to run; ~/x3b-verify/seeded.py wraps them with set_seed. X3b SEED 49 RUN LAUNCHED 03:07 UTC:
+  gb10-d ~/poker-ai-lab-x3b (LF archive of d0008b9), cores 4-19, workers 16, `tools/x3b_run.sh`, marker
+  logs/x3b49_done, waiter byv63m47o. Read: paired_stats.py on rule rows, x2s_stats.py on logs/x3b49_ext;
+  candidate if both pools LB > 0, then SEED=51.
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
