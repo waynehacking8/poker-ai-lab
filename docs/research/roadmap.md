@@ -713,6 +713,10 @@ runtime.
   That reads the floor the lookahead adds or loses on top of the policy's.
 * Measurement only: nothing changes in the deployed bot. No plan review (a probe), per Wayne's standing
   approval of 2026-11-23.
+* **Result (09:32 UTC, experiments 14.22):** N = 32 fits (box 0.25 to 0.43 s mean, 1.0 s max per decision) and
+  keeps the gain: `ext:` +2.8 [+0.9, +4.7] paired, rule pool +0.1 [-1.6, +1.8] (sticky_overbettor -3.0).
+  N = 8 loses 12 points on both pools. Deploy path: the lookahead at N = 32, no distillation for runtime. Not a
+  candidate (rule pool lower bound -1.6); X4 is next.
 
 ### X2a. Name-seeded opponent counts in both engines
 

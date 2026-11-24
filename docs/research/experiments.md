@@ -1271,3 +1271,29 @@ its decisions in every cell.
   a -3.3 lean of the continuation in that cell. Both are untouched here; X4 starts from this cell.
 * **Runtime:** N = 128 does not fit the arena (R1: about 3 s mean and 6 s max at 0.5 vCPU). R1 measures
   whether N = 32 keeps this gain.
+
+### 14.22 R1: N = 32 fits the arena and keeps the lookahead's gain; N = 8 loses badly
+
+Roadmap R1. holdem-x2r d4c3cb8 on gb10-d (`~/poker-ai-lab-r1/logs/r1_*`), 2026-11-24, finished 09:32 UTC. x3 at
+Z = 2.6, seed 49, 300 matches per cell. Rule cells read paired against X3b's N = 1 off arm; `ext:` cells read
+paired against a new N = 1 off arm with the seeded bots (holdem-x2r 30cfa1a). `tools/paired_stats.py`.
+
+| arm | rule pool | sticky_overbettor | `ext:` pool | box seconds per decision, mean / max |
+|---|---|---|---|---|
+| N = 128 (X3b, 14.21) | -1.7 [-3.6, +0.3] | -11.7 | +5.1 [+2.5, +7.7] unpaired | about 1.5 / - |
+| N = 32 | +0.1 [-1.6, +1.8] | -3.0 [-8.6, +2.6] | +2.8 [+0.9, +4.7] | 0.25 to 0.43 / 1.0 |
+| N = 8 | -12.4 [-14.8, -10.0] | -11.0 | -11.9 [-14.3, -9.5] | 0.07 / 0.22 |
+
+N = 32 `ext:` cells: ashwing +4.7, ashwing_search +6.0, ashwing_hive +3.0, autodidact +2.3, wolf -2.0 [-4.3, +0.3].
+
+* **Fits:** a gb10-d core times like the PC core (R1 timing), so N = 32 is inside the pre-registered bound (mean
+  at most 0.5 s, max at most 2 s); the arena's 0.5 vCPU doubles it to about 0.9 s mean, 2 s max, under 5 s.
+* **Keeps the gain:** the `ext:` pool still gains (+2.8, lower bound above zero), and the rule pool no longer
+  loses (+0.1; sticky_overbettor -3.0 against -11.7 at N = 128). So the deploy path is the lookahead at N = 32;
+  distillation is not needed for runtime.
+* **Not a candidate yet:** the X3b rule (both pools' lower bounds above zero) is not met; the rule pool's is
+  -1.6. Not re-scored under a looser rule.
+* **N = 8 loses in every cell,** wolf included (-18). With 8 samples the gate at Z = 2.6 still lets through
+  overrides that are noise. Any later N below 32 needs its own read.
+* The two `ext:` reads differ in kind (N = 128 unpaired against unseeded bots, N = 32 paired against seeded
+  ones), so +2.8 against +5.1 is not a measured loss from the smaller N.
