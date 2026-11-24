@@ -189,6 +189,15 @@ the working memory. Update it at every step that changes state.
   gb10-d ~/poker-ai-lab-x3b (LF archive of d0008b9), cores 4-19, workers 16, `tools/x3b_run.sh`, marker
   logs/x3b49_done, waiter byv63m47o. Read: paired_stats.py on rule rows, x2s_stats.py on logs/x3b49_ext;
   candidate if both pools LB > 0, then SEED=51.
+  X3b RULE CELLS DONE 06:25 UTC: pooled -1.7 [-3.6,+0.3] (paired_stats on cat'd off rows): NOT a candidate.
+  sticky_overbettor -11.7 carries it (38.2 vs 17.9 hands per win); others +3.0, +2.0, 0.0. ext so far:
+  ashwing 73.7 -> 82.7, ashwing_search 74.7 -> 83.3 (unpaired); hive, autodidact, wolf running, ETA ~08:30
+  UTC. Then experiments 14.21, then X4 (frequencies) spec.
+  D1 FETCH RUNNING since 06:29 UTC on gb10-d: `tools/fetch_chipzen_all.sh` (holdem-chipzen 8128b64) in
+  ~/chipzen-fetch, out ~/chipzen-replays (seeded with the 330), log ~/chipzen-fetch/run.log and
+  ~/chipzen-replays.pass.log, marker ~/chipzen-replays.done. 43,497 public poker matches, ~4.5 s each, ~3
+  days; on 429 waits 30 min and resumes. It is THE one fetcher: do not start another (M3 rides on it).
+  Roadmap now opens with "Where we are" and has X4 and D sections (research f2fe7f8).
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
