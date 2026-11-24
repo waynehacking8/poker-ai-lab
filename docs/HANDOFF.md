@@ -240,6 +240,11 @@ the working memory. Update it at every step that changes state.
   runner/plants.py. Decision (standing approval, no third verifier): an executor closes every listed plant
   and makes the plant runner permanent in the repo; the acceptance is the runner itself (all killed).
   Stage 2 waits for that and for r1_queue_done.
+  D2a TESTS CLOSED holdem-d2 3f0d58d (not pushed): 21 tests, `python tools/d2_mutate.py --jobs 4` kills
+  25/25 plants (I reran it); code under test byte-identical to 81871fc. STAGE 2 ARMED 08:34 UTC on gb10-d:
+  /tmp/d2_queue.sh (pid 2008260) in ~/poker-ai-lab-d2s2 (3f0d58d) waits for r1_queue_done, then
+  d2_eval.sh OUT=logs/d2 cores 4-19 + GPU; markers logs/d2_queue_start, logs/d2_queue_end, failures in
+  logs/d2/failed, output logs/d2_eval.out. Budget ~1.7 box-hours (2.7 if controls rerun).
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
