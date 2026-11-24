@@ -204,6 +204,9 @@ the working memory. Update it at every step that changes state.
   cells now read paired. R1 timing tools holdem-x2r (tools/r1_timing.sh, tools/dec_time.py); PC run
   started ~07:1x UTC into logs/r1_timing_pc (background b795zje2p). Next for R1: the same script on gb10-d
   one core after X3b frees it (CORE=4), then the N=32/N=8 gain runs with seeded ext off arms.
+  R1 PC TIMING DONE (one x86 core, per lookahead decision, mean/p95/max s): N=128 1.43-1.57 / 2.88 / 3.13
+  (does NOT fit: about 3 s mean, 6 s max at 0.5 vCPU, over the 5 s limit); N=32 0.40 / 0.66-0.69 / 0.77
+  (fits the rule: mean <= 0.5, max <= 2); N=8 0.11-0.12 / 0.17-0.18 / 0.20. So the gain runs are N=32 and N=8.
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
