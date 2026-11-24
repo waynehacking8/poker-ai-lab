@@ -4,7 +4,7 @@ Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The 
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
-## Where we are (2026-11-24 06:30 UTC)
+## Where we are (2026-11-24 10:55 UTC)
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
 win probability against it, and a safety blend. The work since revision 2, in order, each step read against
@@ -18,14 +18,20 @@ its ceiling:
    λ range fixes the sign everywhere (+1.09 nats on held-out replays). Frequency error is the larger part.
 5. **The lookahead with the λ range** (X3b, 14.21): real bots +5.1 [+2.5, +7.7] (Ashwing +9), rule cells
    -1.7 [-3.6, +0.3], up from -4.6, all of the loss in sticky_overbettor (-11.7). Not a candidate (rule pool).
+6. **It fits the arena at N = 32 and keeps the gain** (R1, 14.22): `ext:` +2.8 [+0.9, +4.7] paired, rule pool
+   +0.1 [-1.6, +1.8]; about 0.4 s per decision on one core. N = 8 loses 12 points. Not a candidate yet.
+7. **X1 predicts the middle** (X4 where, 14.23): an unnamed opponent's frequencies stay near the population
+   prior through the match (k_im = 8, about 10 actions per spot per match).
+
+Running unattended (2026-11-24): the X4 step 2 k_im sweep (pre-registered below; its code is not yet
+verified), D2a stage 2 (clone fidelity of three bots), and D's replay fetch.
 
 Next, in this order:
-* **X4, frequencies** (below): the larger error X3a found, with sticky_overbettor as the test case.
-* **D, real opponents** (below): the whole public replay archive (fetch running since 2026-11-24 06:29 UTC),
-  clones validated against the bots whose code we have, and name-held-out evaluation.
-* M3: v4's Season 16 round robin (24 to 27 Nov, fixtures from 18:00 UTC daily) arrives with D's fetch.
-* **R1, runtime** (below), in parallel: whether the lookahead fits the arena's 0.5 vCPU at all, measured now
-  rather than after the model is fixed.
+* Read the k_im sweep and D2a stage 2 against their pre-registered rules.
+* **X4** next step from that read: the N = 32 match read with a chosen k_im, or the per-name prior from D's
+  archive.
+* **D3** (style population, GPU training) if D2a's clones pass.
+* M3: v4's Season 16 matches (round robin 24 to 27 Nov) from the fetched replays.
 
 Plan review (2026-11-24, Wayne asked whether this is the best and clean plan): three gaps were found and
 fixed. Runtime was out of scope of every X slice (now R1); the floor had no slice since S2b (now E3 on
