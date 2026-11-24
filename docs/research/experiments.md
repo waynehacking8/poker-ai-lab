@@ -1297,3 +1297,27 @@ N = 32 `ext:` cells: ashwing +4.7, ashwing_search +6.0, ashwing_hive +3.0, autod
   overrides that are noise. Any later N below 32 needs its own read.
 * The two `ext:` reads differ in kind (N = 128 unpaired against unseeded bots, N = 32 paired against seeded
   ones), so +2.8 against +5.1 is not a measured loss from the smaller N.
+
+### 14.23 X4 where: X1 stays near its population prior inside a match
+
+Roadmap X4, first step. Tool: `tools/x4_where.py` on holdem-x2r 8aba00c (an optional probe hook in
+`tools/x3_range.py`, scores unchanged with it on; 2 tests), X3a's simulation (seed 47, 200 matches per rule cell),
+PC, 2026-11-24. Per opponent action: X1's prediction before it against the bot's true frequencies on the viewer's
+live combos, collapsed to fold / call / raise; KL(true || X1) in nats. Table: holdem-x2r `logs/x4/table.txt`.
+
+| cell | actions | KL per action | top spots (share of the cell's KL) |
+|---|---|---|---|
+| sticky_overbettor | 7,794 | 0.268 | preflop facing a small bet 32%, flop no bet 21%, turn no bet 15%, preflop no bet 11%, river no bet 11% |
+| raise_station | 11,390 | 0.247 | preflop facing a small bet 14%, flop / turn / river no bet 13% each, preflop no bet 9% |
+| tight_sticky | 14,105 | 0.122 | preflop facing a small bet 45%, river no bet 12%, preflop facing a medium bet 10% |
+| never_fold_pre | 11,692 | 0.113 | river no bet 20%, preflop facing a small bet 16%, turn no bet 13%, river facing a big bet 10% |
+
+* **One pattern in every cell: X1 predicts the middle.** sticky_overbettor bets 0.76 to 0.83 when checked to
+  on the flop, turn and river; X1 says 0.46 to 0.49. raise_station never bets postflop; X1 says 0.19 to 0.20.
+  tight_sticky folds 0.63 to a small preflop raise; X1 says 0.42.
+* **Why:** for an opponent without a name profile (every simulated rule bot), X1 predicts
+  (in-match counts + 8 x prior) / (count + 8) per spot. A spot sees about 10 actions in a match (2,107 flop
+  no-bet actions over 200 matches), so the population prior carries most of the weight for most of the match.
+  The prior network is fitted to the pooled population, which bets about half the time.
+* So the first fix to test is the prior weight `k_im` (today 8), measured where it can hurt: on the real bots
+  and held-out replays, which are noisier than the rule bots. Specified in roadmap X4.

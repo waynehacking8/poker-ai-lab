@@ -565,6 +565,22 @@ runtime.
 * **Read:** the X3a score (R4 with the new frequencies against R4 today) and the X3b match read on the same
   seeds.
 * **Also checked there:** the continuation's lean on sticky_overbettor (-3.3 in 14.19).
+* **Where, result (experiments 14.23):** X1 predicts the middle in every rule cell: sticky_overbettor bets
+  0.76 to 0.83 when checked to, X1 says about 0.47; raise_station never bets postflop, X1 says 0.20. The cause
+  is the in-match prior weight: an unnamed opponent's prediction is (counts + 8 x prior) / (count + 8), and a
+  spot sees about 10 actions per match.
+* **Step 2, the prior-weight sweep (pre-registered 2026-11-24, before any sweep result):**
+  * Arms: `k_im` in {8 (today), 4, 2, 1}, nothing else changed (named profiles keep k = 20, w = 2).
+  * Score: X3a's R4 score (nats about the true combo) with each arm's frequencies, seed 47, the same cells:
+    4 rule cells, 5 `ext:` cells (seeded bots), and the 99 held-out replay matches.
+  * Choice: the arm with the best pooled score on `ext:` cells plus held-out replays, the noisy real data; it is
+    chosen only if its paired bootstrap 95% lower bound against `k_im` = 8 on that pool is above zero.
+    Otherwise `k_im` stays 8 and X4 moves to the per-name prior from D's archive. The rule cells are reported
+    but do not choose (a deterministic bot always prefers less prior).
+  * Then, for a chosen arm only: the X3b match read at N = 32 (R1's setting), seed 49, against the N = 1 off
+    arm with the same `k_im`, rule and `ext:` cells paired; candidate when both pools' lower bounds are above
+    zero (the X3b rule).
+  * A probe until a candidate exists: the deployed bot does not change.
 
 ### D. Real opponents: data and validated clones
 
