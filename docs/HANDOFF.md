@@ -211,6 +211,12 @@ the working memory. Update it at every step that changes state.
   d4c3cb8), /tmp/r1_box.sh: timing calibration on core 1 (logs/r1_timing_box), then x3 N=32 rule cells,
   3 workers, OFF = ~/poker-ai-lab-x3b/logs/x3b49_rule_off (logs/r1_n32_rule); marker logs/r1_box_done.
   Box use 06:58 UTC: 16 of 20 cores at 100% (X3b), cores 0-3 idle, GPU 0%, 8 of 121 GB memory.
+  OPTIMIZE (Wayne "optimize it"): R1 QUEUE armed ~07:05 UTC (/tmp/r1_queue.sh, pid 1887152, in
+  ~/poker-ai-lab-r1): waits for x3b49_done, then on cores 4-19: seeded ext off arms (logs/r1_ext_off), x3
+  N=32 ext, x3 N=8 rule, x3 N=8 ext; marker logs/r1_queue_done. GPU: D2a spec written (roadmap D2a,
+  uncommitted in the research worktree until plan review): EM-fitted neural clones with hand and match
+  memory, data from the seeded ext bots, fidelity = win-rate gap vs the real code at 100/1k/10k matches.
+  Plan-verifier 1 running.
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
