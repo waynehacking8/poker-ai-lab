@@ -25,6 +25,13 @@ Next, in this order:
 * **D, real opponents** (below): the whole public replay archive (fetch running since 2026-11-24 06:29 UTC),
   clones validated against the bots whose code we have, and name-held-out evaluation.
 * M3: v4's Season 16 round robin (24 to 27 Nov, fixtures from 18:00 UTC daily) arrives with D's fetch.
+* **R1, runtime** (below), in parallel: whether the lookahead fits the arena's 0.5 vCPU at all, measured now
+  rather than after the model is fixed.
+
+Plan review (2026-11-24, Wayne asked whether this is the best and clean plan): three gaps were found and
+fixed. Runtime was out of scope of every X slice (now R1); the floor had no slice since S2b (now E3 on
+every X candidate, below); and the `ext:` reads were unpaired because Ashwing and autodidact ran unseeded
+(seeded since holdem-x2r 30cfa1a, so `ext:` cells now read paired with `tools/paired_stats.py`).
 
 Deployed: `poker-ai-lab-v4` stays entered; nothing from X or D reaches the deployed bot until a candidate
 passes the gate (80% against every league opponent, a head-to-head win over the old heuristic bot, a fresh
@@ -574,6 +581,28 @@ ashwing_search 74.7% to 83.3%. The full read goes to experiments 14.21.
 * **D4, honest evaluation:** split by name. Bots never seen in fitting or training are the only ones that
   score generalization.
 * **D5, live challenge matches:** the most real data, but outward-facing; only with Wayne's yes.
+
+### R1. Can the lookahead run in the arena?
+
+* **Why:** the arena gives 0.5 vCPU x86 and 5 s per action (we budget 1 s). X3b's lookahead takes about
+  1.5 s per decision on a whole gb10-d core at N = 128. Every gain the X line proves is worth nothing in the
+  arena if no affordable version keeps it.
+* **Timing:** `tools/r1_timing.sh` (holdem-x2r) plays x3 at N = 128, 32 and 8 against tight_sticky and
+  `ext:ashwing`, 2 matches, seed 49, one core, on the PC (x86) and on gb10-d, the same seeded matches on both,
+  so the two compare decision for decision; `tools/dec_time.py` prints mean, p95 and max. Arena estimate:
+  twice the PC's single-core time (0.5 vCPU); a cloud vCPU may be slower than the desktop core, so a setting
+  fits only with mean at most 0.5 s and max at most 2 s on the PC.
+* **Gain at smaller N:** x3 at the largest N that fits and at N = 8, Z = 2.6, seed 49, rule and `ext:`
+  cells, against N = 1 off arms (the rule off arms of X3b are reused; the `ext:` off arms run again with the
+  seeded bots), read paired.
+* **Read:** if a fitting N keeps most of N = 128's gain, the lookahead can ship as it is once a candidate
+  exists. If none does, the deploy path is distillation (train the policy on the search's choices, which the
+  2026-11-21 adaptive-training study recommends), specified then.
+* **E3 for a search candidate:** an exploiter cannot train against the Python lookahead in the C engine, so
+  it trains against the candidate's policy, then plays the candidate with its lookahead in the SDK engine.
+  That reads the floor the lookahead adds or loses on top of the policy's.
+* Measurement only: nothing changes in the deployed bot. No plan review (a probe), per Wayne's standing
+  approval of 2026-11-23.
 
 ### X2a. Name-seeded opponent counts in both engines
 
