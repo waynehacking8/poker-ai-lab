@@ -2,7 +2,9 @@
 
 This folder holds the research behind the hold'em bot I am building for the
 Chipzen.ai Season 16 heads-up arena (November 2026). It has two kinds of
-records: literature studies, and the results of my own experiments.
+records: literature studies, and the results of my own experiments. The plan
+that ties them together is [roadmap.md](roadmap.md): it opens with where the work
+stands and what comes next.
 
 ## Literature studies
 
@@ -15,6 +17,7 @@ confirm is marked as unverified there.
 |---|---|---|---|
 | 2026-11-21 | [HUNL algorithms frontier](2026-11-21-hunl-algorithms-frontier/report.md) | What is newer than abstracted MCCFR, safe subgame solving and safe exploitation for HUNL in 2024-2026, and what fits 0.5 vCPU, 256 MB and pure Python? | Nothing new beats the classic stack within those limits. The levers are the match-win objective, the push/fold layer and a simulated opponent field built from real replays. |
 | 2026-11-21 | [Adaptive agent training](2026-11-21-adaptive-agent-training/report.md) | Which training methods suit an agent that adapts to each opponent within a 30 to 44 hand match: self-play RL, league and PSRO training, fast opponent adaptation, LLM and hybrid agents? | No frontier method is tested at that horizon. The best fit is a size-aware opponent model with a population prior, best responses scored by match-win value, and a safety blend; PPO is useful as a best-response oracle and to amortize the search. |
+| 2026-11-22 | [Generalization on Hugging Face](2026-11-22-hf-generalization/notes.md) | Which generalization methods and poker data on Hugging Face fit a policy that generalizes inside its opponent family but not outside it? | Train on the generated opponents the policy loses to (adversarial selection), add families that are not ours (real bots, human hand histories), and keep a test family never trained or selected on. From the HF API and abstracts only. |
 
 Notes per study:
 

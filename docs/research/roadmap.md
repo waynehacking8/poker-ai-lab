@@ -4,6 +4,32 @@ Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The 
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
+## Where we are (2026-11-24 06:30 UTC)
+
+The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
+win probability against it, and a safety blend. The work since revision 2, in order, each step read against
+its ceiling:
+
+1. **The procedure has headroom** (X2r, experiments 14.17): rollout lookahead with the opponent's true rules
+   beats the policy alone by +4.2 points on the rule cells.
+2. **With the model we have, it loses** (X2m, 14.18): with X1 in place of the true rules, -4.6.
+3. **The loss is the range at the root** (ablation, 14.19): 9.0 of the 8.8-point gap; the continuation 1.0.
+4. **Today's range is worse than no range** (X3a, 14.20): X1's band range scores below the uniform prior. The
+   λ range fixes the sign everywhere (+1.09 nats on held-out replays). Frequency error is the larger part.
+5. **The lookahead with the λ range** (X3b, below): rule cells -1.7 [-3.6, +0.3], up from -4.8, all of the
+   loss in sticky_overbettor (-11.7); the first two Ashwing cells +9 points. Not a candidate (rule pool).
+
+Next, in this order:
+* X3b's last three `ext:` cells, then experiments 14.21.
+* **X4, frequencies** (below): the larger error X3a found, with sticky_overbettor as the test case.
+* **D, real opponents** (below): the whole public replay archive (fetch running since 2026-11-24 06:29 UTC),
+  clones validated against the bots whose code we have, and name-held-out evaluation.
+* M3: v4's Season 16 round robin (24 to 27 Nov, fixtures from 18:00 UTC daily) arrives with D's fetch.
+
+Deployed: `poker-ai-lab-v4` stays entered; nothing from X or D reaches the deployed bot until a candidate
+passes the gate (80% against every league opponent, a head-to-head win over the old heuristic bot, a fresh
+verifier, and Wayne's yes).
+
 ## Revision 2 (2026-11-23): the problem from first principles
 
 Wayne: "The biggest fault that you made is thinking too narrowly." S0, S2 and the diversity slice I had
@@ -495,6 +521,59 @@ interaction (-0.45) is as large as V: λ mainly guards against wrong frequencies
   oracle's +4.2 on the rule cells; the specialist's 90% on Ashwing (M1).
 * **Not in X3:** the deployed bot (the λ range stays in tools until a candidate passes the gate); the runtime
   cost of the lookahead; the continuation (rechecked after the range is fixed).
+
+**X3b build (2026-11-24):** holdem-x2r d0008b9, `X3Root` drives `tools/x3_range.Ranges` from the hero's hooks
+(pi0 in `rl/models/x3_pi0.json`); a fresh verifier confirmed it (70 tests, 9 planted mutations killed, the
+four older arms byte identical, N = 1 under x3 plays as the policy on all nine cells). Run `tools/x3b_run.sh`
+on gb10-d from 03:07 UTC. Decision time at N = 128 is the same as x1 (about 1.5 s).
+
+**X3b result, rule cells (06:25 UTC, seed 49, 300 paired matches per cell, against the N = 1 off arm):**
+
+| cell | difference | 95% interval |
+|---|---|---|
+| never_fold_pre | +3.0 | [+0.2, +5.8] |
+| raise_station | +2.0 | [+0.2, +3.8] |
+| sticky_overbettor | -11.7 | [-17.8, -5.5] |
+| tight_sticky | +0.0 | [-2.9, +2.9] |
+| pooled | -1.7 | [-3.6, +0.3] |
+
+The rule pool does not clear, so X3b is not a candidate whatever the `ext:` cells give. Against X2m's x1 arm
+(-4.6 on seed 43) the λ root recovers most of the loss; what is left is sticky_overbettor, where matches run
+twice as long (38.2 hands per win against 17.9). `ext:` so far (unseeded, unpaired): ashwing 73.7% to 82.7%,
+ashwing_search 74.7% to 83.3%. The full read goes to experiments 14.21.
+
+### X4. Frequencies (owed by X3a; specified after X3b's `ext:` read)
+
+* **Why:** with the true frequencies the band range already scores +0.37 nats where X1's scores -0.34
+  (14.20); frequency is the larger part of the gap to the exact range, and λ mostly guards against it.
+* **First, where:** per spot (street, facing a bet or not, bet size class), X1's class frequencies against
+  the rule bot's true ones, from the X3a simulation's events; sticky_overbettor first, since it carries the
+  whole X3b loss. The same spots on real data come from D's archive (showdown hands give the true classes).
+* **Then, the smallest fix that closes the measured miss:** more weight on in-match counts, a per-name prior
+  from D's archive, or a spot feature X1 lacks. Chosen by the measurement above, not in advance.
+* **Read:** the X3a score (R4 with the new frequencies against R4 today) and the X3b match read on the same
+  seeds.
+* **Also checked there:** the continuation's lean on sticky_overbettor (-3.3 in 14.19).
+
+### D. Real opponents: data and validated clones
+
+* **Why:** the goal is to win against bots we have not seen. The opponent model is only as good as its
+  data, and clones fitted to replays have overstated our results (84 to 89% against clones, 49 to 64%
+  against the real code, 14.3). Training more against unchecked clones would teach the wrong lesson.
+* **D1, the archive:** the public API lists 43,497 completed poker matches (2026-11-24); X1 used 330.
+  `tools/fetch_chipzen_all.sh` (holdem-chipzen) fetches all of them on gb10-d into `~/chipzen-replays`: one
+  fetcher, 3 s between requests, stop on HTTP 429 and resume 30 minutes later; about 3 days. v4's Season 16
+  matches arrive with it (M3).
+* **D2, clone fidelity first:** clone the 13 public bots we run as `ext:` (14.3) from their
+  replays and compare our win rate against the clone with our win rate against the code. A clone
+  method counts only when that gap is a few points; then the same method is trusted for names without code.
+  Clones condition on cards through the showdowns, not only on action frequencies.
+* **D3, cover the styles:** a parametric style population that covers the style map (14.11: 12 of 51 field
+  bots play 4 styles no opponent of ours plays), weighted by the field's share of each style; inside it,
+  train on the members the policy loses to (adversarial selection, `2026-11-22-hf-generalization/notes.md`).
+* **D4, honest evaluation:** split by name. Bots never seen in fitting or training are the only ones that
+  score generalization.
+* **D5, live challenge matches:** the most real data, but outward-facing; only with Wayne's yes.
 
 ### X2a. Name-seeded opponent counts in both engines
 
