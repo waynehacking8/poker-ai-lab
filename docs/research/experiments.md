@@ -1235,3 +1235,39 @@ Read:
   (R5 - R2) is what a strength-ordered band cannot express. So frequency is the larger lever, which is what
   the frequency spec targets.
 * Not yet known: whether a better range wins matches. X3b measures that.
+
+### 14.21 X3b: the lookahead with the λ range gains on the real bots, still loses to one wide bettor
+
+Roadmap X3b. Tool: `tools/x2r_oracle.py --model x3` on holdem-x2r d0008b9 (`X3Root`: the λ range R4 of 14.20
+at the root, `X1Bot` finishing the hand; a fresh verifier confirmed it), `tools/x3b_run.sh` on gb10-d
+(`~/poker-ai-lab-x3b/logs/x3b49_*`), 03:07 to 07:59 UTC. N = 128, Z = 2.6, seed 49, 300 matches per cell,
+against the N = 1 off arm on the same seeds (which plays as the policy).
+
+| cell | off | on | difference | 95% interval | hands per win off/on |
+|---|---|---|---|---|---|
+| never_fold_pre | 94.3 | 97.3 | +3.0 | [+0.2, +5.8] | 15.7/15.7 |
+| raise_station | 95.3 | 97.3 | +2.0 | [+0.2, +3.8] | 12.9/12.2 |
+| sticky_overbettor | 81.7 | 70.0 | -11.7 | [-17.8, -5.5] | 17.9/38.2 |
+| tight_sticky | 95.0 | 95.0 | +0.0 | [-2.9, +2.9] | 32.0/34.8 |
+| rule pool (paired) | | | -1.7 | [-3.6, +0.3] | |
+| ext:ashwing | 73.7 | 82.7 | +9.0 | [+2.4, +15.5] | 39.1/43.5 |
+| ext:ashwing_search | 74.7 | 83.3 | +8.7 | [+2.1, +15.1] | 40.0/44.5 |
+| ext:ashwing_hive | 84.7 | 90.0 | +5.3 | [-0.0, +10.7] | 47.2/47.7 |
+| ext:autodidact | 77.0 | 79.0 | +2.0 | [-4.6, +8.6] | 37.1/43.9 |
+| ext:wolf | 97.7 | 98.3 | +0.7 | [-1.8, +3.3] | 22.3/24.4 |
+| ext pool (unpaired) | 81.5 | 86.7 | +5.1 | [+2.5, +7.7] | |
+
+Rule cells paired (`tools/paired_stats.py`); `ext:` cells unpaired (Newcombe), since Ashwing and autodidact
+were unseeded in this run (seeded since holdem-x2r 30cfa1a). The lookahead overrode the policy at 7 to 12% of
+its decisions in every cell.
+
+* **Read (pre-registered):** a candidate needs both pools' lower bounds above zero. The `ext:` pool clears,
+  the rule pool does not, so X3b is **not a candidate**, and seed 51 is not run.
+* **Against the earlier arms:** X2m's x1 arm lost 4.6 on the rule pool (14.18); the λ root brings it to -1.7.
+  On the real bots the same lookahead now gains +5.1, against no reliable gain in 14.18. The Ashwing family,
+  the bots the policy was weakest against (M1: specialist ceiling 90%), gains the most.
+* **The loss is one cell.** Against sticky_overbettor (bets 65% of its worst hands, 14.19) matches run twice as
+  long and the lookahead loses 11.7. X3a found X1's frequencies are the larger error (14.20), and 14.19 found
+  a -3.3 lean of the continuation in that cell. Both are untouched here; X4 starts from this cell.
+* **Runtime:** N = 128 does not fit the arena (R1: about 3 s mean and 6 s max at 0.5 vCPU). R1 measures
+  whether N = 32 keeps this gain.

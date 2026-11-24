@@ -16,11 +16,10 @@ its ceiling:
 3. **The loss is the range at the root** (ablation, 14.19): 9.0 of the 8.8-point gap; the continuation 1.0.
 4. **Today's range is worse than no range** (X3a, 14.20): X1's band range scores below the uniform prior. The
    λ range fixes the sign everywhere (+1.09 nats on held-out replays). Frequency error is the larger part.
-5. **The lookahead with the λ range** (X3b, below): rule cells -1.7 [-3.6, +0.3], up from -4.8, all of the
-   loss in sticky_overbettor (-11.7); the first two Ashwing cells +9 points. Not a candidate (rule pool).
+5. **The lookahead with the λ range** (X3b, 14.21): real bots +5.1 [+2.5, +7.7] (Ashwing +9), rule cells
+   -1.7 [-3.6, +0.3], up from -4.6, all of the loss in sticky_overbettor (-11.7). Not a candidate (rule pool).
 
 Next, in this order:
-* X3b's last three `ext:` cells, then experiments 14.21.
 * **X4, frequencies** (below): the larger error X3a found, with sticky_overbettor as the test case.
 * **D, real opponents** (below): the whole public replay archive (fetch running since 2026-11-24 06:29 UTC),
   clones validated against the bots whose code we have, and name-held-out evaluation.
@@ -547,7 +546,12 @@ on gb10-d from 03:07 UTC. Decision time at N = 128 is the same as x1 (about 1.5 
 The rule pool does not clear, so X3b is not a candidate whatever the `ext:` cells give. Against X2m's x1 arm
 (-4.6 on seed 43) the λ root recovers most of the loss; what is left is sticky_overbettor, where matches run
 twice as long (38.2 hands per win against 17.9). `ext:` so far (unseeded, unpaired): ashwing 73.7% to 82.7%,
-ashwing_search 74.7% to 83.3%. The full read goes to experiments 14.21.
+ashwing_search 74.7% to 83.3%.
+
+**X3b result, complete (07:59 UTC, experiments 14.21):** `ext:` pool +5.1 [+2.5, +7.7] (ashwing +9.0,
+ashwing_search +8.7, ashwing_hive +5.3, autodidact +2.0, wolf +0.7); rule pool -1.7 [-3.6, +0.3]. Only the
+`ext:` pool clears, so X3b is not a candidate and seed 51 is not run. Next: X4 on sticky_overbettor, R1 for the
+runtime.
 
 ### X4. Frequencies (owed by X3a; specified after X3b's `ext:` read)
 
