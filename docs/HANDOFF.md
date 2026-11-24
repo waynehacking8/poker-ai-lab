@@ -169,7 +169,10 @@ the working memory. Update it at every step that changes state.
   counts == extract_replay on all 330 matches; sim parity with Search). Test debt, code correct: 7 replay-leg
   mutations survive (viewer name/seat, dead cards, step-3 cut, held-out model, variant by mean, held-out
   pairing); X1-fit hyperparameters were themselves selected on validation (spec's rule). Add tests if the
-  replay leg is reused.
+  replay leg is reused. 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
+  (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
+  failed is nonempty). Season 16 standings: public API /api/seasons/16 is 403 without login; the public
+  match list shows only challenge matches since 00:17 UTC; Chrome extension not connected.
   X3a = range quality, CPU, no lookahead (tools/x3_range.py,
   tests/test_x3.py on holdem-x2r): log share of the true combo minus prior, at hero decisions. Replays first
   on X1's split (fit / validation picks the pre/post lam variant, frozen / refit / held-out scored once).
