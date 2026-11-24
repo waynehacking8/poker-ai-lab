@@ -223,6 +223,11 @@ the working memory. Update it at every step that changes state.
   dispatched ~07:15 UTC: generate/clone/read/eval tools, 6 acceptance tests, timing on gb10-d core 0 + GPU
   only (~/poker-ai-lab-d2). Then outcome verifier, then stage 2 budget into the roadmap, then stage 2 on
   cores 4-19 after the R1 queue.
+  D2a STAGE 1 BUILT holdem-d2 81871fc (not pushed): 7 tests, 6 plants killed; rates and stage-2 budget in
+  research 906954b (~1.7 box-hours on 4-19, ~0.25 GPU-h). Tree on box ~/poker-ai-lab-d2; timing outputs
+  ~/d2_timing. Stage 2 command: `OUT=logs/d2 bash tools/d2_eval.sh` in ~/poker-ai-lab-d2 (defaults
+  CORES=4-19 WORKERS=16), detached, after r1_queue_done. Outcome verifier running (core 0 + GPU, ~/d2-verify).
+  X3b ext at 07:47 UTC: autodidact 77.0 -> 79.0; wolf running.
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
