@@ -255,6 +255,12 @@ the working memory. Update it at every step that changes state.
   background beside the GPU fits; 21 tests pass, N9/N17 plants still caught). The running job keeps the old
   script. X4 STEP 1 (where is the frequency miss, per spot, sticky first) dispatched to an executor in a
   worktree on holdem-x2r d4c3cb8, gb10-d cores 0-3, ~/poker-ai-lab-x4.
+  X4 STEP 1 DONE (holdem-x2r 8aba00c, merged ff; research c4f043a, experiments 14.23): X1 predicts the
+  middle in every rule cell (sticky bets 0.76-0.83 when checked to, X1 ~0.47); cause = in-match prior
+  weight k_im 8, ~10 actions per spot per match. STEP 2 pre-registered in roadmap X4 (k_im 8/4/2/1, R4
+  score, choose on ext + held-out replays only, lower bound > 0, then N=32 match read). Step 2 sweep
+  dispatched to an executor (worktree off 8aba00c, gb10-d cores 0-3, ~/poker-ai-lab-x4s); it also reports
+  the named-vs-unnamed share of real-data actions (power check).
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
