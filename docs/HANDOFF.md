@@ -250,6 +250,11 @@ the working memory. Update it at every step that changes state.
   both. Deploy path = lookahead at N=32, no distillation. Not a candidate (rule lower -1.6). Next: X4 spec
   (frequencies, sticky_overbettor first), to run on cores 0-3 while D2a holds 4-19.
   D2a STAGE 2 STARTED 09:32 UTC (generating ext:ashwing at 10:07 UTC). Fetcher: 3,711 files at 10:07 UTC.
+  GPU: used only by the D2a neural fits (~9 min per bot); the rest is CPU match play. Table fits ran serial on
+  one core (~17 min per bot, 16 cores idle): fixed for future runs in holdem-d2 (d2_eval.sh table fits in
+  background beside the GPU fits; 21 tests pass, N9/N17 plants still caught). The running job keeps the old
+  script. X4 STEP 1 (where is the frequency miss, per spot, sticky first) dispatched to an executor in a
+  worktree on holdem-x2r d4c3cb8, gb10-d cores 0-3, ~/poker-ai-lab-x4.
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
