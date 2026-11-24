@@ -171,8 +171,11 @@ the working memory. Update it at every step that changes state.
   pairing); X1-fit hyperparameters were themselves selected on validation (spec's rule). Add tests if the
   replay leg is reused. 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
-  failed is nonempty). Season 16 standings: public API /api/seasons/16 is 403 without login; the public
-  match list shows only challenge matches since 00:17 UTC; Chrome extension not connected.
+  failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
+  without login): 44 bots, round robin of 8 rounds x 22 fixtures, Tue 24 Nov 00:00 to Fri 27 Nov 23:59 UTC
+  (fixtures start 18:00 UTC daily, 10 min apart), playoffs 28 to 29 Nov. Prize $200 (120/60/10/10). No
+  fixture played yet; v4 listed 2nd at 0-0. v4: R1 vs MonteCarlo Tue 24 Nov 18:30 UTC; R2 vs fermat-mini
+  22:50 UTC. Each fixture is one match: high variance. M3 replay fetch starts after the first fixtures.
   X3a = range quality, CPU, no lookahead (tools/x3_range.py,
   tests/test_x3.py on holdem-x2r): log share of the true combo minus prior, at hero decisions. Replays first
   on X1's split (fit / validation picks the pre/post lam variant, frozen / refit / held-out scored once).
