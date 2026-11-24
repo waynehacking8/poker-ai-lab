@@ -661,6 +661,15 @@ ashwing_search 74.7% to 83.3%. The full read goes to experiments 14.21.
     matches per core-hour over 40 matches. Measured so far (fb2-900's policy against each bot, one gb10-d
     core, 40 matches, 2026-11-24): `ext:ashwing` 720, `ext:autodidact_fast` 510, `ext:wolf` 1,570 matches
     per core-hour.
+  * **Stage 1 built** (holdem-d2 81871fc; 7 tests, each acceptance test fails on its planted fault). Rates on
+    one gb10-d core, 2026-11-24 about 07:35 UTC, 40 matches each: generation with the hero mix `ext:ashwing`
+    2,311, `ext:autodidact_fast` 1,036, `ext:wolf` 1,759 matches per core-hour; fb2-900 (RLBot) against the
+    real bots 1,897, 829 and 2,424; a clone against fb2-900 9,800 (from a weak clone, so a real one may be
+    slower). One EM iteration on 1,000-match-scale data 4.7 s on the GPU. The earlier 720, 510 and 1,570
+    were the x3 hero at N = 1, which carries the λ range bookkeeping.
+  * **Stage 2 budget from those rates:** generation 11.8 core-hours, read 1 15.6 core-hours, about 1.7
+    box-hours on cores 4-19 (2.7 if every control reruns); fits about 0.25 GPU-hours; the table fits about 25
+    CPU-minutes per bot. Under both caps, so nothing is dropped.
   * Stage 2's budget is computed from stage 1's rates and written here before stage 2 starts. Caps:
     generation plus read 1 at most 8 box-hours on cores 4-19, fits at most 3 GPU-hours. Over a cap, drop
     `ext:wolf` first (its control is trivial and its family is the easiest for us), then cut read 1 to the
