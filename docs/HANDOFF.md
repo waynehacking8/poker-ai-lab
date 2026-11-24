@@ -228,6 +228,12 @@ the working memory. Update it at every step that changes state.
   ~/d2_timing. Stage 2 command: `OUT=logs/d2 bash tools/d2_eval.sh` in ~/poker-ai-lab-d2 (defaults
   CORES=4-19 WORKERS=16), detached, after r1_queue_done. Outcome verifier running (core 0 + GPU, ~/d2-verify).
   X3b ext at 07:47 UTC: autodidact 77.0 -> 79.0; wolf running.
+  X3b DONE 07:59 UTC (research 9631186, experiments 14.21): ext pool +5.1 [+2.5,+7.7], rule pool -1.7
+  [-3.6,+0.3] -> NOT a candidate, no seed 51. R1 queue started 08:00 UTC on cores 4-19.
+  D2a VERIFIER 1 REFUTED 81871fc (code right, tests weak: consistent true-card leak passed test 1, no board
+  blocking test, M-step weights untested, open-spy gaps). FIXED holdem-d2 d810798 (test 1 judges showdown
+  from actions + fit known count; test 3 fit identical without the true file; test 4 board blocking + rows
+  weights); all 3 plants now fail. Verifier 2 (cap 2) running on d810798, core 0 + GPU, ~/d2-verify2.
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
