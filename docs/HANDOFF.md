@@ -198,6 +198,12 @@ the working memory. Update it at every step that changes state.
   ~/chipzen-replays.pass.log, marker ~/chipzen-replays.done. 43,497 public poker matches, ~4.5 s each, ~3
   days; on 429 waits 30 min and resumes. It is THE one fetcher: do not start another (M3 rides on it).
   Roadmap now opens with "Where we are" and has X4 and D sections (research f2fe7f8).
+  PLAN REVIEW (Wayne asked, then "go ahead"; research ec6b9f8): R1 runtime probe added; E3 for search
+  candidates (exploiter vs the policy, then played vs the lookahead in SDK); ext seeding committed holdem-x2r
+  30cfa1a (set_seed on Ashwing family + autodidact; tests/test_field_seed.py, fails without it) so ext
+  cells now read paired. R1 timing tools holdem-x2r (tools/r1_timing.sh, tools/dec_time.py); PC run
+  started ~07:1x UTC into logs/r1_timing_pc (background b795zje2p). Next for R1: the same script on gb10-d
+  one core after X3b frees it (CORE=4), then the N=32/N=8 gain runs with seeded ext off arms.
   Earlier: 01:17 UTC: 8 of 9 cells done; ext:autodidact at match ~65 of 200 after 88 min
   (about 1.4 min per match), ETA about 04:20 UTC, under the 6 h stop line. Waiter b333ni0hv (until done or
   failed is nonempty). Season 16 (read via ego-browser, logged in, 01:4x UTC; /api/seasons/16 is 403
