@@ -165,7 +165,11 @@ the working memory. Update it at every step that changes state.
   variant not chosen. FIXED in holdem-x2r 4e51db8 (32 tests, 14/14 mutations killed, verifier's
   r1_vs_search 0 differences in 5 cells). RERUN LAUNCHED 23:46 UTC: gb10-d ~/poker-ai-lab-x3v2 (fresh LF
   archive of 4e51db8), cores 4-12, logs/x3a (report refuses if a cell is missing). Verifier 2 (cap 2)
-  running in parallel (~/x3-verify2, cores 13-19).
+  running in parallel (~/x3-verify2, cores 13-19). VERIFIER 2 CONFIRMED 4e51db8 (32 + 29 tests pass; X1
+  counts == extract_replay on all 330 matches; sim parity with Search). Test debt, code correct: 7 replay-leg
+  mutations survive (viewer name/seat, dead cards, step-3 cut, held-out model, variant by mean, held-out
+  pairing); X1-fit hyperparameters were themselves selected on validation (spec's rule). Add tests if the
+  replay leg is reused.
   X3a = range quality, CPU, no lookahead (tools/x3_range.py,
   tests/test_x3.py on holdem-x2r): log share of the true combo minus prior, at hero decisions. Replays first
   on X1's split (fit / validation picks the pre/post lam variant, frozen / refit / held-out scored once).
