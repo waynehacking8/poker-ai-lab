@@ -929,6 +929,16 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
      fb2-900: identity removed the loss.
   4. GAINS ONLY no longer means "population too narrow" on its own; it takes D0's verdict as in item 3.
   5. Order: AD1 trains after D0's training ends; it does not wait for D0's read.
+* **Built (2026-11-26, local only, AD1 training gated by AD0):** holdem-rl `ad1` a115c0c, 0482bff (on 126c673);
+  holdem-x2r `ad1-x2r` 5d7fcce, 809c438, eb5d747 (on 8be6e38). `rl/models/sdk_prior.npz` sha256 `c77f058e7e45…a612b0`
+  (full hash in `ad1_run.sh` and `ad1_judge.sh`; pin the committed file, the zip timestamp makes a rebuild differ),
+  14 rows, each `st[10] = 40`, from 500 fb2-900 matches per name on seed 101 (7,005 to 24,424 hands per row). Tests:
+  holdem-rl 89 passed, 6 skipped; holdem-x2r 77 passed; plants 15 of 15 and 39 of 39 caught. Deviations: the engine
+  sends no opponent name, so the hero wrappers inject the cell or training name as the other seat's `display_name`
+  (`with_opp_name`, RLBot and engine untouched); `tools/chipflow.py` got `--profiles` for the shove table; the
+  "decision shares" report is not built; two profile arms (`ext:ashwing_search`, `ext:autodidact`) ran beside other
+  arms instead of alone (deterministic bots, no wall-clock effect). P1's four ext training names have no row and stay
+  unseeded, so training seeds only bp100, chipzen and `small_ball`. Outcome verifier on the build: pending.
 * **Review record:** plan review 1 REVISE (no owner files, non-goals, writes, rollback or tests; C-engine seeding
   would never fire under P1 and had no share knob; no seeded eval flag or AD1 reader; rule branches overlapped and
   left a gap; registry, profile command, base commit and runner unpinned). Fixed above; tier 2 allows one review,
