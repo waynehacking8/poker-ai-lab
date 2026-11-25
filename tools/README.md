@@ -23,3 +23,10 @@ Scripts around the Chipzen replays. The replays themselves live in `.cache/chipz
 
 Chipzen blocks the IP for 900 s after a burst of requests. Keep at least 3 s between
 requests, stop on the first HTTP 429, and run one fetcher at a time.
+
+## M3 probes (research 14.26)
+
+* `m3_leaks.py HERO DIR...`: fold share facing postflop bets against the break-even line b/(P+b), and river
+  all-ins by made hand. Run from a tree that has `rl/` and `chipzen_bot/` (e.g. gb10-d `~/poker-ai-lab-d2s2`)
+  on D2a logs (`logs/d2/<bot>/fit`, true cards included) or archive files.
+* `m3_flop_aggr.py ARCHIVE_DIR`: per name, the share of unbet flops the bot bets (stdlib only).
