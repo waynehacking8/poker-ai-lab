@@ -1876,3 +1876,30 @@ with the candidate's placement. Gate: league_fresh pairs 200-399 plus the heuris
   arrives; the Ashwing condition was declared on an assumption; D2b's condition was not stated). Corrected above.
 * **Limits:** profiles are fb2-900's view of each bot, archive profiles the whole field's; k-40 cells with n under 30
   are noisy; wolf is wall-clock (run at 4 workers with nothing else running); early-k accuracy depends on the metric.
+
+### 14.38 D0: without bp100 and `small_ball` data the real-bot loss mostly stays; rule INCONCLUSIVE (2026-11-26)
+
+Pre-registered in roadmap "D0" (research b640cfe). Training holdem-rl d0 60ff10d in `~/d0-run`, 15:53 to 19:03 UTC
+(time stop at it 1,730), B1's command minus the bp100 and `small_ball` SDK entries, `--heur-batch 5750`. Void check
+(`tools/d0_read.py void`, first to last row): C engine 6,069.9 decisions per iteration (target 6,070), old-family
+SDK 5,926.5 (5,971, -0.8%), ext : heuristic 3.151 (3.15): **valid**. Read: it001200 only, seed 95, 1,000 matches per
+cell from `~/d0-run/x2r` (holdem-x2r 8be6e38) on cores 0-17, 6 workers; rows `~/d0-run/logs/d0/read/it001200/`;
+paired on (seed, hero seat) with the fb2-900 and B1 it001200 rows of 14.36 (`~/poker-ai-lab-x2r/logs/b1/confirm/fb2`,
+`cand`). `ext:autodidact` took 3,641 s (fb2-900's arm took about an hour too; the bot is slow, not the box).
+
+| cell | D0 vs fb2-900 | 95% interval | D0 vs B1 | 95% interval | B1 vs fb2-900 (14.36) |
+|---|---|---|---|---|---|
+| ext:ashwing | -3.3 | [-6.1, -0.5] | +0.1 | [-2.7, +2.9] | -3.4 |
+| ext:ashwing_hive | -0.4 | [-2.7, +1.9] | **+4.2** | [+1.8, +6.6] | -4.6 |
+| ext:ashwing_search | -3.9 | [-6.7, -1.1] | -0.2 | [-2.9, +2.5] | -3.7 |
+| ext:autodidact | -3.2 | [-5.9, -0.5] | +0.2 | [-2.7, +3.1] | -3.4 |
+| **pooled** | **-2.70** | [-4.02, -1.38] | **+1.07** | [-0.28, +2.43] | |
+
+* **Rule: INCONCLUSIVE** (F's interval straddles -2.0 and B's straddles 0; the table gives no lever decision, and
+  D-null runs only under MIX OR CONTINUATION).
+* **Described, not decided:** the loss against fb2-900 is real without the new data (upper bound -1.38). On three of
+  the four families D0 sits within 0.2 points of B1, so the bp100 and `small_ball` samples add nothing measurable
+  to B1's loss there; on `ext:ashwing_hive` D0 recovers 4.2 of B1's 4.6 points, so the new data's harm, where it
+  shows, is on that one family. Both readings the rule separates are present, on different families.
+* **For AD0:** its "D0 beside it" line (NEW DATA with W1 passing) does not apply.
+
