@@ -1662,3 +1662,34 @@ hero seat), holdem-x2r `rl.eval_arena`, cores 18-19; `~/poker-ai-lab-x2r/logs/t1
   -4.0 on `tight_sticky`. B1's population (bp100 a third of the SDK matches, the rest fb2's mix plus `small_ball`,
   the C-engine league about 38% of each update) and its guard cells are what this read says they must be; the B1
   read's risk is the guards, and its pre-registered fallback P1b halves bp100's share.
+
+### 14.34 G1 step 2a: fine-tuning G1 gives the best per-name ranges at 100 and 1,000 matches, but the rule fails on one calibration bucket
+
+Pre-registered in roadmap "G1 step 2a" (tier 2, one plan review). Three real bots with true cards (D2a's logs: fit
+seed 61, held-out seed 62, 1,000 matches), four arms per bot and size; holdem-d2 branch g1-2a f3d1afd, outputs
+`~/poker-ai-lab-d2s2/data/g1_2a/` (`rule.json`, `read_<bot>_<N>.json`, `records.json`). Base fit by the held-out
+rule: Ashwing_v3 and AutodidactInnovations held out in fold 2 (`fit_fold2_W.pt`); Wolf is not in the archive
+(`fit_fold0_W.pt`). Rows equal across arms (checked). R in nats per river hand (higher better), bootstrap over
+held-out matches, 2,000, seed 47.
+
+| bot | R at 1,000: (a) λ per-name X1 | (b) D2a from scratch | (c) G1 fine-tuned | (d) G1 + history | (c) minus (a) | (c) minus (b) |
+|---|---|---|---|---|---|---|
+| ashwing | +0.571 | +0.691 | +1.001 | +0.344 | +0.429 [+0.416, +0.443] | +0.310 [+0.291, +0.329] |
+| autodidact_fast | +0.629 | +1.139 | +1.267 | +0.525 | +0.638 [+0.624, +0.654] | +0.128 [+0.103, +0.154] |
+| wolf | +0.488 | +0.507 | +0.980 | +0.498 | +0.492 [+0.474, +0.510] | +0.473 [+0.444, +0.504] |
+
+* At size 100 (reported only) (c) also leads: +0.879, +1.007, +0.760 against (a) +0.57, +0.61, +0.50. P (log loss
+  at big-pot decisions) is lowest for (c) in every cell (for example ashwing 0.512 vs X1-based 0.721 at 1,000).
+  Arm (d), G1 with the bot's history as input only, is no better than λ: the gain comes from fitting on the name.
+* **Rule: FAIL.** The R condition passes for all three bots. The calibration condition (fold error 5 points or
+  less, held-out, after the bias, every `size_bucket3` bucket with 200 or more spots) fails for autodidact_fast's
+  largest bucket: 681 spots, actual 0.555, predicted 0.607, error 5.16 points (5.56 before the bias). Every other
+  bucket is within 1.8 points except Wolf's largest (303 spots, actual 0.000, predicted 0.034, 3.4 points). Spots
+  were defined as every bot decision facing a bet, all streets; a postflop-only definition was not computed.
+* Per the pre-registered text, G1 stays an archive analysis tool and gets no more GPU. The failure is narrow (0.16
+  points on one bucket of one bot) while the range gain is large and consistent; any follow-up is a new
+  pre-registered slice, not a reread of this one.
+* Builder's choices to note: the fold bias is a per-street fold-logit shift after the network, clamped to ±5; arm
+  (c) fine-tunes with the unweighted likelihood (D2a's) from a W-trained base; arm (b) is scored through G1's scorer
+  with zero weights on the profile columns; arm (a) lets only shown hands into the per-match state. GPU about 0.06
+  hours; the whole run 0.41 hours.
