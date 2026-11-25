@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 06:38 UTC, box clock UTC+8)
+## Now (2026-11-25 06:42 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project (he may write Chinese; when he asks for an explanation in Chinese, answer in
 Traditional Chinese). Think from first principles, not narrowly. Goal is the long-term "future king", not the
@@ -58,9 +58,11 @@ busy on purpose. Plan of record: `docs/research/roadmap.md` on branch research (
   [+19.9, +23.8]; `tight_sticky` -4.0 [-5.5, -2.4]. `small_ball` joins B1's training.
 * **B1 spec in roadmap (research 6e0f647, 4435d81):** Fable's draft; plan review 1 REVISE (E1 command and
   disjoint pair ranges 400-499 screen / 200-399 gate via new holdem-league `tools/league_fresh.py`; test 1 unit;
-  literal `rl.train` command with pinned input hashes and frozen `pool_b1`), fixed; plan review 2 running. T1's
-  number is the only blank; then executor (holdem-rl and holdem-league worktrees, holdem-x2r for judge
-  files), verifier, training about 6 h.
+  literal `rl.train` command with pinned input hashes and frozen `pool_b1`), fixed; plan review 2 REVISE
+  (registry, screen score, test 1 keys, P2 branch and lock, writes and rollback), fixed (research d23f111); cap
+  reached, standing approval. **Executor building since 06:42 UTC** in worktrees poker-ai-lab-b1rl (b1-rl),
+  poker-ai-lab-b1x2r (b1-x2r), poker-ai-lab-b1lg (b1-league); box test copies under ~/b1-build only; no
+  container job before T1 ends. Then a fresh verifier, then I launch `tools/b1_run.sh P1|P2` (T1 picks).
 * A0 and T1 agent worktrees sit under poker-ai-lab/.claude/worktrees
   (commits already cherry-picked); remove them at cleanup.
 * **Wayne 2026-11-25: act on Fable's recommendations, open questions go to Fable; memory and docs English only**
