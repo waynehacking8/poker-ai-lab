@@ -26,11 +26,10 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
 
 6. **The real-bot loss stays without the new data** (14.38, D0): B1's recipe on fb2's own population loses -2.70
    [-4.02, -1.38] pooled on the four Ashwing and autodidact cells; rule INCONCLUSIVE (straddles -2.0), no lever
-   decision. Three families sit within 0.2 of B1; hive alone shows a new-data effect. The next D0-line step is with
-   the roadmap agent.
+   decision. Three families sit within 0.2 of B1; hive alone shows a new-data effect. C0 (spec below) is running.
 
-Next: **AD0** (spec below, tier 2, built and verified) is running: data on seed 106, four students fitted on the GPU,
-play on seed 95, then its rule picks distill-then-PPO, AD1 (built and verified, untrained), S7, or the opponent
+Next: **AD0** (spec below, tier 2, built and verified) is running: data and fit done, play 1 on seed 95; amended
+before its read (converged refit, rules 5 and 6 reworded). Its rule picks distill-then-PPO, AD1 (built and verified, untrained), S7, or the opponent
 representation. bp100 is a coarse Blueprint stand-in (much more aggressive preflop, 14.37).
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
@@ -805,6 +804,37 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   the GPU; play 6,000 matches per student, about 7 minutes, 28 for four; relabel 3,500 per student, about 6 minutes,
   25 for four, plus refits. All play after D0's training ends (D0's reads first). Stop and record if any phase takes
   more than three times its estimate.
+* **Amendment (registered 2026-11-26 21:58 UTC, before play 1's read was opened; the roadmap agent's call):**
+  * **Deviation recorded:** the data phase ran 97 minutes (20:15 to 21:52) against "about 15 minutes plus logging",
+    past the three-times stop line; fit and play 1 were launched past it unnoticed. The estimate took rl.eval_arena
+    rates, but the data path is `holdem.arena.run_arena` in Python with the logging hook and a second Tracker per
+    decision. Seconds per cell at 6 workers: bp100 2,000 in 102 (container-bound, as estimated), `small_ball` 2,000 in
+    503 (30x), chipzen 1,000 in 582, `ext:ashwing_v2` 1,245, `ext:ashwing_value` 715, `ext:ashwing_adaptive` 1,204,
+    `ext:autodidact_fast` 1,461 (about 7x). The rows are valid (rc 0, 991,921 rows, 9,000 matches, 93,880 held out);
+    a time line protects box time, not the rows. Fit: all four students ran the 30-epoch cap with held-out loss still
+    falling (W1 0.5703, W1s 0.5407, W2 0.5594, W2s 0.5314 best).
+  * **A1. Converged refit:** the same four students, same data, same seed; cap 300 epochs, stop when held-out loss
+    has not improved for 10 epochs, best-epoch weights kept. Report epochs run and held-out loss beside the 30-epoch
+    values.
+  * **A2. Use:** if any 30-epoch student passes in play 1, that pass stands (underfitting can only cost a student) and
+    the refits are not played. If none passes, the refits play as play 2 on the same cells and seed 95, and rules 1
+    to 4 are read on play 2. Rules 5 and 6 are read only after play 2.
+  * **A3. Rules 5 and 6 replaced** (as written, rule 5 could not fire: W1's held-out bp100 agreement is 0.891). They
+    apply only when no student passes after play 2, and are read on the refits, rule 6 first:
+    * Rule 6 (identity): at both widths the seeded student beats the unseeded one on bp100 in play, paired lower
+      bound above +2.0. Then AD1 runs as amended, initialised from the seeded refit. The offline hands 1 to 10 gap is
+      reported as support, not as the trigger.
+    * Rule 5 (drift): otherwise, if the best student by bp100 play gain has held-out bp100 agreement of at least 0.90,
+      one relabel round as in A4, then rules 1 to 4 on its play, then rule 7.
+    * Neither: rule 7 (the 56 features do not carry it; the opponent representation).
+  * **A4. Relabel round, cut to the measured logging rate:** only the two students with the highest bp100 play gain;
+    300 matches each against bp100, `small_ball`, chipzen, `ext:ashwing_v2` and `ext:ashwing_value`
+    (`ext:ashwing_adaptive` and `ext:autodidact_fast` left out: the slowest loggers, and their teacher is fb2-900
+    either way). The agent's call also listed the ten `bot:` clones at 100 each; they have no Python Tracker path (the
+    reason the data dropped them), so they are left out. The estimate is computed from the per-cell seconds above and
+    written here before launch; the stop line is two times that estimate, checked by the runner.
+  * **Standing budget rule:** a time estimate for a new code path comes from a 20-match smoke on that path, per cell
+    type.
 * **Limits:** each teacher's data come from its own state distribution; one relabel round is the only correction; a
   pass shows the play is representable and strong, it is not a candidate.
 * **Judge literal for the next candidate slice (any):** it reports the solver class on bp100 and on the Blueprint
