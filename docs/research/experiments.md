@@ -1428,3 +1428,39 @@ into a tools folder with the M3 slice). The probe reproduces the live match's th
   more of them (1,783 matches), among them two Season 16 entrants, HRT (0.97) and Shadow (0.77). slopBot (0.95)
   beats Blueprint 125 of 199. MonteCarlo bets 0.30 of unbet flops across its 195 matches but bet most flops
   against v4, a hint that it adapts (one match, not tested).
+
+### 14.27 S2r and P0: it1800 does not beat fb2-900 against bp100; fb2-900 loses its matches through worse stack commitments
+
+Roadmap Revision 3, S2r and P0, both pre-registered before the run. gb10-d `~/poker-ai-lab-rl` (holdem-rl
+tree; runner `tools/s2r_run.sh`, holdem-rl f2d6c5d), 2026-11-25 04:20 to 04:28 UTC, bpopp:v011 with the eval
+card's settings, seed 81 (fresh), 4,000 matches per arm, 6 workers. Output `logs/s2r/`.
+
+* **S2r:** fb2-900 59.85% [58.3, 61.4]; S2 it1800 58.73% [57.2, 60.2]. Paired on (seed, hero seat)
+  (`tools/paired_stats.py`): it1800 minus fb2-900 **-1.1 [-2.8, +0.6]** (567 against 612 discordant pairs,
+  sign test p 0.20). By the rule: it1800 does not lead, nothing goes to Wayne, and B1 starts from fb2-900.
+  The n = 400 read of 14.9 (59.0) is confirmed with a quarter of the width.
+* **P0** (`tools/p0_read.py`, holdem-rl 8d77826, on chipflow's 4,000 matches of fb2-900, same seed). Per match,
+  the final hand, which is always an all-in here; the loser made the last voluntary commitment in it (its
+  shove was called, or it called the other's all-in); its equity against the winner's actual hand at that
+  moment. Matches whose loser started the hand with 1 bb or less are forced and left out (19 of fb2-900's
+  losses, 535 of bp100's: fb2-900 grinds bp100 down more often than the reverse).
+
+  | | fb2-900's losses (1,587) | bp100's losses (1,859) |
+  |---|---|---|
+  | loser equity under 0.35 | **77.6%** | **47.8%** |
+  | mean loser equity | 0.200 | 0.368 |
+  | biggest ways to lose | flop shove called 37% (mean equity 0.284); river shove called 20%; river call of an all-in 15%; preflop shove called 14% (0.419) | preflop call of an all-in 35% (0.511); flop call 20% (0.396); river call 12%; turn call 11% (0.230) |
+
+  Difference **+29.8 points [+26.7, +32.9]** against the pre-registered trigger of +10 with the lower bound
+  above zero: **B0 runs before G1, X5 and B1.**
+* **What the split says B0 must address** (read with chipflow's summary, `logs/s2r/flow_fb2.out`):
+  * Flop shoves: 4,642, bp100 folds 65% (+3.55M chips), called 1,610 at an expected -1.80M, net +1.75M. In
+    chips they pay; in matches they are fb2-900's main way to bust (592 losses). A chip-positive, bust-heavy
+    play against an opponent we already beat 60% of the time is a match-equity error, so B0 must decide by
+    match-win value (the K of `rl/search.py`), not chips.
+  * Calls of bp100's river shoves: 594 at mean equity 0.198, expected -2.46M chips. A plain chip leak.
+  * River shoves by fb2-900: 5,467, folds 73%, net +5.82M. Not to touch.
+* **Caveat on the statistic:** a river all-in leaves the loser at equity 0 by construction, so the share also
+  carries the street mix; fb2-900 gets its stack in on the flop and river, bp100 before the flop at near coin
+  flips. That mix is itself the policy's choice, and the flop-shove and river-call lines above are each a
+  decision error on their own terms, so the conclusion does not rest on the mix alone.
