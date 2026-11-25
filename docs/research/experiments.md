@@ -1598,20 +1598,67 @@ Bootstrap over names, 2,000 resamples, seed 47.
 |---|---|---|---|---|---|---|
 | rule 1, unseen names (cold start) | R vs the λ range, nats per shown hand | -0.087 | [-0.243, +0.046] | 411,740 / 84 | at least +0.10, lower bound above 0 | fail |
 | | P log loss vs X1 at big-pot decisions | +0.074 | [+0.032, +0.119] | 96,030 / 85 | upper bound under +0.02 | fail (worse) |
-| rule 2, time split, names with 100+ earlier matches | R vs λ under per-name X1 | +0.175 | [+0.120, +0.246] | 78,299 / 149 | at least +0.10, lower bound above 0 | pass |
-| | P log loss vs per-name X1 | -0.258 | [-0.369, -0.147] | 17,281 / 142 | upper bound under +0.02 | pass |
+| rule 2, time split, names with 100+ earlier matches | R vs λ under per-name X1 | +0.183 | [+0.123, +0.266] | 70,418 / 29 | at least +0.10, lower bound above 0 | pass |
+| | P log loss vs per-name X1 | -0.306 | [-0.438, -0.189] | 15,072 / 29 | upper bound under +0.02 | pass |
 
 * **Verdict (rule 2):** G1 is a known-name model. It serves B0a and the lookahead for names with archive history;
   cold start (an unseen name) stays with X1 and the λ range; no more GPU on the unseen-name question.
 * Reported: on unseen names G1 also loses to λ with its filled path (-0.125 [-0.409, +0.101]) and does not beat
   uniform clearly (+0.079 [-0.134, +0.288]); at final pots of 20 bb or more it is worse than λ (-0.230 [-0.448,
   -0.062]). By earlier-match group on held-out names, λ scores +0.14 to +0.18 everywhere while G1 is +0.06 to
-  +0.19 and only reaches λ at 10 to 99 matches with the filled path. W minus U: R +0.161 [-0.004, +0.371], P loss
-  +0.125 [+0.084, +0.167] (W predicts actions worse, ranges better). G1 over-predicts folds against every bet size
+  +0.12 cold and +0.02 to +0.19 filled, reaching λ only at 10 to 99 matches with the filled path. W minus U: R
+  +0.161 [-0.004, +0.371] (not clearly different), P loss +0.125 [+0.084, +0.167] (W predicts actions worse). G1 over-predicts folds against every bet size
   bucket (for example 0.64 against an actual 0.54 at the largest bucket; X1 under-predicts, 0.48).
-* By A0 class (unseen names, R vs λ): solver +0.20 [-0.08, +0.23] (11 names), small_ball +0.32 (1 name), station
-  -0.20 (1 name), big_bet -0.98 (2 names); classes with one or two names carry no interval.
+* By A0 class (unseen names, R vs λ): other -0.10 [-0.29, +0.04] (66 names), solver +0.20 [-0.08, +0.23] (11),
+  tail +0.06 (3), big_bet -0.98 [-1.00, -0.84] (2), small_ball +0.32 (1), station -0.20 (1); single-name classes
+  carry no interval.
+* Outcome verifier: REFUTED the first record. Rule 2's rows had joined the opponents of the 100+ players (the
+  baseline scores both seats), 7,881 R rows from 122 names with fewer than 100 earlier matches; only 30 archive names
+  have 100 or more matches. Fixed in `g1_read.split_rows` (holdem-d2 3e988c8, test 9 with two plants caught), rule
+  step rerun: R +0.183 [+0.123, +0.266], P -0.306 [-0.438, -0.189] on 29 names, equal to the verifier's own
+  recomputation; the verdict holds. The first rule output is kept as `logs/g1/rule_v1_bug.txt`. Text fixes: the class
+  line (other, tail, big_bet's interval) and the by-group range.
 * Run note: base_fold0 crashed once on archive showdowns that reveal one hand (x3_range needs both); fixed in
   `g1_read.lam_scores` by replaying those hands without scoring them (holdem-d2 2520b27), about 0.1% of showdowns.
 * What it means for the roadmap: the archive's regulars and the solver family all have history, so the names that
   decide titles are the ones G1 models well; an entrant's first matches against a new name still use X1.
+
+### 14.33 T1's open question: the bp100-trained shoves are chip-positive; pure specialization costs 13 points elsewhere
+
+Two tier-1 reads on data and seeds outside any rule.
+
+**(a) Shove classes of T1's best response against bp100** (`logs/t1/flow_br.jsonl`, seed 81, 4,000 matches).
+Chips from `tools/chipflow.py`'s own table (`logs/t1/flow_br.out`), re-derived by a second pass (the roadmap agent's
+scratch script, which also gives points: the summed change in match-win probability per 4,000 matches under the
+policy's own empirical P(win | stack) curve; one pass, approximate):
+
+| street | shoves | called | equity when called | chips when bp100 folds | chips when called (expected) | chips total | points |
+|---|---|---|---|---|---|---|---|
+| preflop | 9,242 | 1,576 | 0.477 | +3.62M | +1.22M | +4.84M | +0.26 |
+| flop | 6,346 | 1,568 | 0.352 | +5.22M | -0.65M | +4.56M | -0.36 |
+| turn | 4,519 | 1,572 | 0.745 | +1.74M | +6.32M | +8.07M | +2.10 |
+| river | 3,508 | 1,048 | 0.831 | +1.46M | +5.23M | +6.69M | +3.12 |
+
+* Every street is chip-positive once the folds are counted; the called flop shoves lose 0.65M, mostly under 30 bb
+  (about 1,000 called at equity 0.24), ordinary fold-equity play. In match value only the flop is about flat. The
+  table shows the shoves pay against a no-chips baseline, not that they are the best action.
+* So 14.31's P0 gap (+28.1) is not a leak: a policy that wins 80% by shoving into folds ends its losses in called
+  shoves. P0 did its job once (it found the river call-off that training removed) and is retired as a decision
+  statistic; this class table replaces it in candidate reads (B1's read reports it).
+* fb2-900 on the same seeds: flop shoves +1.75M chips; river call-offs -2.46M, -4.11 points.
+
+**(b) What pure specialization on bp100 costs elsewhere** (seed 98, new; 1,000 matches per cell, paired on (seed,
+hero seat), holdem-x2r `rl.eval_arena`, cores 18-19; `~/poker-ai-lab-x2r/logs/t1x/`):
+
+| cell | fb2-900 | T1 best response | paired diff | 95% interval |
+|---|---|---|---|---|
+| `tight_sticky` | 93.5% | 87.0% | -6.5 | [-9.0, -4.0] |
+| `small_ball` | 76.3% | 59.7% | -16.6 | [-20.3, -12.9] |
+| `sticky_overbettor` | 82.6% | 64.7% | -17.9 | [-21.3, -14.5] |
+| `never_fold_pre` | 93.4% | 81.0% | -12.4 | [-15.0, -9.8] |
+| pooled | | | -13.4 | [-14.9, -11.8] |
+
+* Two hours against bp100 alone (+19.9 there) costs 6 to 18 points on every other style; C1's pure response cost
+  -4.0 on `tight_sticky`. B1's population (bp100 a third of the SDK matches, the rest fb2's mix plus `small_ball`,
+  the C-engine league about 38% of each update) and its guard cells are what this read says they must be; the B1
+  read's risk is the guards, and its pre-registered fallback P1b halves bp100's share.

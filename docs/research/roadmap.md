@@ -133,8 +133,9 @@ training question for clones was never asked; D2c first); resuming S2 (14.15: th
   seen in training. Registry: 81 S2r; 81 again for T1's read (its named baseline is S2r's fb2-900 rows); 82 T2;
   83 and 84 D2b (fitting logs, held-out logs); 85 D2b read 1 (86 its control rerun); 87 T1's `ext:` cost check (unpaired); 88 B0 step 1 fit logs; 89 unused (B0b cut); 90 A0's strength sanity (bp100 against `small_ball`); 91 B0 step 1's
   optional reread; 92 G1 step 1's folds and draw; 93 C1's reads (rule cells, paired); 94 B1 screen; 95 B1 confirmation; 96 B1 rerun if a
-  harness fault voids a read; 97 `small_ball_b`'s strength note. League pair ranges (seeds by `pair_seed`): 0-199 league row, 200-399
-  E1 gate, 400-499 B1's screen. Training seeds stay those of
+  harness fault voids a read; 97 `small_ball_b`'s strength note; 98 T1's transfer read (14.33); 99 and 100 B1's fallback P1b
+  screen and confirmation; G1 step 2a uses D2a's logs (61, 62) and bootstrap 47, no new arena seed. League pair ranges (seeds by `pair_seed`): 0-199 league row, 200-399
+  E1 gate, 400-499 B1's screen, 500-599 P1b's screen. Training seeds stay those of
   `tools/rl_br.sh`. A new read takes the next unused number and writes it here.
 * **Pairing:** every A/B is paired on (seed, hero seat) with a paired 95% interval (`tools/paired_stats.py`,
   holdem-x2r), and real-code opponents are pooled by family (Ashwing, autodidact, Wolf, bp100), equal weight
@@ -578,12 +579,50 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Box:** under P1 training holds the bpopp queue for 6 hours (10 containers at one CPU each), pinned to cores
   0-17; G1 keeps cores 18-19 and the GPU. Screen and confirmation after training, bp100 cells alone in the queue.
   Under P2 there are no containers and no lock (`BPQ_CONTAINERS=0`), so the queue is free for B0 step 1.
-* **Consumers:** candidate v5 (with S0, and B0a if it survives T1's chipflow read); B1r's direction; later judges'
-  weights.
+* **Added 25 Nov after 14.31 to 14.33 (reported, not deciding):** the read also runs `tools/chipflow.py` on the
+  chosen checkpoint against bp100 (4,000 matches, seed 95) and reports 14.33's shove class table beside fb2-900's and
+  T1's; P0 is printed for continuity only. B0 is closed for bp100 (training removed the river call-off); B0 step 1
+  stays on file for a name we cannot train against. Match value is quoted under the candidate's own empirical curve.
+* **Fallback, pre-registered 25 Nov:** if no checkpoint passes the league screen filter, one rerun P1b, identical
+  except bp100 at 2 of 12 entries (the two freed entries go to `chipzen` and `ext:ashwing_v2`), screen seed 99,
+  confirmation seed 100, league screen pairs 500 to 599 (gate pairs unchanged, 200 to 399). A second failure ends B1
+  at this representation and brings B1r forward. (14.33: a pure bp100 response costs 13 points on other styles.)
+* **Consumers:** candidate v5 (with S0); B1r's direction; later judges' weights.
 * **Executor checks first:** v4's exact E1 command; a holdem-rl checkpoint loads in holdem-x2r; the iteration rate
   with this mix (smoke run); wall-clock effect of slow SDK opponents on bp100's share; whether fb2's recipe still
   moves past 900 (if no checkpoint beats fb2-900 on bp100 and `small_ball_b` at the screen, that is a finding and
   B1r comes forward).
+
+### G1 step 2a. Does starting from the population model make a per-name model good at 100 and 1,000 matches? (pre-registration, 2026-11-25; tier 2)
+
+* **Why:** 14.32 rule 2: G1 beats the λ range only for names in its fit; unseen names fail even with their history
+  as input. The names we cannot train against directly (hoops 842 matches, mr_hide 826, r0ckGarden 774, NashForge
+  884, fermat6 990) each have under 1,000 matches, where D2a's per-name fit was weak (14.25). This answers it with
+  true cards, without containers, on logs that exist.
+* **Data:** D2a's logs on gb10-d (`~/poker-ai-lab-d2s2/logs/d2/`) for `ext:ashwing`, `ext:autodidact_fast`,
+  `ext:wolf`: fitting logs (seed 61, sizes 100 and 1,000 by index) and held-out logs (seed 62, 1,000 matches) with
+  `true_cards.jsonl`. No new arena seed. The executor checks first that these logs exist and that G1's feature
+  builder reads them unchanged.
+* **Arms, per bot and size:** (a) the λ range under per-name X1 fitted on the same logs; (b) D2a's per-name network
+  from scratch (exists for 1,000; refit for 100); (c) G1's network (fold-0 W fit) fine-tuned on the bot's logs, same
+  EM, 4 iterations, learning rate 3e-4; (d) G1 as is, the bot's logs only as its history profile.
+* **Calibration first:** a per-street bias on the fold logit fitted on the fitting logs' last 10%, applied to (c) and
+  (d); the fold-rate table by bet-size bucket reported before and after.
+* **Read** on the held-out logs with true cards: R on every hand that reached the river (not only shown hands), P at
+  big-pot decisions, fold rate predicted against actual per bet-size bucket. Bootstrap over matches, 2,000, seed 47.
+* **Rule:** (c) beats both (a) and (b) on R by at least +0.10 nats with the lower bound above zero at size 1,000 for
+  at least two of the three bots, and its fold calibration error is 5 points or less in every bucket with 200 or
+  more spots. Pass: G1 step 2b is specified (the lookahead with G1's range at the root against those bots, on real
+  code, paired against the λ root as X3b was, on top of B1's candidate). Fail: G1 stays an archive analysis tool
+  and gets no more GPU.
+* **Box and cost:** GPU and cores 18-19 only; no bpopp, no containers. About 12 short fits, under 2 GPU-hours; reads
+  about 2 core-hours. Stop at 8 GPU-hours.
+* **Owner files (holdem-d2, executor worktree):** `tools/g1_tune.py`, `tools/g1_2a_read.py`, `tests/test_g1_2a.py`,
+  plants in `tests/g1_plants.py`. **Non-goals:** no change to G1 step 1's tools or outputs, the lookahead, the bot.
+  **Writes on gb10-d:** `~/poker-ai-lab-d2s2/data/g1_2a/`, `logs/g1_2a/`. **Rollback:** revert, delete those.
+* **Tests (each failing on its plant):** the fine-tune never reads held-out (seed 62) logs; the calibration bias is
+  fitted on the fitting logs' last 10% only; R on river hands equals a hand computation on a toy; arm (a) equals
+  `x3_range` on 50 hands; the rule's literals (+0.10, 5 points, 200 spots, sizes 100 and 1,000, two of three).
 
 ### G1 step 1. Does one card-conditioned population model predict unseen names better than what we have? (pre-registration, 2026-11-25; tier 2)
 
