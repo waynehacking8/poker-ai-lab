@@ -18,7 +18,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * B1 (14.36): RULE FAIL. bp100 +5.4 of T1's +19.9, but P1's own ext families lost 3.4 to 4.6 points against
   fb2-900. No v5; v4 stays entered. Chosen checkpoint it001200 (rows in ~/poker-ai-lab-x2r/logs/b1/confirm/cand).
 * 14.37: weighted by hands, the counts name the opponent for 53% of hands and 71% of bp100's, so seeding (AD1) has
-  limited room. AD1 and S7 wait behind AD0.
+  limited room. AD1 and S7 dropped by AD0 rule 1 (14.39).
 * **D0 (14.38, research 31825b5): rule INCONCLUSIVE.** Valid run (void check ok). Pooled four ext cells: D0 vs
   fb2-900 -2.70 [-4.02, -1.38] (straddles -2.0), D0 minus B1 +1.07 [-0.28, +2.43]. Three families sit within 0.2 of
   B1 (the loss stays without the new data); `ext:ashwing_hive` recovers 4.2 of B1's 4.6. No lever decision, no
@@ -41,7 +41,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   "AD1 minus B1" reading with D0's verdict) missing; fixed on ad1-x2r 4b85994; verifier 2 REFUTED the GAINS ONLY line
   (it ignored a cell's "seeding hurt"); fixed first-hand in 91510c3 at 17:37 (86 tests, 24 of 24 amendment plants).
   Verifier cap reached on this claim; AD1 build done (ad1-x2r 91510c3).
-  Not trained: gated by AD0.
+  Not trained: dropped by AD0 rule 1.
 * **AD0 built** (holdem-rl `ad0` 8b7ea8b, holdem-x2r `ad0-x2r` 541bf81; worktrees poker-ai-lab-ad0, poker-ai-lab-ad0x2r;
   record in the roadmap AD0 spec). Fit corrected to the spec (at most 30 epochs, best held-out epoch, patience 3) and
   hold-out by pair. Verifier CONFIRMED; shipped 17:56 to ~/ad0-run/code and code-x2r, pins match. Runners: `tools/ad0_run.sh check|data|fit|relabel|refit`
