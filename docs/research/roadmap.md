@@ -4,43 +4,27 @@ Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The 
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
-## Where we are (2026-11-24 10:55 UTC)
+## Where we are (2026-11-25 08:13 UTC)
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
-win probability against it, and a safety blend. The work since revision 2, in order, each step read against
-its ceiling:
+win probability against it, and a safety blend. Revision 2's lookahead work (14.17 to 14.24) showed the
+procedure has headroom but the opponent model at the root loses it; it is parked behind Revision 3.
 
-1. **The procedure has headroom** (X2r, experiments 14.17): rollout lookahead with the opponent's true rules
-   beats the policy alone by +4.2 points on the rule cells.
-2. **With the model we have, it loses** (X2m, 14.18): with X1 in place of the true rules, -4.6.
-3. **The loss is the range at the root** (ablation, 14.19): 9.0 of the 8.8-point gap; the continuation 1.0.
-4. **Today's range is worse than no range** (X3a, 14.20): X1's band range scores below the uniform prior. The
-   λ range fixes the sign everywhere (+1.09 nats on held-out replays). Frequency error is the larger part.
-5. **The lookahead with the λ range** (X3b, 14.21): real bots +5.1 [+2.5, +7.7] (Ashwing +9), rule cells
-   -1.7 [-3.6, +0.3], up from -4.6, all of the loss in sticky_overbettor (-11.7). Not a candidate (rule pool).
-6. **It fits the arena at N = 32 and keeps the gain** (R1, 14.22): `ext:` +2.8 [+0.9, +4.7] paired, rule pool
-   +0.1 [-1.6, +1.8]; about 0.4 s per decision on one core. N = 8 loses 12 points. Not a candidate yet.
-7. **X1 predicts the middle** (X4 where, 14.23): an unnamed opponent's frequencies stay near the population
-   prior through the match (k_im = 8, about 10 actions per spot per match).
+Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29: the solver-like family about
+37% of entrant seats, small-ball aggressors next). Its first reads settled the direction:
+1. **Population, not capacity** (14.30, 14.31): one hour against `small_ball` lifts fb2-900 from 75.7% to 97.6%;
+   two hours against bp100 from 59.9% to 79.7% (+19.9 [+18.1, +21.6]). The same network learns both once it
+   meets them, at a cost on styles it stops seeing (`tight_sticky` -4.0).
+2. **The river call-off leak is a training gap** (14.31): 594 to 57 per 4,000 matches, so B0 step 1 does not run.
+   The bp100-trained policy still loses big pots on its own called shoves; whether those lose chips is open.
+3. **Match value is near linear against bp100** (14.28), so chip EV is a fair training target there.
 
-Running unattended (2026-11-24): the X4 step 2 k_im sweep (pre-registered below; its code is not yet
-verified), D2a stage 2 (clone fidelity of three bots), and D's replay fetch.
+Running: **B1** (the next base policy, spec below, branch A) is built and in its outcome verification; then 6
+hours of training, a seed-94 screen, a seed-95 confirmation and the E1 gate. **G1** (archive opponent model)
+is on its last split.
 
-Next, in this order:
-* Read the k_im sweep and D2a stage 2 against their pre-registered rules.
-* **X4** next step from that read: the N = 32 match read with a chosen k_im, or the per-name prior from D's
-  archive.
-* **D3** (style population, GPU training) if D2a's clones pass.
-* M3: v4's Season 16 matches (round robin 24 to 27 Nov) from the fetched replays.
-
-Plan review (2026-11-24, Wayne asked whether this is the best and clean plan): three gaps were found and
-fixed. Runtime was out of scope of every X slice (now R1); the floor had no slice since S2b (now E3 on
-every X candidate, below); and the `ext:` reads were unpaired because Ashwing and autodidact ran unseeded
-(seeded since holdem-x2r 30cfa1a, so `ext:` cells now read paired with `tools/paired_stats.py`).
-
-Deployed: `poker-ai-lab-v4` stays entered; nothing from X or D reaches the deployed bot until a candidate
-passes the gate (80% against every league opponent, a head-to-head win over the old heuristic bot, a fresh
-verifier, and Wayne's yes).
+Next: B1's candidate → v5 = B1 + S0 → gate → Wayne. G1's rule decides whether the per-name model returns to the
+lookahead (B0a for unseen names, X5).
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 
@@ -63,9 +47,9 @@ exists), so nothing is rushed for 27 Nov.
 * **Held, resolved 25 Nov (14.31):** river call-offs 57 against 594, so B0 step 1 does not run. Was: B0 step 1 until T1's chipflow read. If the bp100-trained policy still makes river call-offs at more
   than half of fb2-900's rate (594 per 4,000 matches at equity 0.198, 14.27), step 1 runs as revised below; if not,
   training fixes it for known bots and B0a returns later as the unseen-name version on top of G1.
-* **Now:** A0 Parts 1 and 2 (archive tool, `small_ball`); G1's data extraction on idle cores, then G1 fits on the
-  GPU (L5, L9; no bpopp queue).
-* **Critical path:** T1 read (25 Nov) → B1 spec (one page, full process; population fb2-900's league mix plus bp100
+* **Now (25 Nov 08:13 UTC):** A0, C1, T1 done; B1 built, outcome verifier running, then training; G1 on its last
+  split.
+* **Critical path (as planned 24 Nov; now about three days ahead: B1 training 25 Nov, candidate read 26 Nov):** T1 read (25 Nov) → B1 spec (one page, full process; population fb2-900's league mix plus bp100
   at a fixed share plus `small_ball` and `sticky_overbettor`, from fb2-900) → B1 training 26 to 28 Nov → candidate
   `v5 = B1 + S0 (+ B0a if it survives)` read on real code 29 Nov (bp100, `ext:` families, `small_ball`, E1 league,
   heuristic head to head, E3 reported) → fresh verifier, then Wayne, 30 Nov at the earliest. Guesses: T1 gain
