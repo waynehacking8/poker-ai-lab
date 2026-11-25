@@ -1555,3 +1555,26 @@ Pre-registered in roadmap "After A0" (C1, tier 2, seed 93). Best-response fine-t
 * **The cost is real:** a pure best response loses 4 points on `tight_sticky`; B1 trains on a mix so E1 and the
   untrained judges hold.
 * Single run, one seed; the training-time win rate rose from about 0.82 to 0.97 within the hour.
+
+### 14.31 T1: training against bp100 lifts fb2-900 from 59.9% to 79.7% (+19.9); B1 takes branch A, B0 step 1 does not run
+
+Pre-registered in roadmap "T1" (tier 3, verifier CONFIRMED the runner). Best response from fb2-900 against bp100
+alone (`tools/t1_run.sh`, holdem-rl 114a136, 120 minutes, `ckpt/br_bp100`), read on seed 81, 4,000 matches, paired
+on (seed, hero seat) with S2r's fb2-900 rows (`logs/t1/paired.out`, 4,000 pairs joined):
+
+| arm | win rate vs bp100 | paired diff | 95% interval |
+|---|---|---|---|
+| fb2-900 (S2r) | 59.85% | | |
+| best response | 79.7% [78.5, 80.9] | +19.9 | [+18.1, +21.6] (1,110 vs 315 discordant) |
+
+* **Rule fires (lower bound +18.1 at or above +8):** against the solver proxy, the training population is the
+  limit, not the representation. B1 takes branch A (population P1, with bp100); B1r is not specified now.
+* **B0 trigger (roadmap "Held"):** river call-offs of bp100's shoves fell from 594 per 4,000 matches at mean
+  equity 0.198 (-2.46M chips expected) to 57 at 0.675 (+0.11M). Under half of fb2-900's rate, so B0 step 1 does
+  not run: training fixes it for a known bot, and B0a returns later as the unseen-name version on top of G1.
+* P0's statistic on the same rows (`tools/p0_read.py`): loser equity under 0.35 in 54.5% of the best response's
+  losses against bp100's 26.3%, +28.1 [+24.1, +32.1] (fb2-900: +29.8). The losses moved off the river calls onto
+  called preflop and turn shoves (mean loser equity 0.541 and 0.455), so the remaining gap is mostly variance in
+  big pots, not chip-losing calls. Lost matches 811: final hand all-in as favourite 304, as underdog 507.
+* Single run, one seed; a pure best response, so its cost on other opponents is unmeasured here (B1 trains on a
+  mix and judges on held-out cells for that reason; C1 showed -4.0 on `tight_sticky` for a pure response).

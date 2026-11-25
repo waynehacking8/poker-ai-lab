@@ -60,7 +60,7 @@ exists), so nothing is rushed for 27 Nov.
   only Blueprint has the 1,000 archive matches a clone needs; no code exists for the small-ball family): revisit
   only if B1 trained on bp100 fails to transfer to the live solver names. A0 Part 3 (bp100 and tags in
   `x2r_oracle.py`) goes with T2.
-* **Held:** B0 step 1 until T1's chipflow read. If the bp100-trained policy still makes river call-offs at more
+* **Held, resolved 25 Nov (14.31):** river call-offs 57 against 594, so B0 step 1 does not run. Was: B0 step 1 until T1's chipflow read. If the bp100-trained policy still makes river call-offs at more
   than half of fb2-900's rate (594 per 4,000 matches at equity 0.198, 14.27), step 1 runs as revised below; if not,
   training fixes it for known bots and B0a returns later as the unseen-name version on top of G1.
 * **Now:** A0 Parts 1 and 2 (archive tool, `small_ball`); G1's data extraction on idle cores, then G1 fits on the
@@ -405,8 +405,8 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Question:** does continuing fb2-900 with the solver proxy and the small-ball aggressor in its population beat
   fb2-900 on the entrant-weighted judge, without losing the league gate?
 * **Why:** C1 (14.30) showed the population is the limit for the aggressor class (+21.9), with a cost elsewhere when
-  trained alone (`tight_sticky` -4.0). T1 gives the same reading for bp100: **T1 gain = ____ [____, ____]** (filled
-  in at T1's read, 14.31). 14.29: an entrant meets a regular in 5.4% of its seats, so the judge is weighted by what
+  trained alone (`tight_sticky` -4.0). T1 gives the same reading for bp100: **T1 gain = +19.9 [+18.1, +21.6]** (14.31):
+  branch A, population P1. 14.29: an entrant meets a regular in 5.4% of its seats, so the judge is weighted by what
   an entrant faces.
 * **Branch on T1 (the only blank):** A, T1's lower bound at or above +8, or between the thresholds: population P1
   (with bp100). C, T1's upper bound under +4: population P2 (without bp100; no containers, no bpopp queue) and a
