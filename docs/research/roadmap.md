@@ -604,7 +604,10 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
      bp100, C1 +21.9 on `small_ball`) minus B1's paired gain on that cell; and bp100's and `small_ball`'s share of
      `sdk_samples` (decisions) beside their share of matches from `wr`.
   4. fb2-900's baseline arm on seed 95 for every non-container confirmation cell runs before training ends (cores
-     18-19), so tomorrow's confirmation needs only the candidate arm.
+     18-19), so tomorrow's confirmation needs only the candidate arm. Exception, 12:13 UTC (amendment verifier):
+     `ext:wolf` runs Monte Carlo against a 300 ms wall-clock deadline, so its fb2-900 arm is rerun at confirmation
+     with the candidate arm's placement (move the cores 18-19 rows to `confirm/fb2_1819/`, reported only). Confirm
+     also stops if any weighted or guard cell is missing from either arm (b1-x2r 8be6e38).
 * **Consumers:** candidate v5 (with S0); B1r's direction; later judges' weights.
 * **Executor checks first:** v4's exact E1 command; a holdem-rl checkpoint loads in holdem-x2r; the iteration rate
   with this mix (smoke run); wall-clock effect of slow SDK opponents on bp100's share; whether fb2's recipe still
