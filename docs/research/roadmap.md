@@ -643,53 +643,112 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   of Blueprint, fermat6, NashForge, hoops (A0's metric); if bp100 sits far from arena Blueprint, the 0.70 judge
   weight and any live seeding keyed to it are wrong and D2b's revisit condition is met (recorded; AD1's rule is
   unchanged).
-* **Build (holdem-rl, own worktree from the tip that holds 14.35's logging fix, b1-rl 126c673 or its merge; failing
-  test first):**
-  1. `tools/sdk_profiles.py`: for each SDK opponent (bp100, chipzen, `small_ball`, `small_ball_b`, `tight_sticky`,
-     `sticky_overbettor`, `loose_passive`, `never_fold_pre`, `raise_station`, each `ext:` family in the judge) play
-     fb2-900 against it for 500 matches on seed 101, run every hand through `Tracker.update`, sum the 15 slots and
-     scale so `st[10] = H0`. Output `rl/models/sdk_prior.npz`, its sha256 pinned here before training.
+* **Base commits (pinned):** holdem-rl b1-rl 126c673 (14.35's logging and guard fix, verifier CONFIRMED); holdem-x2r
+  b1-x2r 8be6e38 (= holdem-x2r). `rl/features.py` is byte-identical in both (blob 348afb57). Worktrees: holdem-rl
+  branch `ad1` from 126c673, holdem-x2r branch `ad1-x2r` from 8be6e38; executors never touch other worktrees.
+* **Non-goals:** no change to `rl/features.py`, the network shape, `rl/bot.py`'s defaults, the deployed bot, the
+  league tools or `data/`; no C-engine seeding (below); no candidate, no league row, nothing outward.
+* **Build:**
+  1. **Profiles (holdem-x2r `tools/sdk_profiles.py`):** for each name in the profile list (bp100, chipzen,
+     `small_ball`, `small_ball_b`, `tight_sticky`, `sticky_overbettor`, `loose_passive`, `never_fold_pre`,
+     `raise_station`, `ext:ashwing`, `ext:ashwing_hive`, `ext:ashwing_search`, `ext:autodidact`, `ext:wolf`) play
+     fb2-900 against it through `holdem.arena.run_arena(opp, 500, seed=101, workers=6)` (match seeds 101·100000 + k,
+     k < 250, disjoint from seed 104's), run every hand through `rl.features.Tracker.update` from the hero's seat,
+     sum the 15 slots and scale so `st[10] = H0 = 40`. Output `rl/models/sdk_prior.npz` in `load_priors`' format,
+     keyed by the exact name the hero receives at match start in each tree (the test pins the key for one SDK and one
+     arena match). bp100 goes through the queue: `BPQ_SLICE=AD1 BPQ_SEED=101 BPQ_KIND=read BPQ_CONTAINERS=1`. The
+     file is committed to both trees; its sha256 is written into this spec and both runners before training.
   2. H0 = 40 (X2a used 20): f[52] saturates at 40 hands, so a seeded match reads "opponent fully known" from hand 1
      and an unseeded one reads unknown. This is the near-oracle form; a pass can be relaxed later, a fail is clean.
-  3. `rl/sdk_rollout.py`: per match, with probability 0.75 drawn from the match seed, the Tracker starts from the
-     opponent's profile, else from none. New flags `--sdk-profiles PATH` and `--seed-share 0.75`; without them the
-     batches are byte-identical to today (test). C engine: `--seed-profiles rl/models/tracker_prior.npz` as built in
-     X2a, with the same 0.75 share (add the share knob under the same flag if X2a's caller has none). Arch clones,
-     snapshots and pool members stay unseeded.
-  4. Eval: `rl.eval_arena` and the league bot take a profile per opponent (seeded arm) or none.
-* **Training:** B1's literal command (population P1, init `ckpt/fb2/it000900.npz`, B1's pinned hashes) plus the
-  flags, `--out ckpt/ad1`, `--max-minutes 240` (seeded counts at hand 1 are a new input distribution for fb2-900;
-  B1's flat curve does not transfer), the guard as fixed in 14.35. Checkpoints read: 600, 1,200, 1,800, latest.
-* **Screen (seed 103):** bp100 seeded 1,000 and `small_ball` seeded 1,000 per checkpoint; chosen = highest mean of
-  the two paired gains against fb2-900 unseeded. No league filter (no candidate).
-* **Confirmation (seed 104, paired on seed and hero seat against fb2-900 unseeded; holdem-x2r):**
-  1. bp100 seeded 4,000; bp100 unseeded 2,000 (same checkpoint, the ablation).
-  2. `small_ball` seeded 2,000; unseeded 2,000.
+  3. **Training seeding (holdem-rl `rl/sdk_rollout.py`):** new flags `--sdk-profiles PATH` and `--seed-share F`
+     passed from `rl.train` to the SDK workers. Per SDK match, seeded iff `u < F` where u is a pure function of the
+     match's own seed (a hash, not the process RNG); seeded means the hero's Tracker starts from the opponent's row,
+     else from none; names absent from the file are never seeded. Without the flags the SDK batches are
+     byte-identical to 126c673's for the same seeds. **The C-engine stream stays unseeded:** X2a's C-engine seeding
+     keys only `bot:` clones, which P1 does not train against (no `--bot-clones`), and arch clones, snapshots and pool
+     members are not named opponents; this is stated in the read, not built.
+  4. **Eval (holdem-x2r `rl/eval_arena.py`):** new flag `--profiles PATH`; the hero is `RLBot(priors=PATH)`, so its
+     Tracker starts from the row keyed by the opponent's name (no row: unseeded). Without the flag, rows are identical
+     to 8be6e38's. The seeded and unseeded arms of a cell use the same `--seed` and n, so rows pair on (seed, hero
+     seat).
+  5. **Runner (holdem-rl `tools/ad1_run.sh`):** B1's `b1_run.sh` with `--out ckpt/ad1`, `--pool-dir pool_ad1` (a frozen
+     copy of the same two pool files, checked by hash), `--max-minutes 240`, `--sdk-profiles rl/models/sdk_prior.npz
+     --seed-share 0.75`, and the same guard (14.35). Before start it checks B1's pinned hashes (clones 93b5be28…,
+     maniac_labels 36534c2f…, a_ablA 4cf2a418…, b_distill1 6fafbb53…, fb2 init) plus `sdk_prior.npz`'s, and exits
+     non-zero on any mismatch. Judge: holdem-x2r `tools/ad1_judge.sh` (B1's judge pattern, BPQ_SLICE=AD1) and
+     `tools/ad1_read.py`.
+* **Training:** B1's literal command (population P1, init `ckpt/fb2/it000900.npz`) through `ad1_run.sh`, 240 minutes
+  (seeded counts at hand 1 are a new input distribution; B1's flat curve does not transfer). Checkpoints read: 600,
+  1,200, 1,800 and latest (latest only when the run ends with `done`).
+* **Screen (seed 103):** bp100 seeded 1,000 and `small_ball` seeded 1,000 per checkpoint, each paired against fb2-900
+  unseeded on the same seed; chosen = highest mean of the two paired gains. No league filter (no candidate).
+* **Confirmation (seed 104, paired on (seed, hero seat) against fb2-900 unseeded; `ad1_judge.sh confirm`):**
+  1. bp100 seeded 4,000 and fb2-900 4,000; bp100 unseeded 2,000 (the ablation). The ablation difference is seeded
+     minus unseeded on the 2,000 shared matches (k < 1,000, both seats).
+  2. `small_ball` seeded 2,000; unseeded 2,000; fb2-900 2,000.
   3. Profiles never trained on, seeded, 2,000 each: `small_ball_b`, `tight_sticky`, `sticky_overbettor`,
-     `loose_passive`, `never_fold_pre`, `raise_station` (a learned response to a profile, not eight memorized names).
+     `loose_passive`, `never_fold_pre`, `raise_station`.
   4. Real bots seeded, 1,000 each: `ext:ashwing`, `ext:ashwing_hive`, `ext:ashwing_search`, `ext:autodidact`,
-     `ext:wolf` (wolf's both arms with the candidate's core placement, 14.36). Unseeded: `ext:ashwing`,
-     `ext:ashwing_hive`, 1,000 each.
-  5. Reported only: league_fresh pairs 600 to 699 seeded for the clones, against fb2-900 on the same pairs; the
-     heuristic head to head seeded; chipflow's shove table against bp100; decision shares.
-* **Rule (pre-registered):**
-  1. PASS: seeded bp100 gain at least +10.0 with its 95% lower bound above +5.4, seeded `small_ball` gain at least
-     +11.0 with its lower bound above +6.5, and no seeded real-bot cell under -2.0 with its upper bound under zero.
-  2. GAINS ONLY: item 1's two gains hold but a real-bot cell fails: identity works, the population is too narrow; X2b
-     proceeds with the real families in the seeded population.
-  3. FAIL, input ignored: seeded minus unseeded on bp100 has its upper bound under +2.0: the network does not use the
-     seed; next is how the opponent enters the network (a separate embedding path, or G1's per-name descriptor as
-     input), not more training.
-  4. FAIL, input used but short: seeded minus unseeded lower bound above +2.0 yet the gains miss item 1: next is
-     capacity (S7: a wider trunk, same recipe), judged on the same cells.
-  The unseeded cells are also the unseen-name guard: reported against fb2-900, flagged if any is under -2.0 with its
-  upper bound under zero; that matters for X2b and does not decide AD1.
+     `ext:wolf`; unseeded `ext:ashwing` and `ext:ashwing_hive`, 1,000 each. All arms of a cell on the same cores and
+     workers (cores 0-17, 6 workers), fb2-900's included, so no wall-clock bot differs between arms.
+  5. Reported only: chipflow's shove table against bp100 (seeded hero, 4,000, seed 104); decision shares; the
+     heuristic head to head seeded (chipzen row), 1,000.
+  Example commands (holdem-x2r root): seeded `python -m rl.eval_arena --model CKPT --opp bp100 --matches 4000 --seed
+  104 --workers 6 --profiles rl/models/sdk_prior.npz --rows logs/ad1/confirm/seeded/bp100.jsonl`; unseeded the same
+  without `--profiles`, `--matches 2000`, rows `logs/ad1/confirm/unseeded/bp100.jsonl`.
+  `tools/ad1_read.py confirm logs/ad1` pairs each cell's arm with `logs/ad1/confirm/fb2/` on (seed, hero seat) and
+  prints the rule's branch; `ad1_read.py screen` reads only seed 103.
+* **Rule (pre-registered), evaluated in this order:**
+  1. Ablation A = seeded minus unseeded on bp100 (shared 2,000): **below** (upper bound under +2.0), **straddle**
+     (interval contains +2.0), **above** (lower bound above +2.0).
+  2. Gains G hold when seeded bp100 is at least +10.0 with its 95% lower bound above +5.4 and seeded `small_ball` is
+     at least +11.0 with its lower bound above +6.5 (paired against fb2-900).
+  3. Real-bot guard R passes when no seeded `ext:` cell is under -2.0 with its upper bound under zero.
+
+  | A | G | R | branch |
+  |---|---|---|---|
+  | below | hold or miss | pass or fail | **FAIL 3, input ignored**: the network does not use the seed; if G holds, training alone moved the cells, not identity. Next: how the opponent enters the network |
+  | straddle | any | any | **INCONCLUSIVE**: one rerun of bp100 seeded and unseeded, 4,000 each, seed 105, then reclassify A; still straddling counts as FAIL 3 |
+  | above | hold | pass | **PASS**: X2b as a full-process candidate slice |
+  | above | hold | fail | **GAINS ONLY**: identity works, the population is too narrow; X2b with the real families in the seeded population |
+  | above | miss | pass or fail | **FAIL 4, used but short**: next is capacity (S7, wider trunk, same recipe), judged on these cells |
+
+  The unseeded cells are also the unseen-name guard: reported against fb2-900, flagged if under -2.0 with the upper
+  bound under zero; they inform X2b, they do not decide AD1.
+* **Tests (each failing on its plant; holdem-rl `tests/test_ad1.py`, holdem-x2r `tests/test_ad1_judge.py`, plants in
+  each tree's `tests/ad1_plants.py`, run by the existing mutate runners):**
+  1. Without the flags, an SDK batch on fixed seeds equals 126c673's byte for byte (plant: seeding drawn even without
+     the flags).
+  2. The seeded share over 2,000 match seeds is 0.75 ± 0.03 and the same seed gives the same decision twice across
+     processes (plant: drawn from the process RNG).
+  3. Only the hero's Tracker is seeded and only for names in the file (plants: the opponent seat seeded; an unknown
+     name seeded with a default row).
+  4. `sdk_prior.npz` has `st[10] == 40` on every row and equals an independent count on a 3-hand toy (plant: H0 = 20).
+  5. `ad1_run.sh` exits before training on any hash mismatch, `sdk_prior.npz` included (plant: the check removed).
+  6. The seeded eval hero with no row for the opponent equals the unseeded hero row for row on 50 matches, and with a
+     row differs (plant: `--profiles` ignored).
+  7. `ad1_read.py` uses only seed 104 for the rule and only seed 103 for selection (plant: swapped); the ablation uses
+     only the shared k < 1,000 pairs (plant: all 4,000 seeded rows).
+  8. Every row of the branch table maps as written, on synthetic intervals (plant: straddle mapped to FAIL 4).
+  9. Literals: 0.75, 40, 240, seeds 101 to 105, +10.0, +5.4, +11.0, +6.5, -2.0, +2.0, every n above (plant: one
+     changed).
+* **Writes on gb10-d and rollback:** `~/poker-ai-lab-rl`: `rl/models/sdk_prior.npz`, `pool_ad1/`, `ckpt/ad1/`,
+  `logs/ad1/`, the code from `ad1` (ship by `git -c core.autocrlf=false archive`; rollback: re-ship 126c673's
+  archive and delete the four paths). `~/poker-ai-lab-x2r`: the code from `ad1-x2r`, `rl/models/sdk_prior.npz`,
+  `logs/ad1/`, `logs/ad1r/` (rollback: re-ship 8be6e38 and delete those). `tools/seed_registry.txt` gains the lines
+  `101 AD1 read`, `102 AD1 read`, `103 AD1 read`, `104 AD1 read`, `105 AD1 read` (kept; registry lines are never
+  removed). No push of `ad1` or `ad1-x2r`.
 * **Budget and stop:** 240 minutes of training plus about 3 box-hours of reads, the bpopp serial queue as in B1.
-  Stop and record if byte-identity without the flags or the seeding tests still fail after two fix rounds.
-* **Registry:** seeds 101 (profiles), 102 (R1 if fresh matches are needed), 103 (screen), 104 (confirmation); league
-  pairs 600 to 699. Seeds 99 and 100 and pairs 500 to 599 stay reserved to P1b, retired.
+  Stop and record if test 1 or 2 still fails after two fix rounds.
+* **Registry:** seeds 101 (profiles), 102 (R1 if fresh matches are needed), 103 (screen), 104 (confirmation), 105
+  (the INCONCLUSIVE rerun only). No league pairs (the league cell was dropped: AD1 yields no candidate). Seeds 99 and
+  100 and pairs 500 to 599 stay reserved to P1b, retired.
 * **Known limit:** a profile is measured with fb2-900 as hero and some slots depend on the hero's own betting. The
   live version has the same mismatch (archive profiles come from other heroes), so it is the realistic condition.
+* **Review record:** plan review 1 REVISE (no owner files, non-goals, writes, rollback or tests; C-engine seeding
+  would never fire under P1 and had no share knob; no seeded eval flag or AD1 reader; rule branches overlapped and
+  left a gap; registry, profile command, base commit and runner unpinned). Fixed above; tier 2 allows one review,
+  so execution follows with the outcome verifier on the read.
 * **Consumers:** X2b's go or no-go; the opponent-representation or capacity slice on a fail.
 
 ### G1 step 2a. Does starting from the population model make a per-name model good at 100 and 1,000 matches? (pre-registration, 2026-11-25; tier 2)
