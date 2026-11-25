@@ -1,10 +1,10 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-25 04:50 UTC. Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-25 05:04 UTC. Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 04:50 UTC, box clock UTC+8)
+## Now (2026-11-25 05:04 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project (he may write Chinese; when he asks for an explanation in Chinese, answer in
 Traditional Chinese). Think from first principles, not narrowly. Goal is the long-term "future king", not the
@@ -38,15 +38,17 @@ busy on purpose. Plan of record: `docs/research/roadmap.md` on branch research (
 * T1 spec final after plan reviews 1 and 2 (research 173d776; cap reached, standing approval). Executor in a
   holdem-rl worktree builds `make_opp("bp100")`, `tests/test_t1_bp100.py` (4 tests with plants), `tools/t1_run.sh`;
   then a fresh verifier; then I launch `tools/t1_run.sh` with `setsid -f` (120 min training, 4,000-match read).
-* 14.28: match value vs bp100 is near linear (empirical P(win|stack) matches K = 0.80; K = 4.68 claims 51% at
-  3k chips, data 22%). 14.27's flop-shove reading withdrawn. T2's K arm is 0.80.
-* B0 step 1 spec (research 1ba001f, Fable's design): offline headroom of a river all-in answer vs bp100 with
-  bp100's true range read from its container; rule +1.0 point lower bound > 0. Plan review 1 running.
-* **Wayne 2026-11-25: act on Fable's recommendations; open questions go to Fable, not him.** The Fable roadmap
-  agent (resume with SendMessage) is drafting the A0 and D2b specs. L0 (live challenges) stays parked: outward.
+* 14.28: match value vs bp100 is near linear (K = 0.80, not 4.68); 14.27's flop-shove reading withdrawn.
+* **Ordering adopted (research 71c52db, roadmap "Ordering after Phase 0", Fable's):** K1 and B0b cut; T2, D2b,
+  A0 Part 3 deferred; B0 step 1 HELD until T1's chipflow read (revised exact-oracle design recorded); critical path
+  T1 read → B1 spec → B1 training 26-28 Nov → candidate reads 29 Nov → verifier, then Wayne, 30 Nov earliest.
+* Running: T1 executor (holdem-rl worktree); A0 Parts 1-2 executor (holdem-x2r worktree: archive tool,
+  `small_ball`); Fable drafting the G1 pre-registration (GPU and cores 18-19 are idle until G1 starts).
+* **Wayne 2026-11-25: act on Fable's recommendations, open questions go to Fable; memory and docs English only**
+  (reading guide translated on all five branches, 90208e5 here). L0 stays parked: outward.
 
-**gb10-d:** bpopp queue: T1 tests (executor), T1 run, B0 step 1 logs (seeds 81, 88), D2b generation, T2.
-Fetcher pid 1838186, the only one.
+**gb10-d:** bpopp queue: T1 tests (executor), T1 run, then B1. Cores 18-19: A0 archive read, then G1 extraction.
+GPU: G1. Fetcher pid 1838186, the only one.
 
 **Branches not pushed (local only, by rule):**
 * holdem-x2r, `C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r`, tip cb12f5f (X3a/X3b/R1/X4 tools; ext bots
