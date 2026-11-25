@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 06:42 UTC, box clock UTC+8)
+## Now (2026-11-25 07:47 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project (he may write Chinese; when he asks for an explanation in Chinese, answer in
 Traditional Chinese). Think from first principles, not narrowly. Goal is the long-term "future king", not the
@@ -46,10 +46,9 @@ busy on purpose. Plan of record: `docs/research/roadmap.md` on branch research (
   Blueprint 15.4%, fermat6 6.8%, NashForge 6.1%, hoops 5.8%, mr_hide 5.7%, r0ckGarden 5.3%, slopBot 2.7%. slopBot
   rates first and over-folds small flop bets by 44 points; 5 of top 10 exploitable (L8 over-weighted). Verifier
   found an inverted best-opponent rate; fixed (holdem-x2r 1d2dd06) and rerun.
-* **T1 RUNNING** since 05:38 UTC on gb10-d (verifier CONFIRMED; `tools/t1_run.sh`, 120 min training, then the
-  4,000-match read; outputs ~/poker-ai-lab-rl/logs/t1/, ckpt/br_bp100). Read expected about 07:50 UTC; then
-  `tools/p0_read.py` on logs/t1/flow_br.jsonl decides B0 step 1 (ordering). Strength sanity: bp100 beats
-  `small_ball` 57.0% (strength cell).
+* **14.31 T1 DONE 07:46 UTC (research 0907f95):** best response vs bp100 79.7% vs fb2-900 59.85%, paired +19.9
+  [+18.1, +21.6] (4,000 pairs, seed 81). Population is the limit: **B1 branch A (P1, with bp100)**. River
+  call-offs 594 → 57, so **B0 step 1 does not run** (B0a later on top of G1). Outcome verifier checking the read.
 * G1 RUNNING since 05:35 UTC (holdem-d2 `tools/g1_run.sh`; ~/poker-ai-lab-d2s2/logs/g1/run.log, per-step
   .done markers, `failed` on error, rule in logs/g1/rule.txt). base_fold0 crashed 06:01 (x3_range KeyError on
   one-sided showdown reveals); fixed in `g1_read.lam_scores` (holdem-d2, those hands replayed, not scored),
@@ -62,13 +61,14 @@ busy on purpose. Plan of record: `docs/research/roadmap.md` on branch research (
   (registry, screen score, test 1 keys, P2 branch and lock, writes and rollback), fixed (research d23f111); cap
   reached, standing approval. **Executor building since 06:42 UTC** in worktrees poker-ai-lab-b1rl (b1-rl),
   poker-ai-lab-b1x2r (b1-x2r), poker-ai-lab-b1lg (b1-league); box test copies under ~/b1-build only; no
-  container job before T1 ends. Then a fresh verifier, then I launch `tools/b1_run.sh P1|P2` (T1 picks).
+  container job before T1 ends (the executor's P1 smoke run took the bpopp queue after T1). Then a fresh
+  verifier, then I launch `tools/b1_run.sh P1`.
 * A0 and T1 agent worktrees sit under poker-ai-lab/.claude/worktrees
   (commits already cherry-picked); remove them at cleanup.
 * **Wayne 2026-11-25: act on Fable's recommendations, open questions go to Fable; memory and docs English only**
   (reading guide translated on all five branches, 90208e5 here). L0 stays parked: outward.
 
-**gb10-d:** bpopp queue: T1 run (until about 07:50 UTC), then B1. Cores 0-5: free (C1 done). Cores 18-19:
+**gb10-d:** bpopp queue: B1 executor smoke runs, then B1 training (6 h). Cores 0-5: free (C1 done). Cores 18-19:
 G1 (running). GPU: G1 fits. Fetcher pid 1838186, the only one.
 
 **Branches not pushed (local only, by rule):**
