@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 05:39 UTC, box clock UTC+8)
+## Now (2026-11-25 06:38 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project (he may write Chinese; when he asks for an explanation in Chinese, answer in
 Traditional Chinese). Think from first principles, not narrowly. Goal is the long-term "future king", not the
@@ -50,17 +50,23 @@ busy on purpose. Plan of record: `docs/research/roadmap.md` on branch research (
   4,000-match read; outputs ~/poker-ai-lab-rl/logs/t1/, ckpt/br_bp100). Read expected about 07:50 UTC; then
   `tools/p0_read.py` on logs/t1/flow_br.jsonl decides B0 step 1 (ordering). Strength sanity: bp100 beats
   `small_ball` 57.0% (strength cell).
-* G1 RUNNING since 05:35 UTC (holdem-d2 c3bfa07, `tools/g1_run.sh`; ~/poker-ai-lab-d2s2/logs/g1/run.log, per-step
-  .done markers, `failed` on error, rule in logs/g1/rule.txt; about 3 to 4 GPU-hours plus baselines).
-* C1 (tier 2): fb2-900 vs `small_ball` 75.7%, vs `tight_sticky` 94.3% (seed 93). Best-response training against
-  `small_ball` running in ~/poker-ai-lab-x2r (cores 0-5, 60 min from 05:28 UTC, ckpt/br_small_ball, done marker
-  logs/c1/br.done); then the paired read on seed 93.
+* G1 RUNNING since 05:35 UTC (holdem-d2 `tools/g1_run.sh`; ~/poker-ai-lab-d2s2/logs/g1/run.log, per-step
+  .done markers, `failed` on error, rule in logs/g1/rule.txt). base_fold0 crashed 06:01 (x3_range KeyError on
+  one-sided showdown reveals); fixed in `g1_read.lam_scores` (holdem-d2, those hands replayed, not scored),
+  resumed 06:03; fold 0 and 1 done at 06:30.
+* **14.30 C1 FIRED (research 16fb10b):** best response vs `small_ball` 97.6% vs fb2-900 75.7%, paired +21.9
+  [+19.9, +23.8]; `tight_sticky` -4.0 [-5.5, -2.4]. `small_ball` joins B1's training.
+* **B1 spec in roadmap (research 6e0f647, 4435d81):** Fable's draft; plan review 1 REVISE (E1 command and
+  disjoint pair ranges 400-499 screen / 200-399 gate via new holdem-league `tools/league_fresh.py`; test 1 unit;
+  literal `rl.train` command with pinned input hashes and frozen `pool_b1`), fixed; plan review 2 running. T1's
+  number is the only blank; then executor (holdem-rl and holdem-league worktrees, holdem-x2r for judge
+  files), verifier, training about 6 h.
 * A0 and T1 agent worktrees sit under poker-ai-lab/.claude/worktrees
   (commits already cherry-picked); remove them at cleanup.
 * **Wayne 2026-11-25: act on Fable's recommendations, open questions go to Fable; memory and docs English only**
   (reading guide translated on all five branches, 90208e5 here). L0 stays parked: outward.
 
-**gb10-d:** bpopp queue: T1 run (until about 07:50 UTC), then B1. Cores 0-5: C1 training. Cores 18-19:
+**gb10-d:** bpopp queue: T1 run (until about 07:50 UTC), then B1. Cores 0-5: free (C1 done). Cores 18-19:
 G1 (running). GPU: G1 fits. Fetcher pid 1838186, the only one.
 
 **Branches not pushed (local only, by rule):**
