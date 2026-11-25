@@ -1882,10 +1882,10 @@ with the candidate's placement. Gate: league_fresh pairs 200-399 plus the heuris
 Pre-registered in roadmap "D0" (research b640cfe). Training holdem-rl d0 60ff10d in `~/d0-run`, 15:53 to 19:03 UTC
 (time stop at it 1,730), B1's command minus the bp100 and `small_ball` SDK entries, `--heur-batch 5750`. Void check
 (`tools/d0_read.py void`, first to last row): C engine 6,069.9 decisions per iteration (target 6,070), old-family
-SDK 5,926.5 (5,971, -0.8%), ext : heuristic 3.151 (3.15): **valid**. Read: it001200 only, seed 95, 1,000 matches per
+SDK 5,926.5 (5,971, -0.7%), ext : heuristic 3.151 (3.15): **valid**. Read: it001200 only, seed 95, 1,000 matches per
 cell from `~/d0-run/x2r` (holdem-x2r 8be6e38) on cores 0-17, 6 workers; rows `~/d0-run/logs/d0/read/it001200/`;
 paired on (seed, hero seat) with the fb2-900 and B1 it001200 rows of 14.36 (`~/poker-ai-lab-x2r/logs/b1/confirm/fb2`,
-`cand`). `ext:autodidact` took 3,641 s (fb2-900's arm took about an hour too; the bot is slow, not the box).
+`cand`). `ext:autodidact` took 3,641 s (B1's arm 3,392 s, fb2-900's 11,361 s; the bot is slow, not the box).
 
 | cell | D0 vs fb2-900 | 95% interval | D0 vs B1 | 95% interval | B1 vs fb2-900 (14.36) |
 |---|---|---|---|---|---|
@@ -1900,6 +1900,10 @@ paired on (seed, hero seat) with the fb2-900 and B1 it001200 rows of 14.36 (`~/p
 * **Described, not decided:** the loss against fb2-900 is real without the new data (upper bound -1.38). On three of
   the four families D0 sits within 0.2 points of B1, so the bp100 and `small_ball` samples add nothing measurable
   to B1's loss there; on `ext:ashwing_hive` D0 recovers 4.2 of B1's 4.6 points, so the new data's harm, where it
-  shows, is on that one family. Both readings the rule separates are present, on different families.
+  shows, is on that one family. Per family neither rule row is met (hive's F interval [-2.7, +1.9] is not above -2.0; the
+  other three F upper bounds, -0.5 to -1.1, are not under -2.0), so this is a description, not a per-family verdict.
 * **For AD0:** its "D0 beside it" line (NEW DATA with W1 passing) does not apply.
-
+* **Outcome verifier:** void check, checkpoint (60 of 60 stored rows reproduced from it001200, 17 of 60 from
+  it001100), eval tree (412 files of 8be6e38), pairing, every cell and pooled number, the B1 column and the rule
+  CONFIRMED; REFUTED on one rounding (-0.8% for -0.7%), an understated fb2-900 timing, and a sentence that gave rule
+  readings to single families. Corrected above.
