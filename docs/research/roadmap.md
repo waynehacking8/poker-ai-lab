@@ -4,7 +4,7 @@ Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The 
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
-## Where we are (2026-11-25 09:07 UTC)
+## Where we are (2026-11-25 15:35 UTC)
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
 win probability against it, and a safety blend. Revision 2's lookahead work (14.17 to 14.24) showed the
@@ -19,13 +19,14 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    The bp100-trained policy still loses big pots on its own called shoves; whether those lose chips is open.
 3. **Match value is near linear against bp100** (14.28), so chip EV is a fair training target there.
 
-Running: **B1** (the next base policy, spec below, branch A) trains from 09:04 to about 15:05 UTC 25 Nov; then
-a seed-94 screen, a seed-95 confirmation and the E1 gate. **G1** step 1 ended in rule 2 (14.32, a known-name
-model); **G1 step 2a** (per-name fine-tune from G1 on three real bots) runs on the GPU. 14.33: the bp100-trained
-shoves are chip-positive; pure bp100 training costs 13 points on other styles, so B1's guards are the risk.
+4. **One mixed policy does not generalize** (14.36): B1 (bp100 a third of the population plus `small_ball`) gains
+   +5.4 on bp100 and +6.5 on `small_ball` (a quarter of each specialist's gain) and loses 2 to 5 points on every
+   real-bot family, Blueprint's clone included. No v5; v4 stays. B1's stop was a logging false alarm (14.35).
+5. **G1 fine-tuned per name reads ranges best but fails fold calibration** (14.34); no more GPU for it.
 
-Next: B1's candidate → v5 = B1 + S0 → gate → Wayne. G1's rule decides whether the per-name model returns to the
-lookahead (B0a for unseen names, X5).
+Next: **AD1** (spec below, tier 2): seed the opponent counts with each opponent's profile so one network knows who
+it faces from hand 1; its rule decides between X2b (a candidate with seeded identity), an opponent-representation
+slice, or capacity. First two tier-1 reads (R1 identification curve, R2 bp100 against arena Blueprint) are running.
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 
@@ -584,6 +585,9 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   chosen checkpoint against bp100 (4,000 matches, seed 95) and reports 14.33's shove class table beside fb2-900's and
   T1's; P0 is printed for continuity only. B0 is closed for bp100 (training removed the river call-off); B0 step 1
   stays on file for a name we cannot train against. Match value is quoted under the candidate's own empirical curve.
+* **Outcome, 25 Nov (14.36):** rule FAIL on four real-bot guard cells; headline +3.94, bp100 +5.4, E1 holds. No v5.
+  P1b is retired (its trigger did not fire, and it is another point on the same frontier); B1r, the range-feature
+  slice, is parked; the headroom reading (14.5 and 15.4 points against the 8-point aid) is the reason for AD1.
 * **Fallback, pre-registered 25 Nov:** if no checkpoint passes the league screen filter, one rerun P1b, identical
   except bp100 at 2 of 12 entries (the two freed entries go to `chipzen` and `ext:ashwing_v2`), screen seed 99,
   confirmation seed 100, league screen pairs 500 to 599 (gate pairs unchanged, 200 to 399). A second failure ends B1
@@ -613,6 +617,80 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   with this mix (smoke run); wall-clock effect of slow SDK opponents on bp100's share; whether fb2's recipe still
   moves past 900 (if no checkpoint beats fb2-900 on bp100 and `small_ball_b` at the screen, that is a finding and
   B1r comes forward).
+
+### AD1. Seeded identity: does one network keep the specialists' gains when told who it faces? (spec, 2026-11-25; tier 2)
+
+* **Question:** when the policy's opponent-count features are seeded with the opponent's own long-run profile, does
+  one network keep at least half of each specialist's gain (T1 +19.9 on bp100, C1 +21.9 on `small_ball`) without the
+  real-bot losses B1 showed?
+* **Decision it feeds:** PASS starts X2b as a full-process candidate slice (profiles from the A0 archive, the live
+  name rule, the E1 gate). The fail branches send the work to how the opponent enters the network, or to network
+  capacity, and stop further population tuning. No candidate comes out of AD1; nothing reaches the bot.
+* **Why (14.33, 14.36):** pure bp100 training costs 13.4 points on other styles; B1's mix keeps a quarter of each
+  specialist's gain (+5.4, +6.5) and loses 2 to 5 points on every real-bot family, with the C-engine clone population
+  unchanged from fb2's recipe. That is interference inside one set of weights: the policy's only opponent input is
+  the in-match counts (f[44] to f[55]), a match is about 41 hands (14.12) and a spot sees about 10 actions per match
+  (14.23), so most decisions are made before the counts say who is across the table. A KL anchor, more families or
+  P1b pick another point on the same frontier; a range feature (B1r) improves the hand input, which the results do
+  not point at. The arena gives identity for free (0.9% of entrant matches are a first meeting, A0; known names are
+  predictable, 14.32), and X2a (14.14, verifier CONFIRMED) built the seeding in the Tracker, the C engine and the
+  bot. AD1 is X2b cut down to the one question that decides the line.
+* **Before launch, tier 1 (CPU, minutes):** R1, identification curve: nearest-profile accuracy of the 12 count
+  features at hands 0, 5, 10, 20, 40 across bp100, chipzen, `small_ball` and the judge cells, from fb2-900 matches
+  (seed 102 if fresh ones are needed). If two opponents with different best responses share a profile (bp100 against
+  chipzen to watch), AD1 does not launch before the descriptor is widened. If identity is already clear by hand 5 to
+  10, AD1 still runs but fail branch 4 (capacity) becomes the prior. R2: bp100's profile beside the archive profiles
+  of Blueprint, fermat6, NashForge, hoops (A0's metric); if bp100 sits far from arena Blueprint, the 0.70 judge
+  weight and any live seeding keyed to it are wrong and D2b's revisit condition is met (recorded; AD1's rule is
+  unchanged).
+* **Build (holdem-rl, own worktree from the tip that holds 14.35's logging fix, b1-rl 126c673 or its merge; failing
+  test first):**
+  1. `tools/sdk_profiles.py`: for each SDK opponent (bp100, chipzen, `small_ball`, `small_ball_b`, `tight_sticky`,
+     `sticky_overbettor`, `loose_passive`, `never_fold_pre`, `raise_station`, each `ext:` family in the judge) play
+     fb2-900 against it for 500 matches on seed 101, run every hand through `Tracker.update`, sum the 15 slots and
+     scale so `st[10] = H0`. Output `rl/models/sdk_prior.npz`, its sha256 pinned here before training.
+  2. H0 = 40 (X2a used 20): f[52] saturates at 40 hands, so a seeded match reads "opponent fully known" from hand 1
+     and an unseeded one reads unknown. This is the near-oracle form; a pass can be relaxed later, a fail is clean.
+  3. `rl/sdk_rollout.py`: per match, with probability 0.75 drawn from the match seed, the Tracker starts from the
+     opponent's profile, else from none. New flags `--sdk-profiles PATH` and `--seed-share 0.75`; without them the
+     batches are byte-identical to today (test). C engine: `--seed-profiles rl/models/tracker_prior.npz` as built in
+     X2a, with the same 0.75 share (add the share knob under the same flag if X2a's caller has none). Arch clones,
+     snapshots and pool members stay unseeded.
+  4. Eval: `rl.eval_arena` and the league bot take a profile per opponent (seeded arm) or none.
+* **Training:** B1's literal command (population P1, init `ckpt/fb2/it000900.npz`, B1's pinned hashes) plus the
+  flags, `--out ckpt/ad1`, `--max-minutes 240` (seeded counts at hand 1 are a new input distribution for fb2-900;
+  B1's flat curve does not transfer), the guard as fixed in 14.35. Checkpoints read: 600, 1,200, 1,800, latest.
+* **Screen (seed 103):** bp100 seeded 1,000 and `small_ball` seeded 1,000 per checkpoint; chosen = highest mean of
+  the two paired gains against fb2-900 unseeded. No league filter (no candidate).
+* **Confirmation (seed 104, paired on seed and hero seat against fb2-900 unseeded; holdem-x2r):**
+  1. bp100 seeded 4,000; bp100 unseeded 2,000 (same checkpoint, the ablation).
+  2. `small_ball` seeded 2,000; unseeded 2,000.
+  3. Profiles never trained on, seeded, 2,000 each: `small_ball_b`, `tight_sticky`, `sticky_overbettor`,
+     `loose_passive`, `never_fold_pre`, `raise_station` (a learned response to a profile, not eight memorized names).
+  4. Real bots seeded, 1,000 each: `ext:ashwing`, `ext:ashwing_hive`, `ext:ashwing_search`, `ext:autodidact`,
+     `ext:wolf` (wolf's both arms with the candidate's core placement, 14.36). Unseeded: `ext:ashwing`,
+     `ext:ashwing_hive`, 1,000 each.
+  5. Reported only: league_fresh pairs 600 to 699 seeded for the clones, against fb2-900 on the same pairs; the
+     heuristic head to head seeded; chipflow's shove table against bp100; decision shares.
+* **Rule (pre-registered):**
+  1. PASS: seeded bp100 gain at least +10.0 with its 95% lower bound above +5.4, seeded `small_ball` gain at least
+     +11.0 with its lower bound above +6.5, and no seeded real-bot cell under -2.0 with its upper bound under zero.
+  2. GAINS ONLY: item 1's two gains hold but a real-bot cell fails: identity works, the population is too narrow; X2b
+     proceeds with the real families in the seeded population.
+  3. FAIL, input ignored: seeded minus unseeded on bp100 has its upper bound under +2.0: the network does not use the
+     seed; next is how the opponent enters the network (a separate embedding path, or G1's per-name descriptor as
+     input), not more training.
+  4. FAIL, input used but short: seeded minus unseeded lower bound above +2.0 yet the gains miss item 1: next is
+     capacity (S7: a wider trunk, same recipe), judged on the same cells.
+  The unseeded cells are also the unseen-name guard: reported against fb2-900, flagged if any is under -2.0 with its
+  upper bound under zero; that matters for X2b and does not decide AD1.
+* **Budget and stop:** 240 minutes of training plus about 3 box-hours of reads, the bpopp serial queue as in B1.
+  Stop and record if byte-identity without the flags or the seeding tests still fail after two fix rounds.
+* **Registry:** seeds 101 (profiles), 102 (R1 if fresh matches are needed), 103 (screen), 104 (confirmation); league
+  pairs 600 to 699. Seeds 99 and 100 and pairs 500 to 599 stay reserved to P1b, retired.
+* **Known limit:** a profile is measured with fb2-900 as hero and some slots depend on the hero's own betting. The
+  live version has the same mismatch (archive profiles come from other heroes), so it is the realistic condition.
+* **Consumers:** X2b's go or no-go; the opponent-representation or capacity slice on a fail.
 
 ### G1 step 2a. Does starting from the population model make a per-name model good at 100 and 1,000 matches? (pre-registration, 2026-11-25; tier 2)
 
