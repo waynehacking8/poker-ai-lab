@@ -43,12 +43,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   * **Amendment 10:09 UTC before any read (research 4732eda):** read set to 2,700 plus latest; `loose_passive`
     guard cell (mr_hide's style); headroom and decision-share lines; fb2-900's seed-95 baseline arm now on cores
     18-19. Built in b1-x2r e3cc88d, verifier CONFIRMED; then 8be6e38 (confirm stops on a missing guard cell,
-    37 B1 tests, plant caught), all shipped to ~/poker-ai-lab-x2r. **Before confirm:** move
-    logs/b1/confirm/fb2/ext:wolf.* to confirm/fb2_1819/ so wolf's fb2 arm reruns with the candidate's placement
-    (wolf thinks on a 300 ms wall clock). `loose_passive` params frozen (distance 0.152 and 0.150 on seeds 3 and 4). fb2-900 baseline arm
-    (`b1_judge.sh baseline`, cores 18-19) wrote 10 of 12 cells to logs/b1/confirm/fb2/; ext:autodidact and
-    ext:wolf finish about 13:00 to 13:30 UTC, marker ~/x2r_baseline.rc (0 = complete; rerun the same command if it
-    dies, finished cells are skipped).
+    37 B1 tests, plant caught), all shipped to ~/poker-ai-lab-x2r. `loose_passive` params frozen (distance 0.152 and 0.150 on seeds 3 and 4).
 * **14.32 G1 (corrected, research a591050), rule 2:** a known-name model. Verifier REFUTED the first record:
   rule 2 had joined opponents' rows (149 names); fixed in holdem-d2 3e988c8 (test 9, 2 plants caught), rule rerun:
   29 names, R +0.183 [+0.123, +0.266], P -0.306 better than per-name X1. Unseen names fail; cold start stays X1.
