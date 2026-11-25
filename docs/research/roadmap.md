@@ -805,6 +805,14 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   cores 0-17; stop and record at two times any phase.
 * **Limits:** the judge covers 52% of entrant seats by weight (B1's map); the clones are copies of past behaviour;
   a pass is a candidate for Wayne, not a deployment.
+* **Reading a fail (roadmap agent after 14.40):** the -2.0 guard against fb2-900 stays; fb2-900 is the bot a
+  candidate replaces. A loss of 2 to 3 points on the Ashwing cells equals the spread between fb2's own checkpoints
+  (14.40), so such a fail reads "did not keep the peak", not "the method breaks these families". It still fails.
+* **Reported only, after V5a's cells (fit-seed spread):** W1 refit at 30 epochs with fit seeds 2 and 3 (holdem-rl
+  ad0 9b2a1c7 `--seed`), same data, each played on seed 95: bp100 2,000 (k < 1,000), `ext:ashwing` and
+  `ext:ashwing_hive` 1,000 each, paired against the fb2-900 arms on disk, from `~/d0-run/x2r`; the three fits' gains
+  side by side. It sets how V5b chooses among students and how much of a student's ext number is fit noise; it does
+  not touch V5a's chosen student or rule. Registered as `95 V5A read` (bp100 through the queue).
 
 ### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
 

@@ -1980,4 +1980,7 @@ Cell standard errors 1.16 to 1.45.
 * **Described, not decided:** the -2.0 guard against fb2-900 on these cells measures distance from a peak, not from
   a typical checkpoint. AD0's students (14.39), fitted to fb2-900's labels on Ashwing-family data, hold that peak
   (W1 +1.1 [-0.7, +2.9] on two of these cells), which supports distillation over PPO for keeping it.
-* **Outcome verifier:** pending.
+* **Outcome verifier: CONFIRMED.** Independent recompute (no reader import) of every cell and pooled number; keys
+  identical to the baseline, 1,000 rows each, seed-clustered errors within 0.06 of the reader's; checkpoint sha256
+  prefixes match the spec and the driver's paths; the run tree's code equals the baseline tree; 20 matches each of
+  two C0 arms and of the fb2-900 baseline re-run byte-identical.
