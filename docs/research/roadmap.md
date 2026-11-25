@@ -4,7 +4,7 @@ Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The 
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
-## Where we are (2026-11-25 15:35 UTC)
+## Where we are (2026-11-25 15:24 UTC)
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
 win probability against it, and a safety blend. Revision 2's lookahead work (14.17 to 14.24) showed the
