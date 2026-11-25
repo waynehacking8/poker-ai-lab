@@ -42,7 +42,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   outputs ~/poker-ai-lab-d2s2/data/g1_2a and logs/g1_2a; GPU and cores 18-19 only. Base fits: fold 2 W for
   Ashwing_v3 and AutodidactInnovations. Then outcome verifier on the read.
 
-**gb10-d:** bpopp queue and cores 0-17: B1 training until about 15:05 UTC. Cores 18-19 and the GPU: G1 step 2a after its plan review. Fetcher pid
+**gb10-d:** bpopp queue and cores 0-17: B1 training until about 15:05 UTC. Cores 18-19 and the GPU: G1 step 2a (executor). Fetcher pid
 1838186, the only one.
 
 **Branches not pushed (local only, by rule):** holdem-x2r (poker-ai-lab-x2r, 159e9ba), holdem-d2
