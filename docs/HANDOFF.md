@@ -1,10 +1,10 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-25 05:04 UTC. Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-25 05:28 UTC. Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 05:04 UTC, box clock UTC+8)
+## Now (2026-11-25 05:28 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project (he may write Chinese; when he asks for an explanation in Chinese, answer in
 Traditional Chinese). Think from first principles, not narrowly. Goal is the long-term "future king", not the
@@ -42,13 +42,22 @@ busy on purpose. Plan of record: `docs/research/roadmap.md` on branch research (
 * **Ordering adopted (research 71c52db, roadmap "Ordering after Phase 0", Fable's):** K1 and B0b cut; T2, D2b,
   A0 Part 3 deferred; B0 step 1 HELD until T1's chipflow read (revised exact-oracle design recorded); critical path
   T1 read → B1 spec → B1 training 26-28 Nov → candidate reads 29 Nov → verifier, then Wayne, 30 Nov earliest.
-* Running: T1 executor (holdem-rl worktree); A0 Parts 1-2 executor (holdem-x2r worktree: archive tool,
-  `small_ball`); Fable drafting the G1 pre-registration (GPU and cores 18-19 are idle until G1 starts).
+* 14.29 (research 543d0d4): A0 field map. Two pools: entrants face the ten regulars in 5.4% of seats; they face
+  Blueprint 15.4%, fermat6 6.8%, NashForge 6.1%, hoops 5.8%, mr_hide 5.7%, r0ckGarden 5.3%, slopBot 2.7%. slopBot
+  rates first and over-folds small flop bets by 44 points; 5 of top 10 exploitable (L8 over-weighted). Verifier
+  found an inverted best-opponent rate; fixed (holdem-x2r 1d2dd06) and rerun.
+* T1 code merged (holdem-rl 114a136); fresh verifier running; then launch `tools/t1_run.sh` with `setsid -f` on
+  gb10-d. Before it: bp100 against `small_ball` strength sanity (seed 90, 400 matches, about a minute).
+* C1 (tier 2): fb2-900 vs `small_ball` 75.7%, vs `tight_sticky` 94.3% (seed 93). Best-response training against
+  `small_ball` running in ~/poker-ai-lab-x2r (cores 0-5, 60 min from 05:28 UTC, ckpt/br_small_ball, done marker
+  logs/c1/br.done); then the paired read on seed 93.
+* G1 executor building in a holdem-d2 worktree. A0 and T1 agent worktrees sit under poker-ai-lab/.claude/worktrees
+  (commits already cherry-picked); remove them at cleanup.
 * **Wayne 2026-11-25: act on Fable's recommendations, open questions go to Fable; memory and docs English only**
   (reading guide translated on all five branches, 90208e5 here). L0 stays parked: outward.
 
-**gb10-d:** bpopp queue: T1 tests (executor), T1 run, then B1. Cores 18-19: A0 archive read, then G1 extraction.
-GPU: G1. Fetcher pid 1838186, the only one.
+**gb10-d:** bpopp queue: T1 verifier tests, strength sanity, T1 run, then B1. Cores 0-5: C1 training. Cores 18-19:
+G1 extraction when built. GPU: G1. Fetcher pid 1838186, the only one.
 
 **Branches not pushed (local only, by rule):**
 * holdem-x2r, `C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r`, tip cb12f5f (X3a/X3b/R1/X4 tools; ext bots
