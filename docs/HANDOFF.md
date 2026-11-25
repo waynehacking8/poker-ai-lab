@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 22:44 UTC, box clock UTC+8)
+## Now (2026-11-25 22:54 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -24,9 +24,10 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   B1 (the loss stays without the new data); `ext:ashwing_hive` recovers 4.2 of B1's 4.6. No lever decision, no
   D-null by the rule. Verifier CONFIRMED the numbers, REFUTED wording (corrected, research 280bdd4). Fable: run **C0** now,
   hold D-null.
-* **C0 running** since 20:23 UTC (cores 18-19, `~/d0-run/c0run.sh`, logs ~/d0-run/logs/c0/, `done`, `read.txt`;
-  reader holdem-rl d0 6c3f594 `tools/c0_read.py`). fb2 arms done; D0 arms reported. **Amended (research e57f2d0):
-  D-null never runs**; C0 is recorded as the checkpoint-spread measurement.
+* **C0 (14.40, research 6e11f07): PEAK.** fb2 it700 -2.90 [-4.43, -1.37], it800 -2.83 [-4.35, -1.31], it965 -0.97
+  pooled on the three Ashwing cells vs fb2-900. fb2-900 is a local high; B1/D0 guard losses are within the run's
+  checkpoint spread. D-null, P1b, restore-the-shares closed; future PPO screens add the Ashwing cells and
+  autodidact_fast at 500 each. Outcome verifier running.
 * **AD0 (14.39, research eb2281c): RULE 1, W1 passes.** Play 1 (seed 95, 21:56 to 22:31): W1 (256 raw, 30
   epochs) bp100 +19.4 [+16.9, +21.8], `small_ball` +19.8 [+17.8, +21.7], ext +1.1 [-0.7, +2.9] vs fb2-900; W2s also
   passes, W1s and W2 fail on the ext lower bound. B1's shortfall is the training method; next is a distil-then-PPO
@@ -55,7 +56,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   rl/models/b1.npz (kept at b1-rl 59b1ad3). holdem-league 57a63b8 commits the leaderboard with cand:rl-b1 (rank 4,
   PASS 23/23). Delete ~/b1-build after the AD builds no longer need it (AD0 and AD1 tests link it).
 
-**gb10-d:** cores 0-17 free; cores 18-19 C0 and the AD0 verifier. bpopp queue free. GPU idle. Fetcher pid 1838186, the only one.
+**gb10-d:** cores 0-17 free (V5a next); cores 18-19 free (T-a next, C0 verifier now). bpopp queue free. GPU idle. Fetcher pid 1838186, the only one.
 
 **Branches not pushed (local only, by rule):** holdem-rl, holdem-x2r, holdem-league, holdem-d2 (`python
 tools/d2_mutate.py --jobs 4` must catch every plant after a change), b1-rl, b1-x2r, b1-league, d0, ad1, ad1-x2r,
