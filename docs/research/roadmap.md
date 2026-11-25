@@ -48,8 +48,8 @@ A fresh first-principles pass over the whole plan (a Fable 5.2 agent, read-only,
 re-checked first-hand where a decision hangs on them) found the judge pointed at the wrong opponents. Measured:
 the `ext:` pool is mostly one family (R1's +2.8 is Ashwing +3.0 to +6.0, autodidact +2.3, Wolf -2.0; 14.22);
 v4's only live loss, its Season 16 round 1 fixture, was to MonteCarlo (14.26); our one real-code proxy of a
-solver-like bot, bp100, plays 4,000 matches in about 3 minutes, yet every read of it used n = 400 (59.0
-[54.1, 63.7], 14.9). **Unmeasured, to A0:** that the archive's top is a solver-like family (Blueprint,
+solver-like bot, bp100, played 4,000 matches in 182 s on 6 workers (S2r, gb10-d
+`~/poker-ai-lab-rl/logs/s2r/fb2.jsonl`), yet every earlier read of it used n = 400 (59.0 [54.1, 63.7], 14.9). **Unmeasured, to A0:** that the archive's top is a solver-like family (Blueprint,
 NashForge, fermat6, MonteCarlo) plus small-ball aggressors (slopBot), and that MonteCarlo belongs to the
 first. These come from the agent's one-pass archive reads (style vectors, a crude Bradley-Terry); only
 slopBot's 0.95 flop bet share and its 125 of 199 against Blueprint are recorded (14.26).
@@ -72,7 +72,7 @@ sets their weight:
 | L7 risk attitude K | K = 4.68 fixed from the clone-league rate, which 14.3 and 14.25 show is overstated | under: cheap arm in T2 |
 | L8 floor against a white-box exploiter (E3) | 96.5 to 78.7 then a plateau (14.10, 14.15); unmeasured, to A0: whether the field's top bots are themselves highly exploitable | over if A0 confirms; if not, it stays a primary metric as in Revision 2 |
 | L9 cold start and name families | 14.24 (one weight cannot serve deterministic and mixing bots) | under: in G1 |
-| L10 policy representation (range-aware equity, sizes) | the bust hand of 14.26, second pair shoved 16x the pot; the only hand feature is equity against a random hand (`rl/features.py`) | unmeasured: T1 separates it from population |
+| L10 policy representation (range-aware equity, sizes) | the bust hand of 14.26, a pair of jacks on a king-high board (5s Kd Jd Th 8d, match 4b2a2beb hand 26) shoved 16x the pot; the only hand feature is equity against a random hand (`rl/features.py`) | unmeasured: T1 separates it from population |
 
 **Stopped or changed by this revision:** X4's per-name prior as specified (every simulated cell is nameless,
 so it cannot reach the X3b match read; folded into G1); D3 (no gain from generated archetypes in 14.2, and the
@@ -86,43 +86,58 @@ training question for clones was never asked; D2c first); resuming S2 (14.15: th
   lower bound above 50%), gets a fresh outcome verifier, and Wayne says yes.
 * **No outward arena action** (upload, swap, challenge, the L0 series, any request beyond the one replay
   fetcher) without Wayne's explicit yes.
-* **Seeds:** a read seed is never a training seed and is fresh per read. Registry: 81 S2r and T1's read
-  (pairs with S2r), 82 T2, 83 and 84 D2b (fitting logs, held-out logs), 85 D2b read 1 (86 its control rerun);
-  training seeds stay those of `tools/rl_br.sh`. A new read takes the next unused number and writes it here.
+* **Seeds:** a read seed is never a training seed and is fresh per read, with one allowed exception: a read
+  may reuse an earlier read's seed when that earlier run is its named paired baseline and the seed was never
+  seen in training. Registry: 81 S2r; 81 again for T1's read (its named baseline is S2r's fb2-900 rows); 82 T2;
+  83 and 84 D2b (fitting logs, held-out logs); 85 D2b read 1 (86 its control rerun). Training seeds stay those of
+  `tools/rl_br.sh`. A new read takes the next unused number and writes it here.
 * **Pairing:** every A/B is paired on (seed, hero seat) with a paired 95% interval (`tools/paired_stats.py`,
-  holdem-x2r), and real-code opponents are pooled by family (Ashwing, autodidact, Wolf, bp100, the aggressor),
-  equal weight per family.
-* **Box (gb10-d, 20 cores, one GPU):** one bp100-heavy job at a time, because bpopp containers are not pinned to
-  cores: S2r, then T1, then T2, in that order. D2b's generation runs on the cores the current bp100 job leaves
-  (at most 4) and its fits on the GPU. Phase 0 aggregate budget: 12 box-hours; past 24, Phase 0 stops and what
-  finished is recorded and judged.
+  holdem-x2r), and real-code opponents are pooled by family (Ashwing, autodidact, Wolf, bp100), equal weight
+  per family; the aggressor family joins the pools only once A0's aggressor cell exists.
+* **Box (gb10-d, 20 cores, one GPU):** every job that starts bpopp containers runs alone in one serial queue,
+  because the containers are not pinned to cores: S2r, then T1, then D2b's generation (seeds 83, 84), then T2
+  (after A0). D2b's fits run on the GPU while the queue moves on; P0 runs on cores 18-19 (CPU minutes); A0 is
+  written and tested on the PC and reads the archive on gb10-d cores 18-19 at nice 19. Phase 0 aggregate
+  budget: 12 box-hours; past 24, Phase 0 stops and what finished is recorded and judged.
 
 **Phase 0 (cheap reads that order everything after; slice IDs are stable).** Each line: question; rule; what
 it unlocks.
 * **S2r** (running, spec below). Does S2 it1800 beat fb2-900 on bp100 at a size that decides? Rule: reported;
   if it1800 leads with its paired lower bound above zero, it goes to Wayne next to E1. Unlocks: B1's starting
   checkpoint (it1800 if it leads, else fb2-900).
-* **P0**, big-pot audit (data from S2r's chipflow). How many matches does fb2-900 lose through a stack-sized
-  decision a cheaper legal line would have survived? Rule: if matches lost to a shove or call-off at equity
-  under 0.35 against the opponent's actual hand, with a cheaper legal action available, are 10% or more of all
-  matches, **B0** (a big-pot slice: range-aware river and all-in logic at play time, specified then) runs
-  before G1, X5 and B1; otherwise B0 is not specified and the order stays.
-* **T1**, best-response ceiling against bp100 (spec below). Population or representation limit? Rule in its
-  spec. Unlocks: B1's direction.
+* **P0**, big-pot audit (data: S2r's fb2-900 run against bp100, seed 81). Does fb2-900 lose its matches
+  through worse stack-sized decisions than its opponent makes? Hindsight equity alone cannot say (nearly every
+  lost match ends in an all-in the loser was behind in), so the reference is bp100 itself in the same matches.
+  For each match, the loser's last voluntary commitment: the final shove that was called, or the call of an
+  all-in, made while a cheaper legal action (fold or check) existed; its equity against the winner's actual
+  hand. Statistic: the share of fb2-900's lost matches whose last voluntary commitment had equity under 0.35,
+  minus the same share for bp100's lost matches, with a two-proportion 95% interval. Under "no relative
+  decision error" the difference is about zero. Rule: if the difference is at least +10 points with its lower
+  bound above zero, **B0** (a big-pot slice: range-aware river and all-in logic at play time, specified then)
+  runs before G1, X5 and B1; otherwise B0 is not specified and the order stays. If chipflow's rows lack the
+  final hand's cards and actions, the same 4,000 matches are replayed with hand logging on seed 81.
+* **T1**, best-response ceiling against bp100 (spec after S2r's, below). Population or representation limit?
+  Rule in its spec (gain thresholds +8 and +4). Unlocks: B1's direction.
 * **A0**, re-aimed judge. Instrument, no rule. Delivers a committed archive tool (classes, a rating, style
   vectors, fold by size, cold-start shares) that measures or refutes the "unmeasured, to A0" claims above, and
   two judge cells: bp100 and a slopBot-style aggressor (style check distance under 0.25, as E6), pooled by
   family. Unlocks: T2 (needs the cells), the L8 weight, the family pools of every later read.
-* **T2**, the lookahead against bp100. Does the lookahead at N = 32 gain against the solver proxy, and does K
-  matter? Arms at N = 32, Z = 2.6: K = 4.68 and K = 0.73, each paired against the N = 1 arm, 1,000 seed pairs,
-  seed 82. Rule: an arm gains when its paired lower bound against N = 1 is above zero; the K arms separate
+* **T2**, the lookahead against the solver proxy and the aggressor. Prerequisite: A0's aggressor cell and
+  bp100 support in `tools/x2r_oracle.py`. Does the lookahead at N = 32 gain on these two families, and does K
+  matter? Arms at N = 32, Z = 2.6: K = 4.68 and K = 0.73, each paired against the N = 1 arm, 1,000 seed pairs
+  per cell (bp100 and the aggressor), seed 82. Rule: an arm gains when its paired lower bound against N = 1 is above zero; the K arms separate
   when the paired interval of (K = 0.73 minus K = 4.68) excludes zero. Unlocks: K1 only if they separate; the
   lookahead's place in the Phase 2 candidate only if an arm gains.
 * **D2b** (GPU), is the solver proxy clonable? D2a's protocol and rule on bp100 (sizes 100, 1,000, 2,000,
   control first). Pass at some size: archive clones of the solver-family names with at least that many
-  matches become held-out judges in B1 and opponents in D2c's transfer test. Fail at 2,000: no clone of that
-  family is used, and B1 trains against bp100 itself.
-* **L0**, challenge series. Wayne's decision; proposed, not run.
+  matches may serve as training opponents in B1 and as subjects of D2c's transfer test, never as judges (14.25:
+  even passing clones are biased by about +2 to +3 points; candidates are judged on real code and the real
+  arena). Fail at 2,000: no clone of that family is used, and B1 trains against bp100 itself.
+* **L0**, challenge series, gated on Wayne's yes (proposed, not run). What is v4's real win rate per class,
+  and how far is each sim proxy from it? Instrument; one rule: a class more than 10 points under its sim
+  proxy's rate sends that proxy back to A0. About 300 unrated challenges at most 20 a day, one at a time, stop
+  on any HTTP 429, opponents fixed in advance across the classes. Unlocks: L3's weight, E7, the class weights
+  of the field-weighted sum.
 
 **Phase 1, chosen by Phase 0's reads.** Each gets its own spec and review before it runs.
 * **B0** big-pot play-time logic, only if P0's rule fires.
@@ -132,7 +147,14 @@ it unlocks.
   pot-weighted loss, a leave-name-out read), subsuming X4's hierarchical prior.
 * **D2c** clone-to-real transfer: fine-tune on the 1,000-match clones, play the real bots, transfer ratio
   against M1.
-* **B1** base policy for the top classes: its direction from T1, its start from S2r, its judges from D2b.
+* **B1** base policy for the top classes: its direction from T1, its start from S2r, its training opponents
+  from D2b; judged on real code (bp100, A0's cells, the `ext:` families) and the real arena only.
+
+**Review record:** plan review 1 REVISE (no rule or consumer for A0, T2, D2b, P0; no shared constraints;
+unsourced claims); review 2 REVISE (D2b against the serial bpopp rule and clones as judges; P0's rule could not
+come out negative; L0 and the missing T1 spec; the seed-81 reuse and T2's A0 prerequisite; two unsourced
+details). All fixed here. The cap was reached, so no third review; Wayne's standing approval (2026-11-23,
+2026-11-16: decide by my recommendation) carries it, as with D2a.
 * **K1** K from the estimated edge, only if T2's K arms separate.
 
 ### S2r and P0 data: fb2-900 and S2 it1800 against bp100 at n = 4,000 (pre-registered 2026-11-25, before the run)
@@ -148,6 +170,31 @@ it unlocks.
   interval (`tools/paired_stats.py` on holdem-x2r). **Rule:** reported only. If it1800 leads with its lower bound
   above zero, that goes to Wayne next to the E1 league gate that rejected it; nothing is deployed.
 * **Cost:** about 30 box-minutes on cores 8-15.
+
+### T1. Best-response ceiling against bp100 (spec, 2026-11-25)
+
+* **Question:** is fb2-900's 59% against the solver-family proxy a limit of its training population or of its
+  representation? M1's method (14.12) measured +11 to +15 against Ashwing and autodidact; it was never pointed
+  at bp100.
+* **Code (holdem-rl, local branch):** `rl/sdk_rollout.make_opp` gains `bp100`: one `bpopp.opponent`
+  BlueprintOpponent per worker process (its container loads the blueprint in about a minute and is reused for
+  every match of that process, as in `rl.eval_arena`), seeded before each match with `set_seed(seed * 13 +
+  seat)` as `holdem/arena.py` does; no per-match close (the container exits with the process, `atexit`).
+  Tests: two training-path matches on the same seed against bp100 give identical batches; a second match in the
+  same process reuses the container (one `docker ps` entry); after the worker exits no bpopp container is left.
+* **Train:** after S2r ends, alone in the bpopp queue: `bash tools/rl_br.sh br_bp100 ckpt/fb2/it000900.npz
+  bp100 120 6` with the eval card's BP_* variables and BP_CPUS=1 (6 SDK workers, 6 containers, the learner).
+  Its first 10 minutes give the iteration rate; under 2 iterations a minute it stops and the rate is recorded
+  (M1 ran about 6).
+* **Read:** the last checkpoint against bp100, 4,000 matches, seed 81, rows paired on (seed, hero seat) with
+  S2r's fb2-900 rows, its named baseline (seed 81 is never seen in training); gain = br minus fb2-900 with a
+  paired normal 95% interval. Also reported, not deciding: br_bp100 on the `ext:` families (400 per bot, seed
+  21, M1's cost check) and its chipflow against bp100.
+* **Rule (pre-registered):** gain lower bound at or above +8 points: population is the limit, a solver-family
+  member enters training (B1) and the lookahead is expected to recover part of it (T2). Gain upper bound
+  below +4: the reactive policy cannot exploit it, B1 goes to representation and sizing. In between: both,
+  representation second.
+* **Budget and stop:** about 2.5 box-hours; stop at twice that. Nothing reaches the deployed bot.
 
 ## Revision 2 (2026-11-23): the problem from first principles
 
