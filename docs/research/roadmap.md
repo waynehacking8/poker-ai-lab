@@ -28,7 +28,8 @@ Next: **D0** (spec below, tier 2) trains first: B1 without the bp100 and `small_
 real-bot loss is the new data or the mix. Then **AD1** (spec below, tier 2): seed the opponent counts with each opponent's profile so one network knows who
 it faces from hand 1; its rule decides between X2b (a candidate with seeded identity), an opponent-representation
 slice, or capacity. The tier-1 reads are in (14.37): weighted by hands, the counts already name the opponent for about half of all
-hands and 71% of bp100's, so AD1 runs with fail branch 4 (capacity) as the prior; bp100 is a coarse Blueprint
+hands and 71% of bp100's, so AD1 is replaced by **AD0** (spec below), a supervised probe that
+asks whether identity, width or the training method is the limit; AD1 and S7 run only if AD0 points at them; bp100 is a coarse Blueprint
 stand-in (much more aggressive preflop).
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
@@ -694,6 +695,78 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   short run would have been read; read side not literal; the catch-all rule gave a verdict to contradictory
   intervals). Fixed above with B1's logged decisions, a smoke rate, literal read commands and an INCONCLUSIVE row.
   Tier 2 allows one review; execution follows with the outcome verifier on the read.
+
+### AD0. Can one network hold both specialists and fb2-900, and what does it need? (spec, 2026-11-25; tier 2)
+
+* **Question:** can one policy network reproduce T1 against bp100, C1 against `small_ball` and fb2-900 against the
+  rest, and what does that take: nothing new, seeded counts, more width, or both? Supervised fitting to the teachers
+  takes PPO out of the answer, which no RL run can.
+* **Why (14.37, roadmap agent 25 Nov):** B1 had bp100's identity in its counts for at least 71% of bp100 hands and
+  kept 5.4 of T1's 19.9 points; perfect seeding scaled from that lands near +7.6, under AD1's +10.0, so AD1 would most
+  likely spend seven box-hours to reach a fail branch. S7 (a wider trunk under the same PPO and mix) could sit at the
+  same fixed point (B1's curve was flat from 300 to 2,100), and a null would not tell capacity from optimization.
+  AD1 and S7 run only if AD0 points at them.
+* **Decision it feeds:** the next slice: distillation then PPO (rule 1), AD1 from the seeded student (2, 6), S7
+  (3, 4), or the opponent representation (5, 7). No candidate; students never reach the bot.
+* **Teachers (pinned before data, sha256 in the runner):** T1 = the `ckpt/br_bp100` checkpoint 14.31 read (holdem-rl
+  `tools/t1_run.sh` at 114a136 names it; latest.npz is 5eb525fb… on gb10-d), C1 = `~/poker-ai-lab-x2r/ckpt/
+  br_small_ball/latest.npz` (97f051f3…, 14.30), fb2-900 = `rl/models/fb2_it000900.npz` (f7a29a39…). The network is
+  56 inputs, hidden 256 and 256, 6 actions (`pw0` 56x256, `pw1` 256x256, `pw2` 256x6).
+* **Data (holdem-rl `tools/ad0_log.py`, seed 106, registered `106 AD0 read`):** each teacher plays its own opponents
+  as hero with the all-in wrapper of B1's reads: T1 against bp100 2,000 matches (through the bpopp queue,
+  `BPQ_SLICE=AD0 BPQ_SEED=106 BPQ_KIND=read BPQ_CONTAINERS=1`); C1 against `small_ball` 2,000; fb2-900 against chipzen,
+  `ext:ashwing_v2`, `ext:ashwing_value`, `ext:ashwing_adaptive`, `ext:autodidact_fast` 500 each and the ten `bot:`
+  clones of the league 200 each. Per decision: the 56-feature observation as played (no prior); the same observation
+  from a second Tracker fed the same history but seeded at H0 = 40 with the opponent's row (`bot:` clones from
+  `rl/models/tracker_prior.npz` rescaled to H0 = 40, SDK bots from AD1's `rl/models/sdk_prior.npz`); the legal mask;
+  the teacher's action probabilities; opponent, hand index, match id. 10% of matches held out (by match id).
+* **Students (holdem-rl `tools/ad0_fit.py`, GPU):** the policy network fitted by masked cross-entropy to the teacher's
+  probabilities, from random init, seed 0, Adam 1e-3, batch 4,096, at most 30 epochs, stopping on held-out loss.
+  Each batch is 30% bp100 states, 15% `small_ball`, 55% the rest. W1: hidden 256, 256, unseeded input. W1s: 256, 256,
+  seeded input. W2: 512, 512, unseeded. W2s: 512, 512, seeded. A 512-wide student is read through a loader that
+  accepts the shapes of its arrays (test: the 256 student plays row for row as the same arrays through `RLBot`).
+* **Read:**
+  1. Offline, per student: held-out top-1 agreement and KL to the teacher by opponent; for bp100 also by hand index
+     (1 to 5, 6 to 10, 11 to 20, 21 and later).
+  2. Play, seed 95 (holdem-x2r `rl.eval_arena`, 6 workers, cores 0-17 when no training runs, the seeded students with
+     AD1's `--profiles rl/models/sdk_prior.npz`), paired on (seed, hero seat) against the fb2-900 and B1 it001200 rows
+     on disk in `~/poker-ai-lab-x2r/logs/b1/confirm/`: bp100 the first 2,000 matches (k < 1,000, through the queue),
+     `small_ball` 2,000, `ext:ashwing` and `ext:ashwing_hive` 1,000 each.
+  3. A student passes when its bp100 gain against fb2-900 is at least +10.0 with its 95% lower bound above +5.4, its
+     `small_ball` gain at least +11.0 with its lower bound above +6.5, and the pooled gain of the two ext cells has its
+     lower bound above -2.0.
+* **Rule (pre-registered), the first line that applies:**
+  1. W1 passes: neither identity nor capacity limits; B1's shortfall is the training method. Next: a candidate slice
+     that distils the specialists into one network and fine-tunes it with PPO on P1 (full process). AD1 and S7 drop.
+  2. W1s passes: identity. AD1 runs as amended, initialised from W1s.
+  3. W2 passes: capacity. S7 at 512 wide, started from W2.
+  4. W2s passes: both. S7 with seeding, from W2s.
+  5. None passes and held-out bp100 agreement of every student is at least 0.90: the students drift to states the
+     teachers never visited. One relabel round (each student plays 500 matches per teacher opponent, its states are
+     labelled by the teachers, refit), then this rule once more; if still none passes, rule 7.
+  6. None passes, and the best student's held-out bp100 agreement is under 0.90 in hands 1 to 10 but at least 0.90
+     from hand 11 on: identity timing, as rule 2 (AD1 from W1s).
+  7. Otherwise: the 56 features cannot carry it; next is the opponent representation (G1's descriptor as input).
+  D0's verdict is read beside it: NEW DATA with W1 passing puts the conflict in PPO's gradient on the mix.
+* **Tests (each failing on its plant; holdem-rl `tests/test_ad0.py`, plants in `tests/ad0_plants.py`):** the seeded
+  observation equals the unseeded one when the profile is empty and differs at hand 1 when it is not (plant: the
+  second Tracker never seeded); the hold-out is by match, never by decision (plant: split by row); the batch mix is
+  30 / 15 / 55 within 1% over 100 batches (plant: uniform); the mask zeroes illegal actions in the loss (plant: mask
+  dropped); the 256 student loaded through the new loader plays fb2-900's arrays row for row; the rule table maps as
+  written on synthetic results (plant: rule 3 before rule 2); literals (seeds 106 and 95, n, 0.90, +10.0, +5.4,
+  +11.0, +6.5, -2.0, the widths, 30/15/55).
+* **Owners and base:** holdem-rl branch `ad0` from the AD1 builder's `ad1` tip (it carries the seeding code and
+  `sdk_prior.npz`); holdem-x2r `ad1-x2r` tip for the eval flag. Non-goals: no change to the trainer, the deployed bot
+  or the league; no candidate.
+* **Writes on gb10-d and rollback:** `~/ad0-run` (code archive, data, students, rows; rollback: delete it); the
+  registry line `106 AD0 read` (kept). Nothing in `~/poker-ai-lab-rl` or `~/poker-ai-lab-x2r`.
+* **Budget and order:** data about 30 minutes (bp100 through the queue, which D0 does not hold), fits minutes on the
+  GPU, play about 2 hours on cores 0-17 after D0's training ends (D0's reads first, no wall-clock bots among them).
+* **Limits:** each teacher's data come from its own state distribution; one relabel round is the only correction; a
+  pass shows the play is representable and strong, it is not a candidate.
+* **Judge literal for the next candidate slice (any):** it reports the solver class on bp100 and on the Blueprint
+  clone side by side; a candidate that gains on one and loses on the other with both intervals excluding zero is
+  flagged for Wayne, not passed on the headline.
 
 ### AD1. Seeded identity: does one network keep the specialists' gains when told who it faces? (spec, 2026-11-25; tier 2)
 
