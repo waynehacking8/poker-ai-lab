@@ -941,7 +941,10 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   unseeded, so training seeds only bp100, chipzen and `small_ball`. Outcome verifier 1: REFUTED. Every built claim held (unseeded paths
   byte-identical to the bases, the `small_ball` row regenerated exactly, seeding only for the hero and the right
   name, tests and plants as stated), but amendment items 2 to 4 were not built: no B1 it001200 arm on seed 104 and
-  no "AD1 seeded minus B1" reading with D0's verdict. Fix in progress on `ad1-x2r`, then a fresh verifier.
+  no "AD1 seeded minus B1" reading with D0's verdict. Fixed on `ad1-x2r` a38e232, 2fb1dbd, 4b85994: `ad1_judge.sh confirm`
+  adds B1 it001200 unseeded on seed 104 (hash 5e9c6fc6… pinned); `ad1_read.py confirm` requires `--d0` and reads
+  each real-bot cell on its own (hurt: seeded minus B1 under -2.0 with upper bound under zero; else persists: seeded
+  vs fb2-900 point under -2.0, meaning set by D0; else removed). 86 x2r tests, 95 of 95 plants. Verifier 2 running.
 * **Review record:** plan review 1 REVISE (no owner files, non-goals, writes, rollback or tests; C-engine seeding
   would never fire under P1 and had no share knob; no seeded eval flag or AD1 reader; rule branches overlapped and
   left a gap; registry, profile command, base commit and runner unpinned). Fixed above; tier 2 allows one review,
