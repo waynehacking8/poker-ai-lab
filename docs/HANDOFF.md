@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 15:10 UTC, box clock UTC+8)
+## Now (2026-11-25 15:20 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -29,14 +29,10 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   * **Screen done 13:49 UTC: chosen it001200** (sha256 5e9c6fc6…). Score 70.53 (bp100 65.3, tight_sticky 92.0,
     sticky_overbettor 78.6, small_ball_b 80.4; never_fold_pre 93.8, loose_passive 90.6; league lowest 83.5). All
     seven pass the 78% league filter; scores 68.8 to 70.5. Rows x2r logs/b1/screen/, league out/b1/screen-itITER.
-  * **Confirmation done ~15:00 UTC (rc 0). Preview: rule FAILS on guard cells** (the ext: real bots): ashwing -3.4,
-    ashwing_hive -4.6, ashwing_search -3.7, autodidact -3.4 (each upper bound under 0); bp100 +5.4 [+3.8, +7.0],
-    small_ball +6.5, small_ball_b +2.5; style guards within ±1. Headroom bp100 14.5, small_ball 15.5. Ashwing and
-    autodidact use no wall clock (seeded RNG; autodidact's time.time is logging only), so the 18-19 placement of
-    their fb2 arm does not bias them.
-  * **Gate for the record:** league_add.sh rl-b1 (b1-rl 59b1ad3, pairs 0-199 row, PC log scratchpad) and
-    `~/b1_gate.sh` (league_fresh pairs 200-399 plus h2h, out/verify-rl-b1, rc ~/b1_gate.rc) running. Then the
-    official `b1_read.py confirm logs/b1 --gate .../summary.json --train ...`, record 14.36, verifier.
+  * **14.36 (research ef9dbc3): B1 RULE FAIL.** Headline +3.94 [+2.79, +5.10], bp100 +5.4, E1 holds (23/23, lowest
+    83.8%), but ext:ashwing -3.4, ashwing_hive -4.6, ashwing_search -3.7, autodidact -3.4 (guards under -2.0);
+    league real-bot clones down (Blueprint -4.0), heuristic h2h -8.5 vs fb2-900. Headroom bp100 +14.5, small_ball
+    +15.4. No v5; v4 stays; P1b does not run (screen passed). Outcome verifier on the read; next step goes to Fable.
   * Code shipped: b1-rl a4d765d → ~/poker-ai-lab-rl, b1-league 857660c → ~/poker-ai-lab-league, b1-x2r 50b0a28 →
     ~/poker-ai-lab-x2r. Verifier 1 REFUTED (4 launch defects, fixed); verifier 2 REFUTED only on the judge's bp100
     cells not pinned (x2r's own bpopp lacked BP_CPUSET), training side all held. Fixed in b1-x2r 50b0a28 (test and
@@ -63,7 +59,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   postflop bucket definition (7.07 points, stable over three seeds), research 13712ca. Fable: no new G1 slice; the
   lookahead line stays parked until B1's read shows the adaptation headroom per class.
 
-**gb10-d:** cores 0-17: B1 league gate (no containers; bpopp queue free). Cores 18-19: B1 judge work and fb2-900's seed-95 baselines. GPU: idle (Fable: nothing worth it). Fetcher pid
+**gb10-d:** idle except the leaderboard row job (league_add rl-b1); bpopp queue free. Cores 18-19: B1 judge work and fb2-900's seed-95 baselines. GPU: idle (Fable: nothing worth it). Fetcher pid
 1838186, the only one.
 
 **Branches not pushed (local only, by rule):** holdem-x2r (poker-ai-lab-x2r, 159e9ba), holdem-d2
