@@ -4,85 +4,39 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 15:57 UTC, box clock UTC+8)
+## Now (2026-11-26 17:15 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
 recommendations; open questions go to the Fable roadmap agent, never to Wayne. Uploads, swaps and L0 live
 challenges need his explicit yes and are not raised. Process gates hold: plan-verifier READY/REVISE (cap 2),
-outcome verifier CONFIRMED/REFUTED. Memory and docs English only. On every new result, update the matching doc
-(experiments, roadmap, HANDOFF) and drop what is stale. Plan of record: `docs/research/roadmap.md` on branch
+outcome verifier CONFIRMED/REFUTED (cap 2). Memory and docs English only. On every new result, update the matching
+doc (experiments, roadmap, HANDOFF) and drop what is stale. Plan of record: `docs/research/roadmap.md` on branch
 research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u +%H:%M'`.
 
-**State (details in experiments 14.27 to 14.31 and the roadmap's B1 spec):**
-* T1 (14.31, verifier CONFIRMED the numbers, one sentence corrected): bp100-trained 79.7% vs fb2-900 59.85%,
-  +19.9 [+18.1, +21.6]. B1 takes branch A (P1, with bp100). B0 step 1 does not run (river call-offs 594 → 57).
-* C1 (14.30): `small_ball` 75.7% → 97.6%; `small_ball` is in B1's training.
-* **B1 TRAINING STOPPED 13:27 UTC by the entropy guard** (minute 263 of 360, it 2290: entropy 0.465 → 0.195 and
-  policy loss 0.64 in one iteration; last good checkpoint it002200, latest.npz excluded). Read set therefore 300 to
-  2,100 (seven). Containers gone, lock free. **False alarm (14.35, research a0789f3; Fable review, reproduced):**
-  train.py logs the last minibatch, often a 1 to 306 sample tail; the weights moved normally. Read unaffected.
-  Fix for the next run on b1-rl (local): 666ab39 and e287ada (batch-mean logging, approx_kl and n, tail fold,
-  3-row guard; PPO update bit-exact to 59b1ad3 by the verifier). Verifier REFUTED the guard's checkpoint name for a
-  NaN inside a low streak; fixed in 233c549 and 126c673 (tests and plants r5, r6 caught); fresh verifier CONFIRMED.
-  Not shipped to the box yet. Next-run budget 180 minutes needs a dated amendment.
-  * **Screen done 13:49 UTC: chosen it001200** (sha256 5e9c6fc6…). Score 70.53 (bp100 65.3, tight_sticky 92.0,
-    sticky_overbettor 78.6, small_ball_b 80.4; never_fold_pre 93.8, loose_passive 90.6; league lowest 83.5). All
-    seven pass the 78% league filter; scores 68.8 to 70.5. Rows x2r logs/b1/screen/, league out/b1/screen-itITER.
-  * **14.36 (research ef9dbc3): B1 RULE FAIL.** Headline +3.94 [+2.79, +5.10], bp100 +5.4, E1 holds (23/23, lowest
-    83.8%), but ext:ashwing -3.4, ashwing_hive -4.6, ashwing_search -3.7, autodidact -3.4 (guards under -2.0);
-    league real-bot clones down (Blueprint -4.0), heuristic h2h -8.5 vs fb2-900. Headroom bp100 +14.5, small_ball
-    +15.4. No v5; v4 stays. **Verifier: numbers CONFIRMED, reading REFUTED and corrected (research 512ea65):** the
-    failing families are P1's own (autodidact = autodidact_fast; Ashwing = ashwing_v2/value/adaptive's package) at
-    half fb2's SDK share (4/6 to 4/12; chipzen 2/6 to 2/12, h2h -8.5). Dilution and interference both fit. Asked
-    Fable; its B1v (bigger SDK batch) was withdrawn after I showed batch shares, not counts, set the pull.
-* **D0 training** since 15:53 UTC on gb10-d, due about 19:03 (research b640cfe, revised after plan review 1):
-  B1's command minus the bp100 and small_ball data, fb2's SDK list at --heur-batch 5750 (B1's old-family SDK
-  decisions, 5,971 per iteration). Code holdem-rl d0 60ff10d, run dir ~/d0-run (eval tree ~/d0-run/x2r = x2r
-  8be6e38, reproduces B1's fb2 rows 60/60). Markers logs/d0/. Then: `tools/d0_read.py void`, four ext cells on
-  seed 95 from it001200 (literal commands in the spec), `d0_read.py rule`; outcome verifier. Stopped before it
-  1,200 = void, rerun once.
-* **14.37 (R1/R2), corrected after its verifier (research 9e29019):** weighted by hands, the counts already name the
-  opponent for 53% of hands and 71% of bp100's. Fable: AD1 and S7 wait behind **AD0** (research 2e774a1, tier 2):
-  supervised students (256 or 512 wide, seeded or not) fitted to T1 on bp100, C1 on small_ball, fb2-900 elsewhere;
-  the student that plays well says whether identity, width or the training method is the limit. Plan review
-  running; build after the AD1 builder (worktrees poker-ai-lab-ad1, ad1x2r) returns, since AD0 reuses its seeding.
-* **Merges (local):** holdem-x2r fast-forwarded to b1-x2r 8be6e38, holdem-league to b1-league 857660c. holdem-rl
-  next (R1/R2 done, b1-rl db446d7): merge and drop rl/models/b1.npz and rl/bot_b1.py from the trunk
-  (kept at b1-rl 59b1ad3).
-  * Code shipped: b1-rl a4d765d → ~/poker-ai-lab-rl, b1-league 857660c → ~/poker-ai-lab-league, b1-x2r 50b0a28 →
-    ~/poker-ai-lab-x2r. Verifier 1 REFUTED (4 launch defects, fixed); verifier 2 REFUTED only on the judge's bp100
-    cells not pinned (x2r's own bpopp lacked BP_CPUSET), training side all held. Fixed in b1-x2r 50b0a28 (test and
-    plant caught, 29 x2r tests pass, live probe from ~/poker-ai-lab-x2r prints --cpuset-cpus 0-17). Verifier cap
-    reached on this claim; the fix was checked first-hand.
-  * After training: `tools/b1_judge.sh` from ~/poker-ai-lab-x2r (screen seed 94 and league pairs 400-499, then
-    confirm seed 95, then gate pairs 200-399 plus heuristic head to head); it calls bare `python`, so put
-    ~/poker-ai-lab-rl/.venv/bin on PATH. Report the chipflow shove table (14.33). Fallback P1b if no checkpoint
-    passes the league screen. Delete ~/b1-build after the reads.
-  * **Amendment 10:09 UTC before any read (research 4732eda):** read set to 2,700 plus latest; `loose_passive`
-    guard cell (mr_hide's style); headroom and decision-share lines; fb2-900's seed-95 baseline arm now on cores
-    18-19. Built in b1-x2r e3cc88d, verifier CONFIRMED; then 8be6e38 (confirm stops on a missing guard cell,
-    37 B1 tests, plant caught), all shipped to ~/poker-ai-lab-x2r. `loose_passive` params frozen (distance 0.152 and 0.150 on seeds 3 and 4).
-* **14.32 G1 (corrected, research a591050), rule 2:** a known-name model. Verifier REFUTED the first record:
-  rule 2 had joined opponents' rows (149 names); fixed in holdem-d2 3e988c8 (test 9, 2 plants caught), rule rerun:
-  29 names, R +0.183 [+0.123, +0.266], P -0.306 better than per-name X1. Unseen names fail; cold start stays X1.
-* **14.33:** T1's shoves are chip-positive on every street (P0 retired as a decision statistic; B1's read adds the
-  shove class table). Pure bp100 specialization costs -13.4 [-14.9, -11.8] on other styles (seed 98), so B1's
-  guards are the risk; fallback P1b (bp100 2 of 12, seeds 99/100, league pairs 500-599) pre-registered.
-* **14.34 G1 step 2a (research 5b1c5ca): rule FAIL** on one calibration bucket (autodidact_fast largest bucket
-  5.16 points vs 5.0); the R condition passes for all three bots (G1 fine-tuned beats λ by +0.43 to +0.64 and D2a
-  from scratch by +0.13 to +0.47 nats at 1,000 matches). Per the rule G1 gets no more GPU; any follow-up is a new
-  pre-registered slice. Branch g1-2a f3d1afd (local). Verifier: numbers confirmed; FAIL holds under the spec's
-  postflop bucket definition (7.07 points, stable over three seeds), research 13712ca. Fable: no new G1 slice; the
-  lookahead line stays parked until B1's read shows the adaptation headroom per class.
+**Where it stands (details in experiments 14.30 to 14.37 and the roadmap):**
+* B1 (14.36): RULE FAIL. bp100 +5.4 of T1's +19.9, but P1's own ext families lost 3.4 to 4.6 points against
+  fb2-900. No v5; v4 stays entered. Chosen checkpoint it001200 (rows in ~/poker-ai-lab-x2r/logs/b1/confirm/cand).
+* 14.37: weighted by hands, the counts name the opponent for 53% of hands and 71% of bp100's, so seeding (AD1) has
+  limited room. AD1 and S7 wait behind AD0.
+* **D0 training** since 15:53 UTC on gb10-d (~/d0-run, holdem-rl d0 60ff10d, cores 0-17), it 625 at 17:14, due
+  about 19:03. Background wait prints the markers and `d0_read.py void`. Then: four ext cells on seed 95 from
+  it001200 (literal commands in the roadmap D0 spec), `d0_read.py rule`, record 14.38, outcome verifier, tell Fable.
+  Stopped before it 1,200 = void, rerun once. MIX OR CONTINUATION = run D-null (heur 10000).
+* **AD1 built** (local: holdem-rl `ad1` 0482bff, holdem-x2r `ad1-x2r` eb5d747; `sdk_prior.npz` c77f058e…, record in
+  the roadmap AD1 spec). Outcome verifier running. Not trained: gated by AD0.
+* **AD0 build running** (executor; worktrees poker-ai-lab-ad0 branch `ad0` from 0482bff, poker-ai-lab-ad0x2r branch
+  `ad0-x2r` from eb5d747; spec research 79eac81). Code and tests only. I run data (seed 106), GPU fits and play
+  (seed 95) after D0's reads, then the rule.
+* **Merges (local):** holdem-rl next: merge b1-rl db446d7, drop rl/models/b1.npz and rl/bot_b1.py from the trunk
+  (kept at b1-rl 59b1ad3). Delete ~/b1-build after the AD builds no longer need it (AD0 and AD1 tests link it).
 
-**gb10-d:** idle except the leaderboard row job (league_add rl-b1); bpopp queue free. Cores 18-19: B1 judge work and fb2-900's seed-95 baselines. GPU: idle (Fable: nothing worth it). Fetcher pid
-1838186, the only one.
+**gb10-d:** cores 0-17 D0 training; cores 18-19 verifier and builder tests. bpopp queue free. GPU idle until AD0's
+fits. Fetcher pid 1838186, the only one.
 
-**Branches not pushed (local only, by rule):** holdem-x2r (poker-ai-lab-x2r, 159e9ba), holdem-d2
-(poker-ai-lab-d2, 2520b27; `python tools/d2_mutate.py --jobs 4` must catch every plant after a change),
-holdem-rl (poker-ai-lab-rl, 114a136), and the three B1 branches above (merge into holdem-rl, holdem-x2r,
-holdem-league after B1's read).
+**Branches not pushed (local only, by rule):** holdem-rl, holdem-x2r, holdem-league, holdem-d2 (`python
+tools/d2_mutate.py --jobs 4` must catch every plant after a change), b1-rl, b1-x2r, b1-league, d0, ad1, ad1-x2r,
+ad0, ad0-x2r.
 
 ## Goal and gate
 - Heads-up NLHE bot for Chipzen.ai Season 16. Registration closes Mon 23 Nov 23:59 UTC.
