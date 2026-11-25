@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 08:13 UTC, box clock UTC+8)
+## Now (2026-11-25 08:17 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -20,7 +20,10 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * C1 (14.30): `small_ball` 75.7% → 97.6%; `small_ball` is in B1's training.
 * **B1 built** (local, unpushed): poker-ai-lab-b1rl `b1-rl` 24c8c9d, poker-ai-lab-b1x2r `b1-x2r` faa7eb5,
   poker-ai-lab-b1lg `b1-league` 857660c. Tests all pass, every plant caught; P1 smoke shares bp100 0.335,
-  small_ball 0.167, heuristic 0.165, 3.7 it/min; `--init` restarts at it 1. **Outcome verifier running.**
+  small_ball 0.167, heuristic 0.165, 3.7 it/min; `--init` restarts at it 1. **Outcome verifier REFUTED (1 of 2)**
+  on three launch defects: bp100 containers not pinned off G1's cores (no --cpuset-cpus), a crashed job marked
+  `done` rc 0, the entropy/NaN stop missing; plus a ship trap (libfastenv rebuild by mtime). Executor fixing; then a
+  fresh verifier. Commit code vs box code differs only by default-off paths (checked).
   On CONFIRMED: ship b1-rl to ~/poker-ai-lab-rl (`git -c core.autocrlf=false archive b1-rl | ssh gb10-d 'tar -x
   -C ~/poker-ai-lab-rl'`), b1-x2r and b1-league likewise, then `cd ~/poker-ai-lab-rl && setsid -f taskset -c 0-17
   bash tools/b1_run.sh P1`. Then screen (seed 94, league pairs 400-499), confirmation (seed 95), gate (E1
