@@ -792,7 +792,13 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   was an addition slip); the hold-out is by pair seed, both seats together (seats share deals); the fit's patience is
   3 epochs, keeping the best held-out epoch (a first build ran fixed cosine steps and was corrected before any run);
   after the relabel round rules 1 to 4 then rule 7; "best student" in rule 6 is the highest overall held-out bp100
-  agreement; relabel states of all four students are pooled. Outcome verifier: running.
+  agreement; relabel states of all four students are pooled. Outcome verifier: CONFIRMED (tests and plants
+  reproduced; probes: the label equals the teacher's masked softmax within 3e-8 and the logged matches equal unlogged
+  RLBot matches; data and play seed exactly bp100 and `small_ball` from the same file; a 256 student through
+  `--student` plays byte-identical to `--model`; the whole chain runs end to end on toy sizes). Noted, not defects:
+  no test covers a relabel label taken from the acting student (code and probes correct); `ad0_read.py` does not
+  print D0's verdict beside the rule (read by hand). Shipped to `~/ad0-run/code` (8b7ea8b) and `~/ad0-run/code-x2r`
+  (541bf81), pins checked.
 * **Review record:** plan review 1 REVISE (no Python path for the `bot:` clones and their seeded rows described a
   different player; seeded students would meet seeded ext inputs at play never seen in data; the label at the
   wrapper was undefined; seeds 95 and the relabel round unregistered and unbudgeted). Fixed above: clones dropped,
