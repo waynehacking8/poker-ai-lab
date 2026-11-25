@@ -44,6 +44,43 @@ verifier, and Wayne's yes).
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 
+### Ordering after Phase 0 (2026-11-25 05:00 UTC, the roadmap agent's recommendation, adopted)
+
+Wayne's aim: do not waste time; the roadmap agent sets direction. Everything below is a measurement except B1 and
+B0a; only those two can change the bot, and T1 (running next) decides both: its gain sets B1's direction, and its
+chipflow read (`tools/p0_read.py` on `logs/t1/flow_br.jsonl`) shows whether training alone removes the river
+call-off B0 aims at. Nothing else is built for the bot until T1 reads. Season 16 cannot be changed (no candidate
+exists), so nothing is rushed for 27 Nov.
+
+* **Cut:** K1 as a slice (K = 2 ln(p / (1 - p)) from the estimated rate, or an empirical V table where data exist,
+  is now a definition, 14.28); B0b (14.28: the flop shove is about break-even in match value).
+* **Merged:** X5 into B0a (the posterior gate at a terminal node is its smallest form) and later the lookahead.
+* **Deferred:** T2 (14.28 answered the K question; what is left needs a better model, 14.18 to 14.22; about 50
+  core-hours) returns after G1. D2b and D2c (bp100 plays 22 matches a second, so B1 trains against the real code;
+  only Blueprint has the 1,000 archive matches a clone needs; no code exists for the small-ball family): revisit
+  only if B1 trained on bp100 fails to transfer to the live solver names. A0 Part 3 (bp100 and tags in
+  `x2r_oracle.py`) goes with T2.
+* **Held:** B0 step 1 until T1's chipflow read. If the bp100-trained policy still makes river call-offs at more
+  than half of fb2-900's rate (594 per 4,000 matches at equity 0.198, 14.27), step 1 runs as revised below; if not,
+  training fixes it for known bots and B0a returns later as the unseen-name version on top of G1.
+* **Now:** A0 Parts 1 and 2 (archive tool, `small_ball`); G1's data extraction on idle cores, then G1 fits on the
+  GPU (L5, L9; no bpopp queue).
+* **Critical path:** T1 read (25 Nov) → B1 spec (one page, full process; population fb2-900's league mix plus bp100
+  at a fixed share plus `small_ball` and `sticky_overbettor`, from fb2-900) → B1 training 26 to 28 Nov → candidate
+  `v5 = B1 + S0 (+ B0a if it survives)` read on real code 29 Nov (bp100, `ext:` families, `small_ball`, E1 league,
+  heuristic head to head, E3 reported) → fresh verifier, then Wayne, 30 Nov at the earliest. Guesses: T1 gain
+  ≥ +8 → B1 +4 to +7 against the solver family; < +4 → B1 becomes representation work (one to two weeks) and B0a
+  (+1 to +2.5 against the solver family) is the near-term change.
+* **Process tiers (the deploy gate is untouched):** (1) reads of data we hold and archive tools: a committed script
+  with tests, a decisive number re-derived once by a second method, no plan review, a verifier only when a roadmap
+  decision hangs on one number. (2) Experiments that cannot reach the bot, under two box-hours, rerunnable: a
+  pre-registration paragraph and at most one plan review; the outcome verifier checks the read. (3) Anything that
+  trains a candidate or changes what the bot plays (B1, B0a, candidate reads) and oracle designs: the full chain.
+  B1's spec lifts T1's run plumbing (seeded bp100 job, rate stop, cleanup check, registry seed check) into one
+  verified queue runner that later specs cite.
+* **Box:** bpopp queue: T1, then B1; B0 step 1 (about 45 minutes) in a B1 pause if it runs. Cores 18-19 at nice 19:
+  A0's archive read, G1's extraction. GPU: G1. PC: `small_ball` and its style check.
+
 A fresh first-principles pass over the whole plan (a Fable 5.2 agent, read-only, 2026-11-25; its facts
 re-checked first-hand where a decision hangs on them) found the judge pointed at the wrong opponents. Measured:
 the `ext:` pool is mostly one family (R1's +2.8 is Ashwing +3.0 to +6.0, autodidact +2.3, Wolf -2.0; 14.22);
@@ -89,7 +126,8 @@ training question for clones was never asked; D2c first); resuming S2 (14.15: th
 * **Seeds:** a read seed is never a training seed and is fresh per read, with one allowed exception: a read
   may reuse an earlier read's seed when that earlier run is its named paired baseline and the seed was never
   seen in training. Registry: 81 S2r; 81 again for T1's read (its named baseline is S2r's fb2-900 rows); 82 T2;
-  83 and 84 D2b (fitting logs, held-out logs); 85 D2b read 1 (86 its control rerun); 87 T1's `ext:` cost check (unpaired); 88 B0 step 1 fit logs; 89 B0b's tagged read (with T2). Training seeds stay those of
+  83 and 84 D2b (fitting logs, held-out logs); 85 D2b read 1 (86 its control rerun); 87 T1's `ext:` cost check (unpaired); 88 B0 step 1 fit logs; 89 unused (B0b cut); 90 A0's strength sanity (bp100 against `small_ball`); 91 B0 step 1's
+  optional reread. Training seeds stay those of
   `tools/rl_br.sh`. A new read takes the next unused number and writes it here.
 * **Pairing:** every A/B is paired on (seed, hero seat) with a paired 95% interval (`tools/paired_stats.py`,
   holdem-x2r), and real-code opponents are pooled by family (Ashwing, autodidact, Wolf, bp100), equal weight
@@ -246,7 +284,38 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   and no test hook; chipflow's `--out`, the read model and BP_CPUS). All fixed here; cap reached, carried by
   Wayne's standing approval. The executor's work gets a fresh outcome verifier before the training starts.
 
-### B0 step 1. Headroom of a river all-in answer against bp100 (spec, 2026-11-25)
+### B0 step 1. Headroom of a river all-in answer against bp100 (spec, 2026-11-25; HELD until T1's chipflow read)
+
+* **Revision after plan review 1 (REVISE: range from the last action only; sampled single actions; a reproduction
+  check that confused hidden state with RNG position; a vacuous lower bound; an ambiguous fit set; ties).** The
+  revised design supersedes the oracle, rule, cost and tests below where they differ:
+  * A new container op `dist` (image bpopp:v012 = v011 plus `server.py`; solver code untouched) returns, per given
+    holding, the blueprint's exact action distribution at a wire state: the decide path with the draw removed
+    (`reconstruct`, `infoset_at(bucket_for(...))`, `blueprint_action_distribution`, uniform when unvisited, the pass
+    frame on truncation or exception), every abstract action priced through the real `wire_action` and the client's
+    clamp, moved into one pure `finalize(frame, state)` used by `decide` too. A raise matches on kind and exact
+    finalized amount. The 0.35 threshold is applied at load, so zeros are the played policy's zeros. Source read
+    in `~/bp-src/code` (poker-solver v0.1.0) by the roadmap agent; server time 0.21 to 0.35 ms per call (69,976
+    logged decisions, 0 fallbacks, 0 truncations).
+  * True range: w(h) = uniform card-removal prior x product over every bp100 decision in the hand of
+    P(logged action | h, logged state), normalized.
+  * Checks before scoring: `dist` identical across repeats, a fresh seat and reversed node order on 200 nodes;
+    every logged bp100 action has positive probability with bp100's actual cards; 400 `decide` draws on 100 mixed
+    nodes match `dist` (no zero-probability frame, pooled chi-square p > 0.001); v012 plays 20 seeded matches
+    identically to v011. A calibration gate: realized wins against predicted under w, |z| > 3 stops.
+  * Values: win, tie and loss at the engine's own end stacks; V from seed 88 only (and K = 0.80 reported).
+  * Ways: policy; true range (exact optimum, so judged by size, not by a lower bound); fitted table variant A (all
+    seed 88 bp100 river bets in the class with true cards) and variant B (called only, the archive case, reported);
+    uniform prior (cold start, reported); true cards (hindsight). Each also valued by bp100's actual cards; the two
+    valuations must agree within the realized estimate's 95% interval.
+  * Rule: gates pass; true-range gain ≥ +1.0 point with bootstrap lower bound ≥ +0.5; variant A gains at least
+    half of it with lower bound above zero. One range-model revision allowed, reread on seed 91. B0a is built only
+    when both hold.
+  * Cost: 2 to 3 s of `dist` per scored decision, at most 3,000 decisions, about 25 minutes on 6 containers; a
+    50-decision pilot fixes it (over 90 minutes projected → first 2,000 matches only). Budget 2 box-hours, stop 4.
+  * Tests (each with a plant): two-decision range product; card removal; C1 to C4 on gb10-d; raise amount match;
+    tie stack; truncated and unvisited branches; seed 88 only in the fit and V; variants A and B distinct; four-way
+    read with a negative table gain; literals.
 
 * **Why:** P0 fired (14.27). Of its parts, only the river call of an all-in loses under every match-value
   curve (594 calls at equity 0.198, -2.46M chips; 14.27, 14.28). fb2-900's only hand input is equity against a
@@ -331,15 +400,20 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   commit). **Rollback:** revert the holdem-x2r commits, delete `logs/a0/`.
 * **Part 1, `tools/a0_field.py ARCHIVE_DIR --out logs/a0`** (numpy and stdlib; one pass, JSON tables and a
   printed summary):
-  1. Inventory: poker files, names, matches per name by `match_type` and `rated`, first and last match time per
+  1. Inventory: poker files, names, matches per name by `match_type` and `rated` (if no field separates rated
+     fixtures from challenges, the tool prints "rated not separable" and omits every rated column, the rated refit
+     and the rated shares), first and last match time per
      name. The executor reads the timestamp field name from a file; if none exists the tool orders by fetch
      listing and says so.
-  2. Style vectors: `style_map.hand_stats` imported, not copied, for names with 100 or more hands; plus four axes:
-     fold to a postflop bet in three size buckets (under 0.8 pot, 0.8 to 3, above 3) and share of unbet flops bet.
+  2. Style vectors: `style_map.hand_stats` imported, not copied, for names with 100 or more hands; plus five reported
+     statistics: fold to a postflop bet in three size buckets (under 0.8 pot, 0.8 to 3, above 3), share of unbet
+     flops bet, and opening size (mean raise-to in big blinds of unraised first preflop actions).
   3. Fold by size against break-even: per name and street, fold rate in buckets 0.35 to 0.8, 0.8 to 1.5, 1.5 to 3,
      3 to 8, above 8 pot next to the bucket's mean b / (P + b) (the `m3_leaks.py` method), with counts.
-  4. Classes: average-linkage clustering of the 12-axis vectors of names with 30 or more matches, cut at 0.25 on
-     the 8 base axes (E6's threshold); clusters labelled by a seed name they contain: Blueprint (solver),
+  4. Classes: average-linkage clustering of names with 30 or more matches with exactly one distance, Euclidean
+     over the 8 `AXES` with a missing axis = 0.5 (`style_bots_check.vec`), used for both linkage and the cut at
+     0.25 (E6's threshold); the five extra statistics are reported only. Clusters are labelled by a seed name they
+     contain (a cluster holding two seed names takes the one with more matches and lists the other as merged): Blueprint (solver),
      slopBot (small-ball aggressor), PluriBot (big-bet aggressor), DeepStack (station); else "other"; names under
      30 matches "tail". House bot: marked by the API if a field does (executor checks), otherwise a name in 20% or
      more of all other names' schedules. Reported: members, matches, share of all and of rated matches per class.
@@ -375,15 +449,24 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   0.64, shove 0.04, fold_pre_raise 0.40, post_aggr 0.73, post_fold_bet 0.80, bet_size 0.22, showdown 0.13`,
   replaced by Part 1's slopBot vector once the committed tool produces it (the tool's number is the target of
   record); `pre_size` follows Part 1's measured opening size.
-  * Acceptance (as E6): `tools/style_map.py sim small_ball rl/models/fb2_it000900.npz 300 3 4 OUT.json`, then
-    `style_bots_check.py`: distance under 0.25, on seeds 3 and 4 both.
-  * Strength sanity, reported, labels the cell: bp100 against `small_ball`, 400 matches (bpopp queue). If bp100
+  * Acceptance (as E6): `python tools/style_map.py sim small_ball rl/models/fb2_it000900.npz 300 3 4 logs/a0/sb3.json`
+    and `python tools/style_map.py sim small_ball rl/models/fb2_it000900.npz 300 4 4 logs/a0/sb4.json` (arguments:
+    matches, seed, workers), then `style_bots_check.py` on each: distance under 0.25 on both.
+  * Strength sanity, reported, labels the cell: `BP_IMAGE=bpopp:v011 python -m rl.eval_arena --hero bp100 --opp
+    small_ball --matches 400 --seed 90 --workers 6` under the eval card's BP_* exports (bpopp queue; if `--opp`
+    does not accept a STYLES name, `rl/eval_arena.py` joins the owner files for that one change). If bp100
     wins more than 60%, the cell is labelled "style cell, not a strength proxy" wherever it is used and the
     aggressor class's strength judge is L0 only (slopBot beats the live Blueprint 63%, 14.26; a bot folding 80%
     to bets is easy for whoever bets).
   * The big-bet aggressor is the existing `sticky_overbettor`; T2's aggressor cell is `small_ball`.
+  * Oracle paths read StyleBot attributes without `street_bet` (`tools/x2s_ablate.py` `Oracle._probs`,
+    `tools/x2r_oracle.py --model oracle`, `tools/x3_range.py`'s rule-bot scorer): each refuses a bot whose
+    `street_bet` is not all ones (owner files: those three), tested by `x2r_oracle --opp small_ball` exiting with
+    an error (plant: guard removed).
   * If `small_ball` cannot get under 0.25 after three parameter rounds, it ships with its distance stated and T2
     names it "nearest reachable" (the reversible choice; the other is a new bot class).
+* **Part 3 is DEFERRED with T2 (ordering above); when it returns, `--k` defaults to None (the module K) and test
+  10's literals are win_prob(10000, 20000) = 0.9120 by default and 0.5987 at k = 0.80 (plan review 1).**
 * **Part 3, bp100 in `tools/x2r_oracle.py` for T2** (today it refuses any non-STYLES name except `ext:`, line 422):
   1. `--opp bp100` with `--model x1` or `x3`, factory `rl.eval_arena.make_bp100`; refuses unless
      BP_IMAGE=bpopp:v011.
@@ -421,6 +504,9 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Consumers:** T2 (the cells and Part 3), the L8 weight (step 7), family pools of later reads (step 4), L0's
   opponent list and weights (steps 4, 5, 8), G1 and B0a (steps 8, 10), X5 and K1 (class ratings as the prior win
   rate that sets K).
+* **Review record:** plan review 1 REVISE (test 10 literals; `street_bet` unseen by the oracle paths; the class
+  metric and multi-seed rule; the rated fallback and opening size; seed and commands of the Part 2 reads). All
+  fixed above; Parts 1 and 2 are tier 1 and 2 under the ordering, so no second review.
 * **Cost and stop:** executor about half a day; box about 0.5 box-hours. Stop at 2. An acceptance test still
   failing after two fix rounds stops the slice.
 * **Flag carried to T2:** at R1's 0.4 s per lookahead decision a bp100 match is about 45 s of hero time, so 2,000
@@ -429,7 +515,11 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Unverified:** the timestamp and house-bot fields in the replay JSON; whether rated fixtures can be told from
   challenges (14.26: the API labels both `challenge`); the probe's style numbers.
 
-### D2b. Is the solver proxy clonable? D2a's protocol on bp100 (spec, 2026-11-25)
+### D2b. Is the solver proxy clonable? D2a's protocol on bp100 (spec, 2026-11-25; DEFERRED by the ordering)
+
+* Plan review 1 REVISE (container tests outside the serial queue and `d2_mutate.py` hard-coded to `test_d2.py`;
+  no owner, markers or test for the S2r replicate band and the runner hand-off; tree identity with holdem-rl
+  f2d6c5d). To be fixed if D2b returns.
 
 * **Question:** does D2a's neural clone, fitted to arena-visible logs of bp100, play like bp100 against us, and
   from how many matches (100, 1,000, 2,000)?
