@@ -78,6 +78,27 @@ exists), so nothing is rushed for 27 Nov.
   trains a candidate or changes what the bot plays (B1, B0a, candidate reads) and oracle designs: the full chain.
   B1's spec lifts T1's run plumbing (seeded bp100 job, rate stop, cleanup check, registry seed check) into one
   verified queue runner that later specs cite.
+* **After A0 (14.29, the roadmap agent's decisions, adopted 2026-11-25):**
+  * Judge weights follow what an entrant faces (the two-pool finding), not seat shares. One judge class
+    "solver-like", proxy bp100, about 35% of entrant seats (Blueprint, fermat6, NashForge, hoops, MonteCarlo); the
+    second cluster is flagged unvalidated against bp100 and not split until we hold its code or live matches.
+  * No play-time exploit slice: the over-folding classes need a policy that bets into them and stops over-folding
+    itself (fb2-900 folds 60.7% to half-pot flop bets, 14.26); an override keyed to frequencies is 14.18 again.
+  * **C1 (tier 2, CPU only, before T1 reads):** the T1 ceiling test against the rule cells. (a) fb2-900 against
+    `small_ball` and `tight_sticky`, 2,000 matches each, seed 93: done, 75.7% and 94.3% (14.29). (b) best-response
+    fine-tune from fb2-900 against `small_ball`, 60 minutes, then the same read on seed 93 paired against (a).
+    Rule as T1's: gain lower bound ≥ +8 → `small_ball` joins B1's training; upper bound < +4 → it does not help.
+    Needs `make_opp` to accept a STYLES name, in a tree that holds `small_ball`.
+  * B1's population: fb2-900's league mix (E1 holds), bp100, and `small_ball` if C1 fires. `tight_sticky` and
+    `sticky_overbettor` stay untrained as honest judges; `small_ball_b` (the mean vector of BonnieBlue,
+    Chaos_Incarnate, Velvet_Shark) is added as a judge-only cell if `small_ball` is trained on.
+  * B1's judge: headline weights by entrant seats, recomputed from A0's tables at B1's spec (draft: bp100 0.62,
+    `tight_sticky` 0.20, `sticky_overbettor` 0.07, `small_ball_b` 0.05, `ext:` 0.06); a top-table line with bp100
+    and `small_ball_b` equal; pass = headline paired lower bound above zero, no cell losing more than 2 points,
+    deploy gate unchanged. The regulars' pool stays E1's guard. E3 is reported, not primary.
+  * G1's known-name outcome now matters most (under 1% of seats are a first match). D2b stays deferred; the core
+    (fermat6 990, NashForge 884, hoops 842, mr_hide 826, r0ckGarden 774) nears the 1,000-match clone size as the
+    fetch runs: first clone work after B1's first pass, training opponents only.
 * **Box:** bpopp queue: T1, then B1; B0 step 1 (about 45 minutes) in a B1 pause if it runs. Cores 18-19 at nice 19:
   A0's archive read, G1's extraction. GPU: G1. PC: `small_ball` and its style check.
 
@@ -127,7 +148,7 @@ training question for clones was never asked; D2c first); resuming S2 (14.15: th
   may reuse an earlier read's seed when that earlier run is its named paired baseline and the seed was never
   seen in training. Registry: 81 S2r; 81 again for T1's read (its named baseline is S2r's fb2-900 rows); 82 T2;
   83 and 84 D2b (fitting logs, held-out logs); 85 D2b read 1 (86 its control rerun); 87 T1's `ext:` cost check (unpaired); 88 B0 step 1 fit logs; 89 unused (B0b cut); 90 A0's strength sanity (bp100 against `small_ball`); 91 B0 step 1's
-  optional reread; 92 G1 step 1's folds and draw. Training seeds stay those of
+  optional reread; 92 G1 step 1's folds and draw; 93 C1's reads (rule cells, paired). Training seeds stay those of
   `tools/rl_br.sh`. A new read takes the next unused number and writes it here.
 * **Pairing:** every A/B is paired on (seed, hero seat) with a paired 95% interval (`tools/paired_stats.py`,
   holdem-x2r), and real-code opponents are pooled by family (Ashwing, autodidact, Wolf, bp100), equal weight

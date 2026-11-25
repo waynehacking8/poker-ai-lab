@@ -1497,3 +1497,39 @@ v4's league field rate.
   only against opponents we beat about 91% of the time. Against the strong families the utility is too
   risk-averse. T2 takes the calibrated K as an arm (0.80 replaces the 0.73 of the envelope draft), and the K1
   slice (K from the estimated edge) gains direct evidence.
+
+### 14.29 A0 field map: the archive is two pools; slopBot rates first and over-folds; 5 of the top 10 are exploitable
+
+Tool: holdem-x2r `tools/a0_field.py` (12d4160, 9939bd4, 150aa1b, fix 1d2dd06), run on gb10-d over `~/chipzen-replays`
+(16,099 poker matches, 289 names, ordered by `match.started_at`; outputs `~/poker-ai-lab-x2r/logs/a0/`). Outcome
+verifier: REFUTED on one fault (step 7(a) reported the top bot's own best result instead of its best opponent's;
+"mr_hide beats NashForge 80.8%" was NashForge winning 105 of 130), fixed with a test and plant (11 of 11 plants
+caught), the read rerun; every other claim confirmed by its independent re-derivation (Bradley-Terry by MM, fold
+excess, swing, clusters, `small_ball` distance).
+
+* **Two pools.** Ten regulars (Fabulous, K3PO, PoetAndCoder, Chatterbox, DeepStack, Kimiko, MercuryRetrograde,
+  glambot, qwentom-leap, SolvencyCheck) play each other: 8,441 matches among themselves, 785 against anyone else,
+  6,873 among everyone else (re-derived by `pools.py`, gb10-d `~/m3/`, same numbers as the roadmap agent's count).
+  An entrant faces a regular in 5.4% of its seats. What an entrant faces (14,531 seats): Blueprint 15.4%, fermat6
+  6.8%, NashForge 6.1%, hoops 5.8%, mr_hide 5.7%, r0ckGarden 5.3%, PluriBot 3.8%, slopBot 2.7%, WSmithSimLab 2.3%.
+  So A0's per-seat class shares (65% of rated seats in the regulars' pool) are the wrong weights for us.
+* **Classes (8 axes, average linkage, cut 0.25):** Blueprint's cluster has 11 names; fermat6, NashForge, hoops,
+  MonteCarlo, LimitLess, Dexter form a separate cluster (0.12 to 0.16 from Blueprint's); slopBot alone; PluriBot
+  with Shadow; DeepStack alone. MonteCarlo fails "in the solver family" (cluster test; its 0.8 to 1.5 pot fold
+  bucket 46.8% against 55.7 to 62.0 ± 5.4), but 152 of its 195 matches are against PluriBot, so its style is
+  confounded by one opponent.
+* **Rating (Bradley-Terry, ridge, 90% bootstrap):** slopBot first, θ 1.11 [0.93, 1.36], 75% against the mean player
+  (279 of 390; 125 of 199 against Blueprint). Seven of the top ten have under 110 matches; the rated-only refit
+  reorders them (max change 1.43). Ratings are not used as weights.
+* **Exploitable (fixed reading):** 5 of the top 10 (slopBot, ALLIN-v3, Deep_Thought-v12, Chaos_Incarnate,
+  NashForge), all by over-folding: slopBot folds 80.8% to flop bets of 0.35 to 0.8 pot against a 36.7% break-even
+  (n 921); NashForge 71.1% to river bets of 0.8 to 1.5 pot against 51.1% (n 805). Best opponents: Blueprint wins
+  37.2% against slopBot, 44.1% against NashForge. So **L8 is over-weighted**: E3 becomes a reported number. Under the
+  rated-only ratings the count is 7.
+* **Cold start:** 75.1% of seats face an opponent with 100 or more archived matches (top ten 64.8%); under 1% face a
+  first match. 76 names new in 14 days, 21% version suffixes.
+* **Swing:** a 5,000-chip hand in 76.5% of matches (re-measures the 76%).
+* **Shown all-ins (called and shown):** river 11,529; Blueprint 1,039, fermat6 374, NashForge 316, hoops 221.
+* **`small_ball`** (StyleBot with `street_bet`): distance 0.185 and 0.173 (seeds 3, 4) to slopBot's vector, under
+  0.25. **fb2-900 against it: 75.7% [73.8, 77.5]; against `tight_sticky` 94.3% [93.1, 95.2]** (seed 93, 2,000
+  matches each, no containers). Strength sanity (bp100 against `small_ball`, seed 90) pending.
