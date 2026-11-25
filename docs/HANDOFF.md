@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-26 22:33 UTC, box clock UTC+8)
+## Now (2026-11-25 22:33 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -34,7 +34,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   epochs) bp100 +19.4 [+16.9, +21.8], `small_ball` +19.8 [+17.8, +21.7], ext +1.1 [-0.7, +2.9] vs fb2-900; W2s also
   passes, W1s and W2 fail on the ext lower bound. B1's shortfall is the training method; next is a distil-then-PPO
   candidate slice (full process); AD1 and S7 drop. Data overran its time line (deviation recorded in the amendment,
-  research 2513a6f). A1 converged refits (students_a1) exist, not played (A2). Outcome verifier running; Fable asked
+  research 2513a6f). A1 converged refits (students_a1) exist, not played (A2). Outcome verifier CONFIRMED; Fable asked
   for the next slice's spec and whether D-null still runs. Students: ~/ad0-run/students/W1.npz etc.
 * **AD1 built** (local: holdem-rl `ad1` 0482bff, holdem-x2r `ad1-x2r` eb5d747; `sdk_prior.npz` c77f058e…, record in
   the roadmap AD1 spec). Verifier 1 REFUTED: amendment items 2 to 4 (B1 arm on seed 104,
