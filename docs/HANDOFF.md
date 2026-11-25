@@ -28,8 +28,9 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * **AD0 build running** (executor; worktrees poker-ai-lab-ad0 branch `ad0` from 0482bff, poker-ai-lab-ad0x2r branch
   `ad0-x2r` from eb5d747; spec research 79eac81). Code and tests only. I run data (seed 106), GPU fits and play
   (seed 95) after D0's reads, then the rule.
-* **Merges (local):** holdem-rl next: merge b1-rl db446d7, drop rl/models/b1.npz and rl/bot_b1.py from the trunk
-  (kept at b1-rl 59b1ad3). Delete ~/b1-build after the AD builds no longer need it (AD0 and AD1 tests link it).
+* **Merges (local) done:** holdem-rl fast-forwarded to b1-rl db446d7, then b047c04 drops rl/bot_b1.py and
+  rl/models/b1.npz (kept at b1-rl 59b1ad3). holdem-league 57a63b8 commits the leaderboard with cand:rl-b1 (rank 4,
+  PASS 23/23). Delete ~/b1-build after the AD builds no longer need it (AD0 and AD1 tests link it).
 
 **gb10-d:** cores 0-17 D0 training; cores 18-19 verifier and builder tests. bpopp queue free. GPU idle until AD0's
 fits. Fetcher pid 1838186, the only one.
