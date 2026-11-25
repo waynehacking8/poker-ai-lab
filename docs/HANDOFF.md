@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 08:17 UTC, box clock UTC+8)
+## Now (2026-11-25 08:45 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -28,10 +28,11 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   -C ~/poker-ai-lab-rl'`), b1-x2r and b1-league likewise, then `cd ~/poker-ai-lab-rl && setsid -f taskset -c 0-17
   bash tools/b1_run.sh P1`. Then screen (seed 94, league pairs 400-499), confirmation (seed 95), gate (E1
   pairs 200-399 plus heuristic head to head), verifier, Wayne. Delete ~/b1-build after launch.
-* G1 RUNNING (holdem-d2 2520b27 on the box at ~/poker-ai-lab-d2s2, `tools/g1_run.sh`, logs/g1/run.log, rule in
-  logs/g1/rule.txt): five folds done, time split last. Then record the result; an outcome verifier checks it.
+* **14.32 G1 DONE 08:43 UTC (research 33aa069), rule 2:** a known-name model. Time split, names with 100+
+  earlier matches: R +0.175 [+0.120, +0.246] vs λ, P -0.258 better than per-name X1. Unseen names fail (R -0.087,
+  P worse), so cold start stays with X1; no more GPU on unseen names. Outcome verifier checking the read.
 
-**gb10-d:** bpopp queue and cores 0-17: B1 training once launched. Cores 18-19 and the GPU: G1. Fetcher pid
+**gb10-d:** bpopp queue and cores 0-17: B1 training once launched. Cores 18-19 and the GPU: free (G1 done; verifier reads on 18-19). Fetcher pid
 1838186, the only one.
 
 **Branches not pushed (local only, by rule):** holdem-x2r (poker-ai-lab-x2r, 159e9ba), holdem-d2
