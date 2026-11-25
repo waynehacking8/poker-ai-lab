@@ -805,6 +805,20 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   cores 0-17; stop and record at two times any phase.
 * **Limits:** the judge covers 52% of entrant seats by weight (B1's map); the clones are copies of past behaviour;
   a pass is a candidate for Wayne, not a deployment.
+* **Built (2026-11-25, local only):** holdem-x2r `v5a` 186d423, 8ac3d47, 05ed829, de7c4f7 (on 541bf81):
+  `tools/v5a_judge.sh` (check, screen, league-screen, choose, confirm, fresh, gate-prep, gate-commands),
+  `tools/v5a_gate_add.sh` (runs the league checkout's `league_add.sh` for rl-v5a only when gb10-d holds
+  `results.jsonl.pre-v5a`), `tools/v5a_read.py`, tests and plants; holdem-rl `v5a-rl` 9bebfb5 (registry 94, 95, 108
+  V5A). Candidates named `w1` and `w1_a1`. Outcome verifier 1 REFUTED (nothing stopped `league_add.sh` before the
+  rollback copy; fixed in 05ed829); verifier 2 REFUTED (the gate tests' fake ssh was not executable on Linux, so both
+  failed there and the gate plant was caught by a broken test; a set `V5A_LOGS` reopened the tree and pin overrides).
+  The cap of two is reached; fixed first-hand in de7c4f7 at 2026-11-25 23:17 UTC: overrides honoured only under `V5A_TEST=1`, the
+  fake ssh made executable, three plants added. Checked on gb10-d from a clean archive: 33 of 33 tests pass, the
+  unmodified tree passes 119 tests under the plant runner and 43 of 43 V5a plants are caught; the verifier's bypass
+  (`V5A_LOGS`, `V5A_TREE`, a fake fb2 pin) exits 8; the real `check` passes the three pins and the tree; the gate
+  wrapper exits 7 while the copy is missing. Verifiers' notes kept: a rows file of the right length is reused
+  without checking its model (the chosen file is fixed per run); `read` does not check that the gate summary names
+  rl-v5a (checked by hand at the gate).
 * **Reading a fail (roadmap agent after 14.40):** the -2.0 guard against fb2-900 stays; fb2-900 is the bot a
   candidate replaces. A loss of 2 to 3 points on the Ashwing cells equals the spread between fb2's own checkpoints
   (14.40), so such a fail reads "did not keep the peak", not "the method breaks these families". It still fails.
