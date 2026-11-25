@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 22:33 UTC, box clock UTC+8)
+## Now (2026-11-25 22:38 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -24,18 +24,22 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   B1 (the loss stays without the new data); `ext:ashwing_hive` recovers 4.2 of B1's 4.6. No lever decision, no
   D-null by the rule. Verifier CONFIRMED the numbers, REFUTED wording (corrected, research 280bdd4). Fable: run **C0** now,
   hold D-null.
-* **C0 running** since 20:23 UTC (research a5fd3ed, tier 1, pre-registered; reader holdem-rl d0 6c3f594
-  `tools/c0_read.py`): fb2's own it000700, it000800 and latest (it 965) on ext:ashwing, ashwing_hive, ashwing_search,
-  1,000 each, seed 95, paired with fb2-900's rows; D0 it000300 and it001600 reported beside. Cores 18-19, 2 workers,
-  detached (`~/d0-run/c0run.sh`, logs ~/d0-run/logs/c0/, done marker `done`, read in `read.txt`). Rule: PEAK = no
-  D-null, screens add the Ashwing cells and autodidact_fast, P1b closes; NOT PEAK = D-null after AD0's play; MIXED =
-  D-null only if AD0 lands on rule 1.
+* **C0 running** since 20:23 UTC (cores 18-19, `~/d0-run/c0run.sh`, logs ~/d0-run/logs/c0/, `done`, `read.txt`;
+  reader holdem-rl d0 6c3f594 `tools/c0_read.py`). fb2 arms done; D0 arms reported. **Amended (research e57f2d0):
+  D-null never runs**; C0 is recorded as the checkpoint-spread measurement.
 * **AD0 (14.39, research eb2281c): RULE 1, W1 passes.** Play 1 (seed 95, 21:56 to 22:31): W1 (256 raw, 30
   epochs) bp100 +19.4 [+16.9, +21.8], `small_ball` +19.8 [+17.8, +21.7], ext +1.1 [-0.7, +2.9] vs fb2-900; W2s also
   passes, W1s and W2 fail on the ext lower bound. B1's shortfall is the training method; next is a distil-then-PPO
   candidate slice (full process); AD1 and S7 drop. Data overran its time line (deviation recorded in the amendment,
   research 2513a6f). A1 converged refits (students_a1) exist, not played (A2). Outcome verifier CONFIRMED; Fable asked
   for the next slice's spec and whether D-null still runs. Students: ~/ad0-run/students/W1.npz etc.
+* **Next (Fable after 14.39), specs pushed research d4428f8, plan reviews running:** **V5a** (full process): judge
+  W1 (30 epochs, 9bc31660…) and its A1 refit (3c375498…) as the candidate with no PPO: B1's screen (seed 94, league
+  400-499, filter 78.0%), B1's rule on seed 95, fresh-seed check seed 108 (bp100 lb > +5.4, small_ball lb > +6.5), E1
+  gate, eval card with E3; one repair round on uncovered guard cells (seeds 109-111). **TT** (tier 2): T-a reads
+  br_ashwing and br_autofast on seed 95 (cores 18-19 after C0); T-b 60-min specialists vs sticky_overbettor,
+  loose_passive (port to holdem-rl), never_fold_pre, chipzen, read on seed 93; lb +8.0 joins V5b. Dropped: AD1, S7,
+  D-null, P1b, B1v, the seeding path.
 * **AD1 built** (local: holdem-rl `ad1` 0482bff, holdem-x2r `ad1-x2r` eb5d747; `sdk_prior.npz` c77f058e…, record in
   the roadmap AD1 spec). Verifier 1 REFUTED: amendment items 2 to 4 (B1 arm on seed 104,
   "AD1 minus B1" reading with D0's verdict) missing; fixed on ad1-x2r 4b85994; verifier 2 REFUTED the GAINS ONLY line
