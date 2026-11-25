@@ -1585,3 +1585,33 @@ on (seed, hero seat) with S2r's fb2-900 rows (`logs/t1/paired.out`, 4,000 pairs 
   is replaced by the bullet above.
 * Single run, one seed; a pure best response, so its cost on other opponents is unmeasured here (B1 trains on a
   mix and judges on held-out cells for that reason; C1 showed -4.0 on `tight_sticky` for a pure response).
+
+### 14.32 G1 step 1: one archive model wins for names with history, not for unseen names (rule 2)
+
+Pre-registered in roadmap "G1 step 1" (tier 2). One card-conditioned MLP over the archive with a causal profile
+input (holdem-d2 2520b27, `tools/g1_run.sh` on gb10-d, 12 fits: 5 leave-name-out folds plus a time split, losses U
+and W; rule in `~/poker-ai-lab-d2s2/logs/g1/rule.txt`). Loss chosen on the training folds' validation split: W
+(validation R: W -0.06, U -0.34; both negative on that small split, dominated by a few names with heavy-tail misses; the pilot fit read train +0.45, test +0.33, validation median -0.21).
+Bootstrap over names, 2,000 resamples, seed 47.
+
+| test | metric (G1 minus baseline) | mean | 95% interval | rows / names | threshold | result |
+|---|---|---|---|---|---|---|
+| rule 1, unseen names (cold start) | R vs the λ range, nats per shown hand | -0.087 | [-0.243, +0.046] | 411,740 / 84 | at least +0.10, lower bound above 0 | fail |
+| | P log loss vs X1 at big-pot decisions | +0.074 | [+0.032, +0.119] | 96,030 / 85 | upper bound under +0.02 | fail (worse) |
+| rule 2, time split, names with 100+ earlier matches | R vs λ under per-name X1 | +0.175 | [+0.120, +0.246] | 78,299 / 149 | at least +0.10, lower bound above 0 | pass |
+| | P log loss vs per-name X1 | -0.258 | [-0.369, -0.147] | 17,281 / 142 | upper bound under +0.02 | pass |
+
+* **Verdict (rule 2):** G1 is a known-name model. It serves B0a and the lookahead for names with archive history;
+  cold start (an unseen name) stays with X1 and the λ range; no more GPU on the unseen-name question.
+* Reported: on unseen names G1 also loses to λ with its filled path (-0.125 [-0.409, +0.101]) and does not beat
+  uniform clearly (+0.079 [-0.134, +0.288]); at final pots of 20 bb or more it is worse than λ (-0.230 [-0.448,
+  -0.062]). By earlier-match group on held-out names, λ scores +0.14 to +0.18 everywhere while G1 is +0.06 to
+  +0.19 and only reaches λ at 10 to 99 matches with the filled path. W minus U: R +0.161 [-0.004, +0.371], P loss
+  +0.125 [+0.084, +0.167] (W predicts actions worse, ranges better). G1 over-predicts folds against every bet size
+  bucket (for example 0.64 against an actual 0.54 at the largest bucket; X1 under-predicts, 0.48).
+* By A0 class (unseen names, R vs λ): solver +0.20 [-0.08, +0.23] (11 names), small_ball +0.32 (1 name), station
+  -0.20 (1 name), big_bet -0.98 (2 names); classes with one or two names carry no interval.
+* Run note: base_fold0 crashed once on archive showdowns that reveal one hand (x3_range needs both); fixed in
+  `g1_read.lam_scores` by replaying those hands without scoring them (holdem-d2 2520b27), about 0.1% of showdowns.
+* What it means for the roadmap: the archive's regulars and the solver family all have history, so the names that
+  decide titles are the ones G1 models well; an entrant's first matches against a new name still use X1.
