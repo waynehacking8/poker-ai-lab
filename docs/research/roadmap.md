@@ -944,7 +944,12 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   no "AD1 seeded minus B1" reading with D0's verdict. Fixed on `ad1-x2r` a38e232, 2fb1dbd, 4b85994: `ad1_judge.sh confirm`
   adds B1 it001200 unseeded on seed 104 (hash 5e9c6fc6… pinned); `ad1_read.py confirm` requires `--d0` and reads
   each real-bot cell on its own (hurt: seeded minus B1 under -2.0 with upper bound under zero; else persists: seeded
-  vs fb2-900 point under -2.0, meaning set by D0; else removed). 86 x2r tests, 95 of 95 plants. Verifier 2 running.
+  vs fb2-900 point under -2.0, meaning set by D0; else removed). 86 x2r tests, 95 of 95 plants. Verifier 2: REFUTED, on one point: the
+  GAINS ONLY line took its meaning from D0 alone even when the failing cell read "seeding hurt". Fixed first-hand in
+  91510c3 (a hurt cell reads as hurt whatever D0 says; D0 applies only to a persisting loss; test cases e and g and
+  two plants): 86 tests pass, 24 of 24 amendment plants caught on gb10-d. The verifier cap (two REFUTED) is reached on
+  this claim, so the fix stands on that first-hand check. Known wording limit: under NEW DATA the reader prints "FAIL
+  3 or 4 by the ablation" and leaves the machine-readable branch at GAINS ONLY.
 * **Review record:** plan review 1 REVISE (no owner files, non-goals, writes, rollback or tests; C-engine seeding
   would never fire under P1 and had no share knob; no seeded eval flag or AD1 reader; rule branches overlapped and
   left a gap; registry, profile command, base commit and runner unpinned). Fixed above; tier 2 allows one review,
