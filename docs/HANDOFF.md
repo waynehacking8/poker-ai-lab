@@ -1,10 +1,10 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-25 04:32 UTC. Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-25 04:50 UTC. Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 04:32 UTC, box clock UTC+8)
+## Now (2026-11-25 04:50 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project (he may write Chinese; when he asks "中文說明", answer in
 Traditional Chinese). Think from first principles, not narrowly. Goal is the long-term "future king", not the
@@ -35,15 +35,18 @@ busy on purpose. Plan of record: `docs/research/roadmap.md` on branch research (
   Main ways: flop shoves called (chip-positive, bust-heavy: a match-equity error), river calls of bp100's
   shoves at 0.198 equity (-2.46M chips). River shoves pay (+5.8M), leave them.
 * Revision 3 envelope settled (reviews 1 and 2 REVISE, fixed, cap reached, standing approval).
-* T1 spec: plan review 1 REVISE (6 blockers, fixed in 85447e2); plan review 2 running. Then an executor in a
-  holdem-rl worktree builds `make_opp("bp100")`, `tests/test_t1_bp100.py`, `tools/t1_run.sh`.
+* T1 spec final after plan reviews 1 and 2 (research 173d776; cap reached, standing approval). Executor in a
+  holdem-rl worktree builds `make_opp("bp100")`, `tests/test_t1_bp100.py` (4 tests with plants), `tools/t1_run.sh`;
+  then a fresh verifier; then I launch `tools/t1_run.sh` with `setsid -f` (120 min training, 4,000-match read).
+* 14.28: match value vs bp100 is near linear (empirical P(win|stack) matches K = 0.80; K = 4.68 claims 51% at
+  3k chips, data 22%). 14.27's flop-shove reading withdrawn. T2's K arm is 0.80.
+* B0 step 1 spec (research 1ba001f, Fable's design): offline headroom of a river all-in answer vs bp100 with
+  bp100's true range read from its container; rule +1.0 point lower bound > 0. Plan review 1 running.
+* **Wayne 2026-11-25: act on Fable's recommendations; open questions go to Fable, not him.** The Fable roadmap
+  agent (resume with SendMessage) is drafting the A0 and D2b specs. L0 (live challenges) stays parked: outward.
 
-**gb10-d:** idle since S2r ended 04:28 UTC; the bpopp queue waits for T1 (then D2b generation, then T2 after
-A0). Runners and tools: holdem-rl local f2d6c5d (s2r_run.sh), 8d77826 (p0_read.py). Fetcher pid 1838186, the
-only one.
-
-**Next:** T1 review, executor, verify, run. Specs to write: B0 (now first in Phase 1), A0, D2b. L0 waits for
-Wayne's yes.
+**gb10-d:** bpopp queue: T1 tests (executor), T1 run, B0 step 1 logs (seeds 81, 88), D2b generation, T2.
+Fetcher pid 1838186, the only one.
 
 **Branches not pushed (local only, by rule):**
 * holdem-x2r, `C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r`, tip cb12f5f (X3a/X3b/R1/X4 tools; ext bots
