@@ -1532,4 +1532,6 @@ excess, swing, clusters, `small_ball` distance).
 * **Shown all-ins (called and shown):** river 11,529; Blueprint 1,039, fermat6 374, NashForge 316, hoops 221.
 * **`small_ball`** (StyleBot with `street_bet`): distance 0.185 and 0.173 (seeds 3, 4) to slopBot's vector, under
   0.25. **fb2-900 against it: 75.7% [73.8, 77.5]; against `tight_sticky` 94.3% [93.1, 95.2]** (seed 93, 2,000
-  matches each, no containers). Strength sanity (bp100 against `small_ball`, seed 90) pending.
+  matches each, no containers). Strength sanity: **bp100 beats `small_ball` 57.0% [52.1, 61.8]** (seed 90, 400
+  matches), under the 60% line, so `small_ball` is labelled a strength cell, not a style-only cell. fb2-900 beats it
+  by more (75.7%) than bp100 does.
