@@ -1729,3 +1729,61 @@ B1 (roadmap B1, P1) was stopped at minute 262.7 of 360 by the entropy guard: log
   tail minibatch under 2,048 samples; guard on batch-mean entropy under 0.2 for 3 consecutive rows (non-finite stays
   immediate). No change to clip, learning rate or KL stop. Budget 180 minutes with read set 300 to 1,500 plus
   latest (B1 gains nothing after 300); both need a dated amendment before launch.
+
+### 14.36 B1 fails its rule: +5.4 on bp100 and +3.94 on the headline, but 3 to 5 points lost on four real-bot families
+
+Pre-registered in roadmap "B1" (branch A, population P1; amendment 10:09 UTC 25 Nov). Training holdem-rl b1-rl a4d765d,
+09:04 to 13:27 UTC, stopped at it 2290 by a guard false alarm (14.35). Screen seed 94 plus league pairs 400-499 on
+it 300 to 2,100: every checkpoint passed the league filter (lowest 81.0 to 85.5%), scores 68.8 to 70.5 (flat);
+chosen **it001200** (sha256 5e9c6fc6…; policy arrays as `rl/models/b1.npz` fc396112…, b1-rl 59b1ad3). Confirmation
+seed 95, paired on (seed, hero seat) against fb2-900, holdem-x2r 8be6e38 (`~/poker-ai-lab-x2r/logs/b1/confirm/`,
+`confirm_result.json`); fb2's non-container cells ran on cores 18-19 except `ext:wolf` (wall-clock bot), rerun
+with the candidate's placement. Gate: league_fresh pairs 200-399 plus the heuristic head to head
+(`~/poker-ai-lab-league/out/verify-rl-b1/`).
+
+| cell | weight | n | paired gain | 95% interval |
+|---|---|---|---|---|
+| bp100 | 0.70 | 4,000 | +5.4 | [+3.8, +7.0] |
+| tight_sticky | 0.10 | 2,000 | +0.1 | [-1.1, +1.3] |
+| sticky_overbettor | 0.09 | 2,000 | +0.7 | [-0.7, +2.0] |
+| small_ball_b | 0.08 | 2,000 | +2.5 | [+0.4, +4.5] |
+| ext:autodidact | 0.03 | 1,000 | **-3.4** | [-6.2, -0.6] |
+| small_ball (guard) | | 2,000 | +6.5 | [+4.6, +8.3] |
+| never_fold_pre (guard) | | 2,000 | -0.8 | [-1.8, +0.3] |
+| raise_station (guard) | | 2,000 | -0.6 | [-1.4, +0.2] |
+| loose_passive (guard) | | 2,000 | -0.2 | [-1.5, +1.0] |
+| ext:ashwing (guard) | | 1,000 | **-3.4** | [-6.1, -0.7] |
+| ext:ashwing_hive (guard) | | 1,000 | **-4.6** | [-7.2, -2.0] |
+| ext:ashwing_search (guard) | | 1,000 | **-3.7** | [-6.3, -1.1] |
+| ext:wolf (guard) | | 1,000 | -1.7 | [-3.2, -0.2] |
+
+* **Rule: FAIL.** Headline +3.94 [+2.79, +5.10] (passes); E1 holds (23 of 23 at 80% or more, lowest arch:2 83.8%,
+  Wilson lower 79.8%); four cells under -2.0 with their upper bound under zero: the three Ashwing families and
+  autodidact. Ashwing and autodidact use no wall clock (seeded RNG; autodidact's `time.time` only logs), so fb2's
+  arm on cores 18-19 does not bias them.
+* **The league says the same:** paired against fb2-900 on pairs 200-399 (n 400 each), the real-bot clones move down:
+  Blueprint -4.0, AutodidactInnovations -2.8, InfernalMonarch -2.8, mr_hide -2.2, Kimiko -2.0, SolvencyCheck -2.0,
+  DeepStack -1.8 (PoetAndCoder +1.0, qwentom-leap +1.2); the heuristic head to head 61.8% (Wilson lower 56.9%),
+  -8.5 against fb2-900. The style bots move within ±1.
+* **Reading:** B1 gains on bp100 and on the small-ball aggressors it trained against, and loses on every real-bot
+  family outside its population, including the Blueprint clone that bp100 stands in for. This is the pre-registered
+  "exploits the proxy, does not generalize" case in its guard form (headline passes, real-bot guards fail).
+* **Adaptation headroom (reported):** bp100 ceiling +19.9 minus +5.4 = **+14.5**; small_ball +21.9 minus +6.5 =
+  **+15.4**. One mixed policy keeps about a quarter of each specialist's gain.
+* **Decision shares (reported):** bp100 31.7% of SDK decisions against 33.3% of SDK matches; small_ball 9.9%
+  against 16.7%.
+* **Shove classes against bp100** (`tools/chipflow.py`, it001200, 4,000 matches, seed 95, 64.9% wins;
+  `~/poker-ai-lab-rl/logs/b1/flow/`), beside T1's (14.33, seed 81):
+
+| street | B1 shoves | bp100 folds | net chips (called at expected value) | T1 shoves | T1 net |
+|---|---|---|---|---|---|
+| preflop | 2,902 | 80% | +0.98M | 9,242 | +4.84M |
+| flop | 4,170 | 67% | +2.82M | 6,346 | +4.56M |
+| turn | 2,818 | 62% | +3.74M | 4,519 | +8.07M |
+| river | 4,058 | 73% | +4.47M | 3,508 | +6.69M |
+
+  B1 shoves less preflop than T1 and as often or more on the river; all four streets are chip-positive. River
+  call-offs (all-in showdowns where bp100 made the last raise): 387, -1.31M expected.
+* **Consequences:** no v5 from B1; v4 stays entered. P1b does not run (its trigger was no checkpoint passing the
+  league screen; all seven passed). Per the spec B1r's direction takes this read; the headroom says an adaptation
+  slice is the larger lever. Next step is the roadmap agent's call.
