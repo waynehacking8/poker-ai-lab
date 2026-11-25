@@ -89,7 +89,7 @@ training question for clones was never asked; D2c first); resuming S2 (14.15: th
 * **Seeds:** a read seed is never a training seed and is fresh per read, with one allowed exception: a read
   may reuse an earlier read's seed when that earlier run is its named paired baseline and the seed was never
   seen in training. Registry: 81 S2r; 81 again for T1's read (its named baseline is S2r's fb2-900 rows); 82 T2;
-  83 and 84 D2b (fitting logs, held-out logs); 85 D2b read 1 (86 its control rerun). Training seeds stay those of
+  83 and 84 D2b (fitting logs, held-out logs); 85 D2b read 1 (86 its control rerun); 87 T1's `ext:` cost check (unpaired). Training seeds stay those of
   `tools/rl_br.sh`. A new read takes the next unused number and writes it here.
 * **Pairing:** every A/B is paired on (seed, hero seat) with a paired 95% interval (`tools/paired_stats.py`,
   holdem-x2r), and real-code opponents are pooled by family (Ashwing, autodidact, Wolf, bp100), equal weight
@@ -102,10 +102,11 @@ training question for clones was never asked; D2c first); resuming S2 (14.15: th
 
 **Phase 0 (cheap reads that order everything after; slice IDs are stable).** Each line: question; rule; what
 it unlocks.
-* **S2r** (running, spec below). Does S2 it1800 beat fb2-900 on bp100 at a size that decides? Rule: reported;
+* **S2r** (done, 14.27: it1800 -1.1 [-2.8, +0.6], B1 starts from fb2-900). Does S2 it1800 beat fb2-900 on bp100 at a size that decides? Rule: reported;
   if it1800 leads with its paired lower bound above zero, it goes to Wayne next to E1. Unlocks: B1's starting
   checkpoint (it1800 if it leads, else fb2-900).
-* **P0**, big-pot audit (data: S2r's fb2-900 run against bp100, seed 81). Does fb2-900 lose its matches
+* **P0**, big-pot audit (data: S2r's fb2-900 run against bp100, seed 81). **Done, 14.27: +29.8 [+26.7,
+  +32.9], B0 fires.** Does fb2-900 lose its matches
   through worse stack-sized decisions than its opponent makes? Hindsight equity alone cannot say (nearly every
   lost match ends in an all-in the loser was behind in), so the reference is bp100 itself in the same matches.
   For each match, the loser's last voluntary commitment: the final shove that was called, or the call of an
@@ -171,30 +172,62 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   above zero, that goes to Wayne next to the E1 league gate that rejected it; nothing is deployed.
 * **Cost:** about 30 box-minutes on cores 8-15.
 
-### T1. Best-response ceiling against bp100 (spec, 2026-11-25)
+### T1. Best-response ceiling against bp100 (spec, 2026-11-25; revised after plan review 1)
 
-* **Question:** is fb2-900's 59% against the solver-family proxy a limit of its training population or of its
-  representation? M1's method (14.12) measured +11 to +15 against Ashwing and autodidact; it was never pointed
-  at bp100.
-* **Code (holdem-rl, local branch):** `rl/sdk_rollout.make_opp` gains `bp100`: one `bpopp.opponent`
-  BlueprintOpponent per worker process (its container loads the blueprint in about a minute and is reused for
-  every match of that process, as in `rl.eval_arena`), seeded before each match with `set_seed(seed * 13 +
-  seat)` as `holdem/arena.py` does; no per-match close (the container exits with the process, `atexit`).
-  Tests: two training-path matches on the same seed against bp100 give identical batches; a second match in the
-  same process reuses the container (one `docker ps` entry); after the worker exits no bpopp container is left.
-* **Train:** after S2r ends, alone in the bpopp queue: `bash tools/rl_br.sh br_bp100 ckpt/fb2/it000900.npz
-  bp100 120 6` with the eval card's BP_* variables and BP_CPUS=1 (6 SDK workers, 6 containers, the learner).
-  Its first 10 minutes give the iteration rate; under 2 iterations a minute it stops and the rate is recorded
-  (M1 ran about 6).
-* **Read:** the last checkpoint against bp100, 4,000 matches, seed 81, rows paired on (seed, hero seat) with
-  S2r's fb2-900 rows, its named baseline (seed 81 is never seen in training); gain = br minus fb2-900 with a
-  paired normal 95% interval. Also reported, not deciding: br_bp100 on the `ext:` families (400 per bot, seed
-  21, M1's cost check) and its chipflow against bp100.
+* **Question:** is fb2-900's 59.85% against the solver-family proxy (14.27) a limit of its training population
+  or of its representation? M1's method (14.12) measured +11 to +15 against Ashwing and autodidact; it was
+  never pointed at bp100.
+* **Scope:** one opponent factory entry, one test file, one runner script, one training run, its reads.
+  **Non-goals:** no change to `rl/train.py`, `tools/rl_br.sh`, `rl/eval_arena.py`, `bpopp/`, the deployed bot
+  or any league or eval-card tool. **Owner and files** (executor, local branch holdem-rl, a worktree):
+  `rl/sdk_rollout.py` (`make_opp` only), `tests/test_t1_bp100.py` (new), `tools/t1_run.sh` (new), `tools/paired_stats.py` (copied unchanged from holdem-x2r). **Writes on
+  gb10-d:** `ckpt/br_bp100/`, `logs/br_bp100.out`, `logs/t1/`; nothing is copied into `rl/models/`, the image
+  build or holdem-chipzen. **Rollback:** revert the holdem-rl commit, delete `ckpt/br_bp100/`,
+  `logs/br_bp100.out` and `logs/t1/`.
+* **Code:** `make_opp("bp100", seed, seat)` returns one `bpopp.opponent.BlueprintOpponent` per worker process
+  (cached; its container loads in about a minute and is reused for every match of that process, as in
+  `rl.eval_arena`), with `set_seed(seed * 13 + seat)` called before each match, before `on_match_start`, as
+  `holdem/arena.py` does. No per-match close. BP_IMAGE must be bpopp:v011 (the module's default v010 ignores
+  seeds): `make_opp` refuses to build bp100 under any other image.
+* **Tests** (`tests/test_t1_bp100.py`, run on gb10-d with the eval card's BP_* exports):
+  1. `make_opp("bp100", s, seat)` returns a BlueprintOpponent with `seed == s * 13 + seat`, and the same object
+     on a second call in the same process (one `docker ps --filter name=bpopp-` entry after two matches).
+  2. Two training-path matches (`play_one`) on the same seed give identical batches; a different seed gives a
+     different batch.
+  3. A short real run, `rl.train` through `tools/rl_br.sh` with `--sdk-opps bp100`, 2 SDK workers, 3 minutes:
+     every `sdk_samples` entry in its `train.jsonl` is `bp100` only and `wr` has the key `bp100`.
+  4. `docker ps --filter name=bpopp-` is empty within 60 s after the short run's normal `--max-minutes` exit,
+     and within 60 s after `tools/t1_run.sh`'s stop branch (below) is invoked on a second short run.
+* **Pre-run check (in `tools/t1_run.sh`):** the policy arrays (`pw0`..`pw2`, `pb0`..`pb2`) of
+  `ckpt/fb2/it000900.npz` equal those of `rl/models/fb2_it000900.npz`, which S2r read; otherwise it stops.
+  Checked by hand 2026-11-25: equal (the ckpt adds the value head `vw*`, `vb*` that the fine-tune needs, so the
+  ckpt is INIT and the mirror opponent of `rl_br.sh`).
+* **Train (`tools/t1_run.sh`, launched with `setsid -f`, alone in the bpopp queue):** exports the eval card's
+  BP_* variables (BP_IMAGE=bpopp:v011, BP_DATA, BP_RUN, BP_AT=65000, BP_THRESHOLD=0.35) and BP_CPUS=1, then
+  `bash tools/rl_br.sh br_bp100 ckpt/fb2/it000900.npz bp100 120 6` in the background. **Rate stop:** at wall
+  minute 12 the script reads the last row of `ckpt/br_bp100/train.jsonl`; rate = (it of that row minus it of
+  the first row with min at least 2) over (their min difference). Under 2 iterations a minute: it kills the
+  run's process group (`kill -TERM -<pgid>`, then `-KILL` after 30 s), runs `docker kill` on every
+  `bpopp-` container (the run is alone in the queue, so all are its own), writes the rate to
+  `logs/t1/stopped`, and exits. Otherwise it waits for the learner's pid (`kill -0`, never `pgrep -f`).
+* **Read (same script, after training; identical to S2r's command except `--model` and the output paths):**
+  `taskset -c 8-15 nice -n 5 python -m rl.eval_arena --model ckpt/br_bp100/<last it>.npz --opp bp100
+  --matches 4000 --seed 81 --workers 6 --rows logs/t1/rows_br.jsonl` under the same exports as
+  `tools/s2r_run.sh`, then `python tools/paired_stats.py logs/s2r/rows_fb2.jsonl logs/t1/rows_br.jsonl`
+  (copied from holdem-x2r), which must join all 4,000 (seed, hero_seat) keys. Then `tools/chipflow.py --model
+  ckpt/br_bp100/<last it>.npz --opp bp100 --matches 4000 --seed 81 --workers 6` (compares with S2r's chipflow,
+  and with `tools/p0_read.py` gives P0's statistic for the fine-tune). Gain = br minus fb2-900, paired normal
+  95% interval. Seed 81 is S2r's read seed, the named paired baseline, never seen in training.
+* **Also reported, not deciding:** br_bp100 and fb2-900 on the `ext:` families, 400 matches per bot, seed 87
+  (registered in the envelope); holdem-rl's `ext:` bots are unseeded, so this read is unpaired (Newcombe
+  interval, as M1).
 * **Rule (pre-registered):** gain lower bound at or above +8 points: population is the limit, a solver-family
   member enters training (B1) and the lookahead is expected to recover part of it (T2). Gain upper bound
   below +4: the reactive policy cannot exploit it, B1 goes to representation and sizing. In between: both,
-  representation second.
-* **Budget and stop:** about 2.5 box-hours; stop at twice that. Nothing reaches the deployed bot.
+  representation second. At n = 4,000 paired the interval half-width is about 1.7 points (S2r's), so the
+  bands are decidable.
+* **Budget and stop:** about 2.5 box-hours (tests 15 minutes, training 120, reads 20); stop at twice that.
+  Nothing reaches the deployed bot.
 
 ## Revision 2 (2026-11-23): the problem from first principles
 
