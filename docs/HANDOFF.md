@@ -1,10 +1,10 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-25 04:40 UTC. Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-25 05:20 UTC. Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 04:40 UTC, box clock UTC+8)
+## Now (2026-11-25 05:20 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project (he may write Chinese; when he asks "中文說明", answer in
 Traditional Chinese). Think from first principles, not narrowly. Goal is the long-term "future king", not the
@@ -12,26 +12,30 @@ Season 16 deadline. He accepts my recommendations when worth it; uploads and swa
 Process gates still hold: plan-verifier READY/REVISE (cap 2), outcome verifier CONFIRMED/REFUTED. Keep gb10-d
 busy on purpose. Plan of record: `docs/research/roadmap.md` on branch research ("Where we are" at the top).
 
-**Done this session (research c6f4372, pushed):**
+**Done this session (research a6fd1d3, pushed):**
 * 14.24 X4 step 2: k_im sweep, CHOSEN none (best k_im 4, lower bound -0.0001); k_im stays 8. Verifier CONFIRMED.
 * 14.25 D2a stage 2: Wolf and autodidact clones trusted from 1,000 matches; Ashwing not (5,000 clone +6.8).
   Every adaptive clone is easier than the real bot by 2 to 7 points; better likelihood, weaker clone.
-* Live record in the archive: our bots 7 matches, 6 won. Only loss: v4 vs MonteCarlo (unrated, 2026-11-24
-  18:30 UTC, match 4b2a2beb), busted in 26 hands: folds to flop/turn bets (~3,500), river value raises into
-  better hands (~3,500), river all-in 4,798 into a 150 pot with one pair (bust). The site's "1-0, 100%" counts
-  rated matches only (Wayne asked why it said won).
-* No Season 16 league match of v4 in the public API yet (only challenges and daily house tournaments).
+* 14.26 M3 first read. CORRECTION: the MonteCarlo loss (2026-11-24 18:30 UTC, match 4b2a2beb) IS v4's Season 16
+  round 1 fixture, the fermat-mini win (22:50 UTC) round 2; the API labels both `challenge`. Season 1-1 after 2
+  of 8 rounds. Flop overfold measured (60.7% folds vs a 39.5% break-even at half pot); river shoves pay against
+  callers. The site's "1-0, 100%" counts rated matches only (round 1 is unrated). Probes: holdem-chipzen
+  `tools/m3_leaks.py`, `tools/m3_flop_aggr.py` (a6ff531).
+* A Fable 5.2 agent rethought the roadmap (read-only). Adopted as roadmap **Revision 3** (research ef5bb38): the
+  judge is aimed at the wrong opponents (ext: pool is one family; the archive's top is a solver-like family,
+  Blueprint/NashForge/fermat6/MonteCarlo, plus small-ball aggressors like slopBot). X4 per-name prior and D3
+  stopped; Phase 0 = S2r, P0, T1, A0, T2, D2b, L0 (L0 = live challenge series, needs Wayne's yes).
+  Facts re-checked first-hand: fixture times, fb2-900 opens 3% of SBs in the first 10 hands, R1 per-cell
+  numbers, bp100 at 400 matches in 70 s.
 
-**In flight:**
-* A Fable 5.2 agent rethinks the whole roadmap from first principles (Wayne suggested it, tokens plentiful).
-  Read-only. Its proposal feeds the X4 step 3 and D3 specs; then plan review, then queue on gb10-d.
-* Replay fetcher (`~/chipzen-fetch`, pid 1838186): 19,488 files at 03:50 UTC, pass 2. The only fetcher.
+**Running on gb10-d:**
+* **S2r** (pre-registered, roadmap Revision 3): `~/poker-ai-lab-rl/tools/s2r_run.sh`, fb2-900 then it1800
+  against bp100, 4,000 matches each, seed 81, rows for pairing, then chipflow on fb2-900 (P0's data). Started
+  04:57 UTC, cores 8-15 plus 6 bpopp containers (not pinned). Markers `logs/s2r/done`, `logs/s2r/failed`.
+* Replay fetcher (`~/chipzen-fetch`, pid 1838186), pass 2. The only fetcher.
 
-**Box:** gb10-d idle since 2026-11-24 12:28 UTC (both jobs done). Next work goes on it after the plan review.
-
-**Next, in order:** synthesize the Fable proposal into the roadmap; specs (X4 step 3 per-name prior from the
-archive, D3); plan review; queue; M3 (v4's live losses: measure the overfolding and river shoves in league
-logs, MonteCarlo has 195 archived matches).
+**In review:** plan-verifier on the Revision 3 envelope; then T1 (best-response ceiling vs bp100; code change
+in holdem-rl `rl/sdk_rollout.make_opp`). T1 trains after S2r ends.
 
 **Branches not pushed (local only, by rule):**
 * holdem-x2r, `C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r`, tip cb12f5f (X3a/X3b/R1/X4 tools; ext bots
