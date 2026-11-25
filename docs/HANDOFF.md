@@ -6,7 +6,7 @@ the working memory. Update it at every step that changes state.
 
 ## Now (2026-11-25 04:50 UTC, box clock UTC+8)
 
-**Standing rules from Wayne:** English in this project (he may write Chinese; when he asks "中文說明", answer in
+**Standing rules from Wayne:** English in this project (he may write Chinese; when he asks for an explanation in Chinese, answer in
 Traditional Chinese). Think from first principles, not narrowly. Goal is the long-term "future king", not the
 Season 16 deadline. He accepts my recommendations when worth it; uploads and swaps still need his explicit yes.
 Process gates still hold: plan-verifier READY/REVISE (cap 2), outcome verifier CONFIRMED/REFUTED. Keep gb10-d
