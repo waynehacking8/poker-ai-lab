@@ -718,7 +718,9 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   `~/ad0-run/students/W1.npz` (9bc31660a279f3c44069a8d92ea42011682c7b8a8f094e3f552d64b75f9cb4e9, the played one) and
   the A1 refit `~/ad0-run/students_a1/W1.npz` (3c37549815a9bb5bcc8bc78085a0d697321c9110d2fed4440f8053b94a9fd3fd).
   Raw counts, 256 wide. The files hold exactly fb2-900's policy keys and shapes (`pw0` 56x256 to `pb2` 6), so every
-  B1 tool takes them through `--model` and `RL_CKPT` unchanged. W1s, W2, W2s are out (seeding needs live names and
+  B1 tool takes them through `--model` and `RL_CKPT` unchanged. Every arena cell (screen, confirmation, fresh-seed,
+  both arms) runs `rl.eval_arena --model` from the tree of the fb2-900 baseline rows, holdem-x2r 8be6e38 at
+  `~/d0-run/x2r` (C0's tree); the runner refuses any other code root. V5a's own scripts only drive that tree. W1s, W2, W2s are out (seeding needs live names and
   did not help in play; width did not help).
 * **Screen, seed 94 (selection only):** per candidate B1's screen cells unchanged (bp100 1,000; `tight_sticky`,
   `sticky_overbettor`, `small_ball_b`, `never_fold_pre`, `loose_passive` 500 each) and the league screen on pairs 400
