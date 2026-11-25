@@ -1761,13 +1761,25 @@ with the candidate's placement. Gate: league_fresh pairs 200-399 plus the heuris
   Wilson lower 79.8%); four cells under -2.0 with their upper bound under zero: the three Ashwing families and
   autodidact. Ashwing and autodidact use no wall clock (seeded RNG; autodidact's `time.time` only logs), so fb2's
   arm on cores 18-19 does not bias them.
-* **The league says the same:** paired against fb2-900 on pairs 200-399 (n 400 each), the real-bot clones move down:
-  Blueprint -4.0, AutodidactInnovations -2.8, InfernalMonarch -2.8, mr_hide -2.2, Kimiko -2.0, SolvencyCheck -2.0,
-  DeepStack -1.8 (PoetAndCoder +1.0, qwentom-leap +1.2); the heuristic head to head 61.8% (Wilson lower 56.9%),
-  -8.5 against fb2-900. The style bots move within ±1.
-* **Reading:** B1 gains on bp100 and on the small-ball aggressors it trained against, and loses on every real-bot
-  family outside its population, including the Blueprint clone that bp100 stands in for. This is the pre-registered
-  "exploits the proxy, does not generalize" case in its guard form (headline passes, real-bot guards fail).
+* **The league, against fb2-900 on pairs 200-399 (n 400 each, point estimates):** the ten `bot:` clones pooled
+  -1.62 [-2.65, -0.60] (Blueprint -4.0 [-8.0, +0.0], AutodidactInnovations -2.8, InfernalMonarch -2.8, mr_hide -2.2,
+  Kimiko -2.0 [-3.95, -0.05], SolvencyCheck -2.0, DeepStack -1.8, MercuryRetrograde -1.0, PoetAndCoder +1.0,
+  qwentom-leap +1.2; only Kimiko's own interval excludes zero); `base:` styles pooled +0.0; `arch:2` -3.25 [-7.4,
+  +0.9], `arch:4` -1.75; the heuristic head to head 61.8% (Wilson lower 56.9%), -8.5 against fb2-900.
+* **Reading (corrected after the outcome verifier):** the four failing cells are *not* outside B1's population.
+  `ext:autodidact` is the same code as P1's `ext:autodidact_fast`, and the three Ashwing cells come from the same
+  vendor package as P1's `ashwing_v2`, `ashwing_value`, `ashwing_adaptive` (`ext:ashwing_hive` is the same
+  `hive_mind` strategy as `AshwingV2Bot`). P1 kept fb2's SDK entries but doubled the list to 12 to add four bp100
+  and two `small_ball` entries, so every fb2 family's SDK share halved: the four `ext:` names from 4 of 6 to 4 of 12
+  (each 0.083 of 241,027 matches), the heuristic from 2 of 6 to 2 of 12, and B1 lost on exactly those (-3.4 to -4.6
+  on the Ashwing and autodidact cells, -8.5 against the heuristic). Two readings fit and this read cannot separate
+  them: **dilution** (the old families got half the training and regressed) and **interference** (one set of
+  weights cannot serve bp100 and the old families at once). Dilution points at the population mix (keep the old
+  families' share while adding bp100); interference points at identity or representation. The pre-registered
+  phrase "exploits the proxy, does not generalize" was for a headline fail with a bp100 pass; here the headline
+  passes and only guards fail, so that label is not applied.
+* **Small deviation:** the amendment's read set listed `latest.npz`; `read_set` drops it for a stopped run, and 14.35
+  later showed latest was a normal continuation. Not screened; selection unaffected (the curve is flat).
 * **Adaptation headroom (reported):** bp100 ceiling +19.9 minus +5.4 = **+14.5**; small_ball +21.9 minus +6.5 =
   **+15.4**. One mixed policy keeps about a quarter of each specialist's gain.
 * **Decision shares (reported):** bp100 31.7% of SDK decisions against 33.3% of SDK matches; small_ball 9.9%
@@ -1785,5 +1797,8 @@ with the candidate's placement. Gate: league_fresh pairs 200-399 plus the heuris
   B1 shoves less preflop than T1 and as often or more on the river; all four streets are chip-positive. River
   call-offs (all-in showdowns where bp100 made the last raise): 387, -1.31M expected.
 * **Consequences:** no v5 from B1; v4 stays entered. P1b does not run (its trigger was no checkpoint passing the
-  league screen; all seven passed). Per the spec B1r's direction takes this read; the headroom says an adaptation
-  slice is the larger lever. Next step is the roadmap agent's call.
+  league screen; all seven passed). The next slice has to separate dilution from interference before it spends
+  training on either (roadmap agent's call).
+* **Outcome verifier:** every number, the pairing, arm comparability (fb2 at 6 workers and the candidate at 2
+  reproduced the stored rows exactly for Ashwing and autodidact), checkpoint identity, gate, screen and chipflow
+  CONFIRMED; the first reading REFUTED (the failing families are P1's own, at half fb2's share); corrected above.
