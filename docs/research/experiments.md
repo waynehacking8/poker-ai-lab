@@ -1685,10 +1685,20 @@ held-out matches, 2,000, seed 47.
   less, held-out, after the bias, every `size_bucket3` bucket with 200 or more spots) fails for autodidact_fast's
   largest bucket: 681 spots, actual 0.555, predicted 0.607, error 5.16 points (5.56 before the bias). Every other
   bucket is within 1.8 points except Wolf's largest (303 spots, actual 0.000, predicted 0.034, 3.4 points). Spots
-  were defined as every bot decision facing a bet, all streets; a postflop-only definition was not computed.
-* Per the pre-registered text, G1 stays an archive analysis tool and gets no more GPU. The failure is narrow (0.16
-  points on one bucket of one bot) while the range gain is large and consistent; any follow-up is a new
-  pre-registered slice, not a reread of this one.
+  were defined by the builder as every bot decision facing a bet, preflop included (see the verifier's note below).
+* **Outcome verifier: numbers CONFIRMED, verdict REFUTED as recorded.** Every R, P and calibration figure
+  reproduced from the raw logs by a separate code path (rows identical across arms; 990 live combos per row as
+  specified; the splits, base folds and no-true-cards rule hold). Two things the first record missed:
+  1. The builder counted preflop spots, but `size_bucket3` is defined for postflop bets (its edges are "fold to a
+     postflop bet", `match_stats` uses it postflop only). Under that reading the largest-bucket error is 7.07
+     points for autodidact_fast (390 spots) and the fail is stable across three fine-tune seeds (6.90, 5.89, 6.72).
+  2. Under the builder's reading the verdict sits inside rerun noise: CUDA EM is nondeterministic, and reruns of
+     the same fine-tune gave 4.82 (pass), 1.77 (pass) and 5.66 (fail).
+  A big-pot-rows reading with the bias refit on big-pot spots would pass (3.78), but that is not the spec's text.
+  The verdict stands as **FAIL under the spec's postflop bucket definition**, now robust across seeds. Also: about
+  100 river hands per bot are unscored (the bot only posted a blind all-in, no decision; R 0 for every arm).
+* Per the pre-registered text, G1 stays an archive analysis tool and gets no more GPU. The range gain is large and
+  consistent while fold calibration on big postflop bets is not; any follow-up is a new pre-registered slice.
 * Builder's choices to note: the fold bias is a per-street fold-logit shift after the network, clamped to ±5; arm
   (c) fine-tunes with the unweighted likelihood (D2a's) from a W-trained base; arm (b) is scored through G1's scorer
   with zero weights on the profile columns; arm (a) lets only shown hands into the per-match state. GPU about 0.06
