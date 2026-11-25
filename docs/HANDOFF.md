@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 10:10 UTC, box clock UTC+8)
+## Now (2026-11-25 12:06 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -33,7 +33,11 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
     passes the league screen. Delete ~/b1-build after the reads.
   * **Amendment 10:09 UTC before any read (research 4732eda):** read set to 2,700 plus latest; `loose_passive`
     guard cell (mr_hide's style); headroom and decision-share lines; fb2-900's seed-95 baseline arm now on cores
-    18-19. B1 builder doing it in b1-x2r, then ships to ~/poker-ai-lab-x2r.
+    18-19. Built in b1-x2r e3cc88d (36 B1 tests, 33/33 plants), shipped to ~/poker-ai-lab-x2r; outcome verifier
+    on it. `loose_passive` params frozen (distance 0.152 and 0.150 on seeds 3 and 4). fb2-900 baseline arm
+    (`b1_judge.sh baseline`, cores 18-19) wrote 10 of 12 cells to logs/b1/confirm/fb2/; ext:autodidact and
+    ext:wolf finish about 13:00 to 13:30 UTC, marker ~/x2r_baseline.rc (0 = complete; rerun the same command if it
+    dies, finished cells are skipped).
 * **14.32 G1 (corrected, research a591050), rule 2:** a known-name model. Verifier REFUTED the first record:
   rule 2 had joined opponents' rows (149 names); fixed in holdem-d2 3e988c8 (test 9, 2 plants caught), rule rerun:
   29 names, R +0.183 [+0.123, +0.266], P -0.306 better than per-name X1. Unseen names fail; cold start stays X1.
