@@ -127,7 +127,7 @@ training question for clones was never asked; D2c first); resuming S2 (14.15: th
   may reuse an earlier read's seed when that earlier run is its named paired baseline and the seed was never
   seen in training. Registry: 81 S2r; 81 again for T1's read (its named baseline is S2r's fb2-900 rows); 82 T2;
   83 and 84 D2b (fitting logs, held-out logs); 85 D2b read 1 (86 its control rerun); 87 T1's `ext:` cost check (unpaired); 88 B0 step 1 fit logs; 89 unused (B0b cut); 90 A0's strength sanity (bp100 against `small_ball`); 91 B0 step 1's
-  optional reread. Training seeds stay those of
+  optional reread; 92 G1 step 1's folds and draw. Training seeds stay those of
   `tools/rl_br.sh`. A new read takes the next unused number and writes it here.
 * **Pairing:** every A/B is paired on (seed, hero seat) with a paired 95% interval (`tools/paired_stats.py`,
   holdem-x2r), and real-code opponents are pooled by family (Ashwing, autodidact, Wolf, bp100), equal weight
@@ -376,6 +376,91 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   minutes on 6 containers; scoring minutes. Budget 2 box-hours; stop at 4.
 * **Runtime note for B0a (if built):** one river enumeration over at most 990 holdings per decision with numpy,
   well under R1's 0.4 s per lookahead decision (14.22); measured in B0a's own spec.
+
+### G1 step 1. Does one card-conditioned population model predict unseen names better than what we have? (pre-registration, 2026-11-25; tier 2)
+
+* **Question:** on names the model never saw, does one network conditioned on hole cards and on a profile of the
+  player give a better range at shown hands and a better prediction at big-pot decisions than X1's prior with the
+  λ range (X3)? It decides whether G1 can replace X1 at the lookahead's root and feed B0a for unseen names. Clone
+  strength is out of scope (14.25: clones never judge).
+* **Expectation of size:** D2a measured 4.7 s per EM iteration at one bot's 1,000 matches; the archive (both seats)
+  is about 32 times that, so a fit is roughly 25 to 30 GPU-minutes (unmeasured) and the twelve fits about 6
+  GPU-hours. More GPU only if the rule fires.
+* **Branch: holdem-d2** (feature builder, EM, tests, plant runner, `league/replays.py`). New files only:
+  `tools/g1_extract.py`, `tools/g1_fit.py`, `tools/g1_read.py`, `tests/test_g1.py`, a G1 section in
+  `tools/d2_mutate.py`'s plant list, one README line each. D2a's functions imported, not copied; D2a's literals and
+  tests untouched. **Writes on gb10-d:** `~/poker-ai-lab-d2s2/data/g1/`, `logs/g1/`. **Rollback:** revert, delete
+  both. **Non-goals:** no arena match, no container, no clone bot, no change to `rl/oppmodel.py` or the lookahead,
+  nothing near the deployed bot.
+* **Data:** poker files in `~/chipzen-replays` with modification time before 2026-11-25 12:00 UTC (file list and
+  sha256 in `data/g1/manifest.json`). Inputs from A0 Part 1, cited not recomputed: per-name match counts, the class
+  map (names with 30 or more matches), the name-stem grouping of version siblings. Fits start only after A0's
+  tables exist; extraction does not need them.
+* **Extraction (`g1_extract.py`, cores 18-19, nice 19):** every decision of both seats, so each match gives two
+  modelled players. Per decision: D2a's 176 features from `base_vector` unchanged, the two profile blocks, action
+  code and size bucket, legal mask, hand id, player and opponent name ids, match time, chips at stake (pot plus
+  to_call in bb), the big-pot tag (facing an all-in or a bet of at least 60% of the remaining stack, or the
+  player's own all-in). Per hand: board mask, the player's hole cards if shown. Shards of 500 matches as npz.
+  * Hidden cards: EM exactly as D2a (uniform prior over combos without board cards, posterior proportional to the
+    product of that player's action likelihoods in the hand, K = 32 sampled combos, shown hands fixed with weight
+    1, 5 start epochs on shown hands, 8 iterations). Both hands are shown at 99.9% of non-fold endings (215,203 of
+    215,393), about 39% of hands.
+* **Profile input, strictly causal:** (1) in-match: the player's own action-code frequencies per street over its
+  earlier decisions in the match (20 numbers) and log1p counts (4); D2a's opponent-count block stays. (2) Archive
+  history: the player's 8 style axes (`tools/style_map.py` definitions), fold to a postflop bet in three size
+  buckets, share of unbet flops bet, all from that name's matches earlier than the current match; log1p of their
+  number; a has-history flag (zero block, flag 0, for an unseen name). The history block is zeroed for a seeded
+  random 30% of training matches, so one network learns both paths. No class label or name embedding as input.
+* **Model:** D2a's MLP (two hidden layers of 256, ReLU, Adam 1e-3, batch 4,096), input widened by the 37 profile
+  numbers; one network for all names; at most 300 training matches per name (seeded draw); a held-out name's
+  matches all used in test.
+* **Losses:** U, D2a's unweighted log-likelihood; W, each decision weighted by min(chips at stake in bb, 200),
+  normalized to mean 1.
+* **Held out:** (1) leave-name-out, 5 folds over names with 30 or more matches, stratified by A0's class, version
+  siblings in one fold; a held-out name is never a modelled player in training (its matches still appear as other
+  players' opponent: stated, not removed). (2) Time split: train before the 80th percentile of match time, test
+  after; test rows grouped by the name's earlier matches: 0, 1 to 9, 10 to 99, 100 or more. Fits: 5 folds x 2
+  losses plus the time split x 2 losses = 12.
+* **Metrics:** R, range score: at held-out hands with the player's cards shown, log posterior of the actual holding
+  after all its actions minus log uniform over live combos (nats per hand, as X3a); overall and for final pots of
+  20 bb or more. P, public big-pot prediction: log loss of the action code at held-out big-pot decisions, the model
+  marginalized over its own posterior range from earlier actions (no card given). Reported only: likelihood with
+  true cards, its chip-weighted form, predicted against actual fold rate by bet-size bucket.
+  * Baselines on the same rows: for R the λ range of X3 (`tools/x3_range.py`, holdem-x2r; +1.09 nats, 14.20), and
+    uniform; for P, X1's prior with its in-match update (`rl/oppmodel.py`). If `x3_range.py` cannot run over an
+    arbitrary hand list, a thin loop around its range function, pinned by a test to the tool's own output on 50
+    hands.
+  * Side check, reported, not in the rule: R, P and likelihood for D2a's nine clone cells on D2a's held-out logs
+    (`~/poker-ai-lab-d2s2/logs/d2/<bot>/`, present), rank-correlated with their read 1 gaps (14.25).
+* **Rule (pre-registered):** leave-name-out rows pooled over folds, bootstrap over held-out names (2,000 resamples,
+  seed 47), for the better of U and W chosen by R on the training folds' own validation split (never on held-out
+  names):
+  1. Pass: R beats the λ range by at least +0.10 nats per shown hand with the 95% lower bound above zero, and P is
+     not worse than X1 (upper bound of G1's loss minus X1's under +0.02). Then G1 step 2: G1 as the lookahead's
+     root range, read on real code as X3b was, plus capacity arms on the GPU.
+  2. Pass on the time split's "100 or more" group, fail on unseen names: a known-name model; serves B0a and the
+     lookahead for names with history; cold start stays with X1; no more GPU on the unseen-name question.
+  3. Fail both: G1 stops; recorded.
+  Why +0.10: X3a's range fix was about 1 nat and moved the lookahead about 3 points (14.20, 14.21); a tenth is the
+  smallest change a read at n = 4,000 should see (approximate). Reported beside: W minus U on R, P and likelihood;
+  R by prior-match group; R by A0 class.
+* **Seeds:** fold assignment and the 300-match draw 92 (registered); profile dropout and EM torch seed 0 as D2a;
+  bootstrap 47. No arena seed.
+* **Tests (`tests/test_g1.py`, each failing on its plant):** 1 causality (plant: history from all matches); 2 no
+  held-out name or sibling as a modelled player in its fold's training shards (plant: split by match); 3 unshown
+  hands give no known combo, shown combo is the logged one (plant: opponent's cards); 4 extraction vectors equal
+  `d2_clone.base_vector` for both seats (plant: seat swapped); 5 W's weights capped at 200, mean 1 (plant: no
+  cap); 6 the marginal public prediction sums to 1 and equals a brute-force combo sum on a toy net (plant: uniform
+  prior marginal); 7 R on a toy equals hand-computed nats (plant: prior includes board cards); 8 literals (30, 5,
+  300, 30%, 32, 8, 20 bb, 200, +0.10, +0.02, seeds 92 and 47, the cutoff time).
+* **Cost and box:** extraction 1 to 2 core-hours on cores 18-19 at nice 19 (shared with A0's read); fits on the GPU
+  one at a time, about 6 GPU-hours; baselines and reads about 1 core-hour. No container, so the bpopp queue is
+  untouched. A pilot (fold 1, loss U, timed) fixes the estimate before the other eleven. **Stop:** 24 GPU-hours or
+  8 core-hours of extraction; what finished is recorded.
+* **Consumers:** the lookahead's root range (step 2), B0a for names without code, X5's posterior, B1's population
+  only indirectly.
+* **Executor checks before the run:** the replay timestamp field (else order by API match id and say so); A0 Part
+  1's table paths and format; EM memory at archive scale (D2a chunks 128 hands per E-step; the pilot shows it).
 
 ### A0. The re-aimed judge: field map from the archive, a small-ball aggressor cell, bp100 in the lookahead tool (spec, 2026-11-25)
 
