@@ -431,12 +431,16 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   * P2 (8 entries): fb2's six plus `small_ball` twice.
   * Not in training, so they stay honest judges: `tight_sticky`, `sticky_overbettor`, `never_fold_pre`,
     `raise_station`, `small_ball_b`, and E6's held-out `ext:` members.
-* **Training command, literal (`tools/b1_run.sh`, branch A; run from `~/poker-ai-lab-rl` through `tools/bpq.sh`):**
+* **Branch switch:** `tools/b1_run.sh P1` (branch A) or `tools/b1_run.sh P2` (branch C); any other argument exits 2.
+  P1 runs through `tools/bpq.sh` with `BPQ_CONTAINERS=1` (holds `~/bpq.lock` for the whole run); P2 with
+  `BPQ_CONTAINERS=0` (no lock, so B0 step 1 can use the queue meanwhile). Both pass `BPQ_SLICE=B1 BPQ_SEED=1
+  BPQ_KIND=train`.
+* **Training command, literal (`tools/b1_run.sh P1`; run from `~/poker-ai-lab-rl`):**
   `python -m rl.train --out ckpt/b1 --init ckpt/fb2/it000900.npz --seed 1 --workers 2 --sdk-workers 10 --sdk-opps
   bp100,chipzen,small_ball,ext:ashwing_v2,bp100,ext:ashwing_value,bp100,chipzen,small_ball,ext:ashwing_adaptive,bp100,ext:autodidact_fast
   --heur-batch 10000 --envs 96 --steps 3000 --max-minutes 360 --lr 1.5e-4 --clip 0.1 --floor 0.15 --snap-w 0.3
   --snap-every 25 --clones data/clones.npz --pool-dir pool_b1 --opp-w arch:5=4,arch:2=3 --distill
-  data/maniac_labels.npz --distill-w 0.5`. Branch C differs only in `--sdk-opps
+  data/maniac_labels.npz --distill-w 0.5`. `P2` differs only in `--sdk-opps
   chipzen,ext:ashwing_v2,small_ball,ext:ashwing_value,chipzen,ext:ashwing_adaptive,small_ball,ext:autodidact_fast`.
   Every other flag is `tools/rl_fb2.sh`'s (holdem-rl 114a136), with `--seed 1` and the pool directory written out.
 * **Pinned inputs, checked by `b1_run.sh` before anything starts; a mismatch stops the run naming the file (exit 4,
@@ -458,21 +462,46 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   single BP_* export block (bpopp:v011, BP_AT=65000, BP_THRESHOLD=0.35; BP_CPUS=1 only for training), `flock` on
   `~/bpq.lock`, launch in its own process group, T1's rate stop (with the half-written-row case counted as rate 0),
   wait with `kill -0`, a final empty `docker ps --filter name=bpopp-` check, markers `done`, `failed`, `stopped`, and
-  a seed check against `tools/seed_registry.txt` (refuses an unregistered seed or one registered to another slice).
-  T1's tests move with it.
+  a seed check against `tools/seed_registry.txt`. T1's tests move with it.
+  * Inputs: `BPQ_SLICE`, `BPQ_SEED`, `BPQ_KIND` (`read` or `train`), `BPQ_CONTAINERS` (1 or 0). With
+    `BPQ_CONTAINERS=0` the job takes no lock, exports no BP_* and skips the docker checks; the process group, rate
+    stop, markers and seed check stay.
+  * Registry format: one line per entry, `seed slice kind`, whitespace separated, `#` comments. A read passes only if
+    the line `BPQ_SEED BPQ_SLICE read` exists; a training job passes only if `BPQ_SEED * train` exists (training
+    seeds are shared by every slice, as `tools/rl_br.sh` and `tools/rl_fb2.sh` share `rl.train`'s default 1).
+    Literal initial contents (the envelope registry above; 89 is unused and absent):
+    `1 * train` / `81 S2r read` / `81 T1 read` / `82 T2 read` / `83 D2b read` / `84 D2b read` / `85 D2b read` /
+    `86 D2b read` / `87 T1 read` / `88 B0 read` / `90 A0 read` / `91 B0 read` / `92 G1 read` / `93 C1 read` /
+    `94 B1 read` / `95 B1 read` / `96 B1 read` / `97 B1 read`.
 * **Owner files (executor, holdem-rl worktree):** `tools/bpq.sh`, `tools/b1_run.sh`, `tools/seed_registry.txt`;
   `holdem/opponents.py`, `rl/sdk_rollout.py` (the patch); `tests/test_b1.py`, `tests/test_bpq.py`, plants in
   `tools/b1_mutate.py`. In holdem-x2r: `SmallBallB` in STYLES, its target in `tools/style_bots_check.py`,
   `tools/b1_judge.sh`, `tools/b1_read.py`, and the entrant-seat step in `tools/a0_field.py`. In holdem-league:
   `tools/league_fresh.py`, `tests/test_league_fresh.py`. In holdem-rl also `rl/bot_ckpt.py`, and after selection
   `rl/bot_b1.py` with `rl/models/b1.npz`. **Non-goals:** no change
-  to `rl/train.py`, `rl/features.py`, the network, `rl/bot.py`, `rl/allin.py`, the eval card or the league tools;
-  nothing into `rl/models/` or an image. **Writes on gb10-d:** `ckpt/b1/`, `logs/b1/` in both trees. **Rollback:**
-  revert, delete those folders.
+  to `rl/train.py`, `rl/features.py`, the network, `rl/bot.py`, `rl/allin.py`, the eval card or the existing league
+  tools (`league_fresh.py` is new); `rl/models/b1.npz` exists only after selection, in its own holdem-rl commit, and
+  never enters an image, holdem-chipzen or the deployed bot.
+* **Writes, each with its rollback:**
+  1. Commits on holdem-rl, holdem-x2r, holdem-league (local branches): revert them.
+  2. gb10-d `~/poker-ai-lab-rl/`: `ckpt/b1/`, `ckpt/b1_smoke_P1/`, `ckpt/b1_smoke_P2/`, `logs/b1/`, `pool_b1/`: delete.
+  3. gb10-d `~/poker-ai-lab-x2r/logs/b1/`: delete.
+  4. gb10-d `~/poker-ai-lab-league/`: `candidates/b1-src/`, `candidates/rl-b1/`, `out/b1/`, `out/verify-rl-b1/`,
+     `logs/add-rl-b1.*`: delete; the `rl-b1` entry in `candidates.json`: remove; rows with `cand:rl-b1` in
+     `out/league/results.jsonl` (copy the file to `results.jsonl.pre-b1` before `league_add.sh` runs): restore the
+     copy; `out/leaderboard.md`: rebuild with `PYTHONPATH=. .venv/bin/python -m league.report --out out/league --md
+     out/leaderboard.md`.
+  5. PC `poker-ai-lab-league/reports/league/leaderboard.md` (written by `league_add.sh`): copy the rebuilt
+     `out/leaderboard.md` back.
+  6. `~/bpq.lock` (empty lock file): leave.
 * **Reads: select on one seed, confirm on another.**
   * Screen, seed 94: each read-set checkpoint against bp100 (1,000 matches), `tight_sticky`, `sticky_overbettor`,
     `small_ball_b`, `never_fold_pre` (500 each), plus the league screen below. Selection: checkpoints ordered by the
-    seed 94 headline; the first that passes the league screen filter is chosen; none → B1 ends with that finding.
+    screen score; the first that passes the league screen filter is chosen; none → B1 ends with that finding.
+  * **Screen score (literal):** the unpaired weighted win rate on seed 94 over four cells, the judge weights without
+    `ext:autodidact` renormalized by 0.97: bp100 0.7216, `tight_sticky` 0.1031, `sticky_overbettor` 0.0928,
+    `small_ball_b` 0.0825. `never_fold_pre` is reported at the screen and not ranked; it is guarded only by the
+    confirmation rule. No fb2-900 run on seed 94 (ranking is among B1's checkpoints only).
   * **E1, the league guard: one tracked driver, two disjoint pair ranges.** A league match's seed is
     `pair_seed(opponent, pair index)` (`league/run.py`), so a pair range is a seed set: 0 to 199 is
     `tools/league_add.sh`'s league row; 200 to 399 is the eval card's E1 (fb2-900's rows:
@@ -523,15 +552,23 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   `sdk_samples` keys (decisions, cumulative, list spelling) are exactly P1's seven distinct names (bp100, chipzen,
   small_ball, ext:ashwing_v2, ext:ashwing_value, ext:ashwing_adaptive, ext:autodidact_fast); shares in matches: per
   opponent M = sum over rows of `wr[key][0]` (each row counts the matches since the previous one; the heuristic is
-  keyed `heuristic`), S = total, S at least 240 (else inconclusive, the run is lengthened, never a pass): bp100
-  0.27 to 0.40, small_ball 0.11 to 0.23, heuristic 0.11 to 0.23 (plants: bp100 once; small_ball missing); 2 `small_ball` in holdem-rl
+  keyed `heuristic`), S = the sum of `wr[k][0]` over exactly the SDK keys `bp100, heuristic, small_ball,
+  ext:ashwing_v2, ext:ashwing_value, ext:ashwing_adaptive, ext:autodidact_fast` (C-engine keys in `wr` are
+  excluded), S at least 240 counting those matches only (else inconclusive, the run is lengthened, never a pass):
+  bp100 0.27 to 0.40, small_ball 0.11 to 0.23, heuristic 0.11 to 0.23 (plants: bp100 once; small_ball missing; a
+  toy-row unit test with C-engine keys present gives bp100 = 1/3 on balanced SDK counts). P2 case, a 5-minute
+  `b1_run.sh P2` smoke run: `sdk_samples` keys exactly the six distinct names of P2 (no bp100), S over the six SDK
+  keys at least 240, heuristic 0.17 to 0.33 and small_ball 0.17 to 0.33 (plants: bp100 present; small_ball missing); 2 `small_ball` in holdem-rl
   plays the same actions as in holdem-x2r on a fixed stream, by a hash recorded in x2r (plant: `street_bet`
   dropped); 3 no judge-only name in the training command or any `sdk_samples` key (plant: `small_ball_b` added); 4
   the INIT and cross-tree checks (plant: a changed feature in one tree); 5 `bpq.sh`: a second container job blocks
   on the lock, the rate stop kills only its group and leaves no container, a normal exit leaves none within 60 s, an
-  unregistered seed is refused, a half-written last row gives rate 0 (plants: lock removed; own-group kill;
-  registry check skipped; JSON error uncaught); 6 `b1_read.py` on toy rows: selection reads only seed 94,
-  confirmation only 95 (plant: selection on 95), weights are the literals and sum to 1, a cell at -3 with upper
+  unregistered seed is refused, a half-written last row gives rate 0, the B1 training invocation (`BPQ_SLICE=B1
+  BPQ_SEED=1 BPQ_KIND=train`) passes, `94` under `BPQ_SLICE=T1` is refused, unlisted `98` is refused, a
+  `BPQ_CONTAINERS=0` job starts while the lock is held (plants: lock removed; own-group kill; registry check
+  skipped; JSON error uncaught; slice ignored in the read check; P2 taking the lock); 6 `b1_read.py` on toy rows: selection reads only seed 94,
+  confirmation only 95 (plant: selection on 95), the ranking is the literal screen score (plants: one weight
+  changed; a seed 95 row added), weights are the literals and sum to 1, a cell at -3 with upper
   bound under zero fails the rule even when the headline passes (plant: guard dropped); 7 literals (360, the read
   set, 94 to 97, pairs 400-499 and 200-399, every n, 80%, 78.0%, -2.0, P1 and P2); 8 `league_fresh.py --p0 200 --p1
   202` for rl-fb2-900 reproduces row for row (seed, hands, a_win) its rows in `out/verify-fb2-900/results.jsonl`
@@ -541,19 +578,22 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   pairs overlap the screen's (plant: gate on 400 to 499); 12 a one-byte change in a copy of `maniac_labels.npz` makes
   `b1_run.sh` exit 4 before any process or container starts, naming the file (plants: check removed; a file compared
   with itself); 13 a third file in `pool_gen` does not enter: `pool_b1/` holds two files and the smoke rows read the
-  pinned pool (plant: `--pool-dir pool_gen`); 14 `b1_run.sh`'s command equals the literal token for token and differs
-  from `tools/rl_fb2.sh` only in `--out`, `--init`, `--seed`, `--sdk-opps`, `--max-minutes`, `--pool-dir` (plant:
-  `--opp-w` dropped).
+  pinned pool, for P1 and P2 (plant: `--pool-dir pool_gen`); 14 `b1_run.sh`'s P1 and P2 commands equal their
+  literals token for token and differ from `tools/rl_fb2.sh` only in `--out`, `--init`, `--seed`, `--sdk-opps`,
+  `--max-minutes`, `--pool-dir` (plants: `--opp-w` dropped; P2 carrying bp100).
 * **Review record:** plan review 1 REVISE (E1 had no runnable command and the screen could select on the
   gate; test 1's name count and unit; the recipe depended on unpinned box state). Fixed above from the roadmap
   agent's first-hand reads (`league/run.py` `pair_seed`; the verifier's untracked fresh-seed driver; `pool_gen`'s two
-  files and the input hashes on gb10-d).
+  files and the input hashes on gb10-d). Plan review 2 REVISE (registry format and the training seed; the screen
+  statistic undefined; test 1's denominator; branch C untested and the lock under P2; writes and rollback
+  incomplete, `rl/models/` contradiction), fixed above. Readiness cap reached (two REVISE); proceeding under the
+  standing approval, as for T1 and the envelope; the outcome verifier is the remaining check.
 * **Stops:** rate stop at minute 15 (floor 2 per minute); entropy under 0.2 or a non-finite loss stops the run and
   keeps the last good checkpoint; budget 9 box-hours, stop at 18; a test still failing after two fix rounds stops the
   slice.
 * **Box:** under P1 training holds the bpopp queue for 6 hours (10 containers at one CPU each), pinned to cores
   0-17; G1 keeps cores 18-19 and the GPU. Screen and confirmation after training, bp100 cells alone in the queue.
-  Under P2 there are no containers and the queue is free for B0 step 1.
+  Under P2 there are no containers and no lock (`BPQ_CONTAINERS=0`), so the queue is free for B0 step 1.
 * **Consumers:** candidate v5 (with S0, and B0a if it survives T1's chipflow read); B1r's direction; later judges'
   weights.
 * **Executor checks first:** v4's exact E1 command; a holdem-rl checkpoint loads in holdem-x2r; the iteration rate
