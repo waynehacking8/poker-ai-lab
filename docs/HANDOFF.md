@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-26 21:56 UTC, box clock UTC+8)
+## Now (2026-11-26 21:57 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -31,8 +31,12 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   D-null, screens add the Ashwing cells and autodidact_fast, P1b closes; NOT PEAK = D-null after AD0's play; MIXED =
   D-null only if AD0 lands on rule 1.
 * **AD0 data done** 20:15 to 21:52 UTC, rc 0: 991,921 rows from 9,000 matches, 93,880 held out
-  (~/ad0-run/data.npz, 510 MB). **AD0 fit running** since 21:54 on the GPU (`~/ad0-run/fitrun.sh`, detached;
-  markers logs/fit.start, fit.rc; offline.json at the end). Then `ad0_play.sh play 1`, `read 1` on cores 0-17.
+  (~/ad0-run/data.npz, 510 MB). Overran the spec's 3x stop line (97 min vs about 15): the logging path
+  (Python run_arena, hook, second Tracker) runs 7x to 30x slower than the eval_arena rates the estimate used; missed
+  before the fit; sent to Fable with the recommendation to finish play 1. Fit 21:54 to 21:55: all four students hit
+  the 30-epoch cap with held-out loss still falling; held-out bp100 agreement W1 0.891, W1s 0.911, W2 0.900, W2s
+  0.918 (offline.json). **AD0 play 1 running** since 21:56 on cores 0-17 (`~/ad0-run/playrun.sh`, detached: play 1
+  then read 1; markers logs/play1.rc, read1.rc, read in logs/read1.txt).
 * **AD1 built** (local: holdem-rl `ad1` 0482bff, holdem-x2r `ad1-x2r` eb5d747; `sdk_prior.npz` c77f058e…, record in
   the roadmap AD1 spec). Verifier 1 REFUTED: amendment items 2 to 4 (B1 arm on seed 104,
   "AD1 minus B1" reading with D0's verdict) missing; fixed on ad1-x2r 4b85994; verifier 2 REFUTED the GAINS ONLY line
@@ -48,7 +52,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   rl/models/b1.npz (kept at b1-rl 59b1ad3). holdem-league 57a63b8 commits the leaderboard with cand:rl-b1 (rank 4,
   PASS 23/23). Delete ~/b1-build after the AD builds no longer need it (AD0 and AD1 tests link it).
 
-**gb10-d:** cores 0-17 free until AD0's play; cores 18-19 C0. bpopp queue free. GPU: AD0 fit. Fetcher pid 1838186, the only one.
+**gb10-d:** cores 0-17 AD0 play 1; cores 18-19 C0. bpopp queue AD0 seed 95. GPU idle. Fetcher pid 1838186, the only one.
 
 **Branches not pushed (local only, by rule):** holdem-rl, holdem-x2r, holdem-league, holdem-d2 (`python
 tools/d2_mutate.py --jobs 4` must catch every plant after a change), b1-rl, b1-x2r, b1-league, d0, ad1, ad1-x2r,
