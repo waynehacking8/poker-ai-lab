@@ -24,13 +24,14 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    Ashwing and autodidact cells, whose training share it halved. No v5; v4 stays. B1's stop was a logging false alarm (14.35).
 5. **G1 fine-tuned per name reads ranges best but fails fold calibration** (14.34); no more GPU for it.
 
-Next: **D0** (spec below, tier 2) trains first: B1 without the bp100 and `small_ball` data, to say whether B1's
-real-bot loss is the new data or the mix. Then **AD1** (spec below, tier 2): seed the opponent counts with each opponent's profile so one network knows who
-it faces from hand 1; its rule decides between X2b (a candidate with seeded identity), an opponent-representation
-slice, or capacity. The tier-1 reads are in (14.37): weighted by hands, the counts already name the opponent for about half of all
-hands and 71% of bp100's, so AD1 is replaced by **AD0** (spec below), a supervised probe that
-asks whether identity, width or the training method is the limit; AD1 and S7 run only if AD0 points at them; bp100 is a coarse Blueprint
-stand-in (much more aggressive preflop).
+6. **The real-bot loss stays without the new data** (14.38, D0): B1's recipe on fb2's own population loses -2.70
+   [-4.02, -1.38] pooled on the four Ashwing and autodidact cells; rule INCONCLUSIVE (straddles -2.0), no lever
+   decision. Three families sit within 0.2 of B1; hive alone shows a new-data effect. The next D0-line step is with
+   the roadmap agent.
+
+Next: **AD0** (spec below, tier 2, built and verified) is running: data on seed 106, four students fitted on the GPU,
+play on seed 95, then its rule picks distill-then-PPO, AD1 (built and verified, untrained), S7, or the opponent
+representation. bp100 is a coarse Blueprint stand-in (much more aggressive preflop, 14.37).
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 
