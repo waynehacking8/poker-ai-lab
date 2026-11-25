@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 08:56 UTC, box clock UTC+8)
+## Now (2026-11-25 09:07 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -18,16 +18,19 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * T1 (14.31, verifier CONFIRMED the numbers, one sentence corrected): bp100-trained 79.7% vs fb2-900 59.85%,
   +19.9 [+18.1, +21.6]. B1 takes branch A (P1, with bp100). B0 step 1 does not run (river call-offs 594 → 57).
 * C1 (14.30): `small_ball` 75.7% → 97.6%; `small_ball` is in B1's training.
-* **B1 built** (local, unpushed): poker-ai-lab-b1rl `b1-rl` 24c8c9d, poker-ai-lab-b1x2r `b1-x2r` faa7eb5,
-  poker-ai-lab-b1lg `b1-league` 857660c. Tests all pass, every plant caught; P1 smoke shares bp100 0.335,
-  small_ball 0.167, heuristic 0.165, 3.7 it/min; `--init` restarts at it 1. Verifier 1 REFUTED (pinning,
-  crash marked done, entropy/NaN stop missing, libfastenv ship trap); all fixed (b1-rl a4d765d, b1-x2r 7002c23;
-  live smoke shows CpusetCpus 0-17). **Verifier 2 running.** Commit code vs box code differs only by default-off
-  paths (checked).
-  On CONFIRMED: ship b1-rl to ~/poker-ai-lab-rl (`git -c core.autocrlf=false archive b1-rl | ssh gb10-d 'tar -x
-  -C ~/poker-ai-lab-rl'`), b1-x2r and b1-league likewise, then `cd ~/poker-ai-lab-rl && setsid -f taskset -c 0-17
-  bash tools/b1_run.sh P1`. Then screen (seed 94, league pairs 400-499), confirmation (seed 95), gate (E1
-  pairs 200-399 plus heuristic head to head), verifier, Wayne. Delete ~/b1-build after launch.
+* **B1 TRAINING since 09:04 UTC** (`tools/b1_run.sh P1` in ~/poker-ai-lab-rl, cores 0-17, 10 bp100 containers
+  pinned CpusetCpus 0-17, bpopp lock held; ends about 15:05 UTC). Outputs ckpt/b1/ (train.jsonl, it*.npz every
+  100), logs/b1/ (done, failed, stopped with reason and last good checkpoint, rc), logs/b1_run.out. Guards: rate
+  stop at minute 15, entropy < 0.2 or non-finite loss checked every 60 s.
+  * Code shipped: b1-rl a4d765d → ~/poker-ai-lab-rl, b1-league 857660c → ~/poker-ai-lab-league, b1-x2r 50b0a28 →
+    ~/poker-ai-lab-x2r. Verifier 1 REFUTED (4 launch defects, fixed); verifier 2 REFUTED only on the judge's bp100
+    cells not pinned (x2r's own bpopp lacked BP_CPUSET), training side all held. Fixed in b1-x2r 50b0a28 (test and
+    plant caught, 29 x2r tests pass, live probe from ~/poker-ai-lab-x2r prints --cpuset-cpus 0-17). Verifier cap
+    reached on this claim; the fix was checked first-hand.
+  * After training: `tools/b1_judge.sh` from ~/poker-ai-lab-x2r (screen seed 94 and league pairs 400-499, then
+    confirm seed 95, then gate pairs 200-399 plus heuristic head to head); it calls bare `python`, so put
+    ~/poker-ai-lab-rl/.venv/bin on PATH. Report the chipflow shove table (14.33). Fallback P1b if no checkpoint
+    passes the league screen. Delete ~/b1-build after the reads.
 * **14.32 G1 (corrected, research a591050), rule 2:** a known-name model. Verifier REFUTED the first record:
   rule 2 had joined opponents' rows (149 names); fixed in holdem-d2 3e988c8 (test 9, 2 plants caught), rule rerun:
   29 names, R +0.183 [+0.123, +0.266], P -0.306 better than per-name X1. Unseen names fail; cold start stays X1.
@@ -39,7 +42,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   outputs ~/poker-ai-lab-d2s2/data/g1_2a and logs/g1_2a; GPU and cores 18-19 only. Base fits: fold 2 W for
   Ashwing_v3 and AutodidactInnovations. Then outcome verifier on the read.
 
-**gb10-d:** bpopp queue and cores 0-17: B1 training once launched. Cores 18-19 and the GPU: G1 step 2a after its plan review. Fetcher pid
+**gb10-d:** bpopp queue and cores 0-17: B1 training until about 15:05 UTC. Cores 18-19 and the GPU: G1 step 2a after its plan review. Fetcher pid
 1838186, the only one.
 
 **Branches not pushed (local only, by rule):** holdem-x2r (poker-ai-lab-x2r, 159e9ba), holdem-d2
