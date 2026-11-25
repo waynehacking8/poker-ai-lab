@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 13:50 UTC, box clock UTC+8)
+## Now (2026-11-25 14:10 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -20,7 +20,10 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * C1 (14.30): `small_ball` 75.7% → 97.6%; `small_ball` is in B1's training.
 * **B1 TRAINING STOPPED 13:27 UTC by the entropy guard** (minute 263 of 360, it 2290: entropy 0.465 → 0.195 and
   policy loss 0.64 in one iteration; last good checkpoint it002200, latest.npz excluded). Read set therefore 300 to
-  2,100 (seven). Containers gone, lock free.
+  2,100 (seven). Containers gone, lock free. **False alarm (14.35, research a0789f3; Fable review, reproduced):**
+  train.py logs the last minibatch, often a 1 to 306 sample tail; the weights moved normally. Read unaffected.
+  Fix for the next run (batch-mean logging, approx_kl and n, tail fold, 3-row guard) is with an executor on b1-rl;
+  next-run budget 180 minutes needs a dated amendment.
   * **Screen done 13:49 UTC: chosen it001200** (sha256 5e9c6fc6…). Score 70.53 (bp100 65.3, tight_sticky 92.0,
     sticky_overbettor 78.6, small_ball_b 80.4; never_fold_pre 93.8, loose_passive 90.6; league lowest 83.5). All
     seven pass the 78% league filter; scores 68.8 to 70.5. Rows x2r logs/b1/screen/, league out/b1/screen-itITER.
