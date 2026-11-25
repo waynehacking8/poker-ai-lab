@@ -628,56 +628,70 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Decision it feeds:** under NEW DATA the identity line (AD1) is the lever and no population reshuffle runs; under
   MIX OR CONTINUATION, D-null runs and the next population is set by C-engine steps. AD1's real-bot guard and its
   GAINS ONLY branch are read with D0's verdict. No candidate comes out of D0.
-* **Why this design (the update rule):** PPO takes minibatches of 4,096 from the whole iteration batch with a mean
-  loss and Adam (`rl/train.py` `minibatch_slices`), so the pull between families is set by their shares of the
-  iteration batch. Box logs: fb2 16,247 samples per iteration, B1 16,287 (C engine about 6,250, SDK about 10,000,
-  `--heur-batch` a threshold on SDK samples). Shares of the batch:
+* **Why this design (the update rule):** PPO takes minibatches of 4,096 decisions from the whole iteration batch with
+  a mean loss and Adam (the inline 4-epoch loop in `rl/train.py` at a4d765d), so the pull between families is set by
+  their shares of the iteration batch, counted in decisions (`--heur-batch` is a threshold on SDK decisions,
+  `sdk_samples` counts decisions). B1's own `ckpt/b1/train.jsonl`, first to last row (2,290 iterations): 16,287
+  decisions per iteration, C engine 6,070, SDK 10,218 (bp100 3,238, `small_ball` 1,009, ext 4,530, heuristic 1,440;
+  ext : heuristic 3.15). Shares of the batch:
 
-  | Population | ext (4 names) | chipzen | bp100 | `small_ball` | C engine |
+  | Population | ext (4 names) | heuristic | bp100 | `small_ball` | C engine |
   |---|---|---|---|---|---|
-  | fb2 (6 entries, 10,000) | 41.0% | 20.5% | 0 | 0 | 38.5% |
-  | B1 (P1, 10,000) | 20.5% | 10.3% | 20.5% | 10.3% | 38.5% |
-  | D0 (fb2's 6 entries, 5,000) | 29.6% | 14.8% | 0 | 0 | 55.6% |
+  | B1 (P1, `--heur-batch 10000`) | 27.8% | 8.8% | 19.9% | 6.2% | 37.3% |
+  | D0 target (fb2's 6 entries) | 37.6% | 12.0% | 0 | 0 | 50.4% |
 
-  D0's ext : chipzen : C engine is 2 : 1 : 3.75, B1's exactly: every B1 minibatch is 69.2% old data in that ratio
-  plus 30.8% new data; every D0 minibatch is the old data alone in the same ratio. At equal iterations both runs have
-  seen the same old-family samples (about 11,250 per iteration). A higher `--heur-batch` (the withdrawn B1v) keeps
-  ext : bp100 at 1:1 and separates nothing. Every population table from here on states shares of the iteration
-  batch, C engine included.
-* **Code:** holdem-rl branch `d0` (local, worktree `poker-ai-lab-d0`) at 4902f50: B1's training commit a4d765d (so the
-  minibatch rule is B1's), `tools/bpq.sh` from 126c673 (the 3-row entropy guard of 14.35; the trainer is unchanged),
-  and `tools/b1_run.sh D0`. Test `test_d0_prints_its_literal_command`; box run 36 passed, 11 skipped, with
-  `tests/test_bpq.py`'s guard tests.
+  D0 keeps B1's old data and drops the rest: old-family SDK 5,971 per iteration (ext 4,530, heuristic 1,440), C engine
+  6,070. `--heur-batch 5750` because the threshold overshoots by about 220 decisions per iteration (B1: 10,218 against
+  10,000). Every B1 minibatch is 73.9% old data in that ratio plus 26.1% new data; every D0 minibatch is the old data
+  alone in the same ratio, and at equal iterations both runs have seen the same old-family decisions. A higher
+  `--heur-batch` (the withdrawn B1v) keeps ext : bp100 fixed and separates nothing. Every population table from here
+  on states shares of the iteration batch in decisions, C engine included.
+* **Code:** holdem-rl branch `d0` (local, worktree `poker-ai-lab-d0`) at 60ff10d: B1's training commit a4d765d (so
+  the trainer and minibatch rule are B1's), `tools/bpq.sh` from 126c673 (the 3-row entropy guard of 14.35),
+  `tools/b1_run.sh D0`, `tools/d0_read.py` (void check, paired cells, rule). Tests: `test_d0_prints_its_literal_command`,
+  `tests/test_d0_read.py` (every row of the rule table, pairing refuses mismatched keys, pooled error, void check
+  passes B1's mix and voids the 5,000-decision mix, literals); two plants (BOTH widened, old share scaled) caught.
+  Box: 59 passed. Eval tree: holdem-x2r 8be6e38 archived at `~/d0-run/x2r`; fb2-900 on `ext:ashwing` seed 95 (60
+  matches) reproduces the stored B1-judge rows 60 of 60.
 * **Command (literal):** `python -m rl.train --out ckpt/d0 --init ckpt/fb2/it000900.npz --seed 1 --workers 2
   --sdk-workers 10 --sdk-opps chipzen,ext:ashwing_v2,ext:ashwing_value,chipzen,ext:ashwing_adaptive,ext:autodidact_fast
-  --heur-batch 5000 --envs 96 --steps 3000 --max-minutes 190 --lr 1.5e-4 --clip 0.1 --floor 0.15 --snap-w 0.3
+  --heur-batch 5750 --envs 96 --steps 3000 --max-minutes 190 --lr 1.5e-4 --clip 0.1 --floor 0.15 --snap-w 0.3
   --snap-every 25 --clones data/clones.npz --pool-dir pool_b1 --opp-w arch:5=4,arch:2=3 --distill
-  data/maniac_labels.npz --distill-w 0.5`, through `b1_run.sh D0` (B1's pinned hashes, frozen pool, no containers,
-  no queue). Run directory `~/d0-run` on gb10-d: the 4902f50 archive with `data/`, `pool_gen/`, `ckpt/fb2/` and
-  `.venv` linked from `~/poker-ai-lab-rl`; markers `logs/d0/`.
-* **Void check before reading:** from `ckpt/d0/train.jsonl`, samples per iteration 11,250 ± 5% and the C-engine part
-  (samples minus the row's SDK samples) within 5% of 6,250; SDK samples ext to chipzen 2 : 1 ± 0.2. Outside: the run
-  is void, recorded, not read.
-* **Read, no selection:** decision checkpoint it001200 (B1's chosen iteration, equal old-data exposure); also
-  it000300 and it001600 (B1's optimizer steps at 1,200) on the three Ashwing cells, reported only. If the run stops
-  before it 1,200 (guard or time), the last good checkpoint is read and the record says so.
-* **Cells (seed 95, holdem-x2r `rl.eval_arena`, cores 0-17, 6 workers like B1's arms, paired on (seed, hero seat)
-  against fb2-900's and B1 it001200's rows on disk in `~/poker-ai-lab-x2r/logs/b1/confirm/`):** `ext:ashwing`,
-  `ext:ashwing_hive`, `ext:ashwing_search`, `ext:autodidact`, 1,000 each. Reported: the heuristic head to head and
-  the `bot:` clones on league pairs 200 to 399 against fb2-900's league rows. No bp100, so no containers. Seed 95 is
-  B1's registered confirmation seed; D0 reuses its pairs so the three arms pair match for match.
-* **Rule (pre-registered), on the pooled four ext cells (mean of the four paired gains, interval from the pooled
-  paired differences):**
-  1. NEW DATA: D0 against fb2-900 has its lower bound above -2.0 and D0 minus B1 has its lower bound above zero.
-  2. MIX OR CONTINUATION: D0 against fb2-900 has its upper bound under -2.0 and D0 minus B1 includes zero. Then
-     D-null runs: the same command with `--heur-batch 10000` (fb2's recipe continued), same read; D-null also down
-     means the checkpoint (continuation), D-null holding means the mix (next population sets C engine to ext near
-     1:1 by cutting `--steps`).
-  3. Anything else: both contribute; report D0 minus B1 as the share due to the new data.
-* **Writes on gb10-d and rollback:** `~/d0-run` (delete the directory); nothing in `~/poker-ai-lab-rl` or
-  `~/poker-ai-lab-x2r` except `~/poker-ai-lab-x2r/logs/d0/` (delete). No push of `d0`.
-* **Budget:** 190 minutes of training at most, then about 1 box-hour of reads. AD1 trains after D0's training ends
-  (the box holds one training run); D0's reads run on cores AD1 leaves free.
+  data/maniac_labels.npz --distill-w 0.5`, through `B1_MINUTES=190 bash tools/b1_run.sh D0` (B1's pinned hashes,
+  frozen pool, no containers). Run directory `~/d0-run` on gb10-d: the 60ff10d archive with `data/clones.npz`,
+  `pool_gen/`, `ckpt/fb2/` and `.venv` linked from `~/poker-ai-lab-rl`; markers `logs/d0/`.
+* **Length:** an 8-minute smoke (B1_OUT=d0smoke) ran 60 iterations in 7.6 minutes, 7.9 per minute, so it 1,200 needs about 152 minutes; 190 minutes leaves 25%. The smoke's void check: C engine 6,084, old-family SDK 5,919, ext : heuristic 2.99 (all within tolerance). A run that stops before it 1,200 (guard, time or crash) is void and is not read; it is
+  recorded and rerun once with the same command from fb2-900.
+* **Void check before reading:** `python tools/d0_read.py void ckpt/d0/train.jsonl` (first to last row of the
+  cumulative `steps` and `sdk_samples`): C engine per iteration within 5% of 6,070, old-family SDK within 5% of
+  5,971, ext : heuristic within 0.3 of 3.15. Outside: void, recorded, not read.
+* **Read, no selection:** checkpoint it001200 only (B1's chosen iteration, equal old-data exposure).
+* **Cells (seed 95, 1,000 each, after D0's training ends and before AD1's starts, so nothing else trains):** from
+  `~/d0-run/x2r`, for each of `ext:ashwing`, `ext:ashwing_hive`, `ext:ashwing_search`, `ext:autodidact`:
+  `taskset -c 0-17 nice -n 5 ~/poker-ai-lab-rl/.venv/bin/python -m rl.eval_arena --model ~/d0-run/ckpt/d0/it001200.npz
+  --opp CELL --matches 1000 --seed 95 --workers 6 --rows ~/d0-run/logs/d0/read/it001200/CELL.jsonl` (B1's judge
+  placement). None is a wall-clock bot. Rule: `python tools/d0_read.py rule ~/d0-run/logs/d0/read/it001200
+  ~/poker-ai-lab-x2r/logs/b1/confirm/fb2 ~/poker-ai-lab-x2r/logs/b1/confirm/cand` (B1 it001200's rows are `cand`).
+  Each cell's gain is paired on (seed, hero seat), in points of match win rate; the pooled gain is the mean of the
+  four, its standard error sqrt(sum se²)/4, 95% interval ±1.96 se. No league cells.
+* **Rule (pre-registered), on the pooled four ext cells, F = D0 against fb2-900, B = D0 minus B1:**
+
+  | F | B | outcome |
+  |---|---|---|
+  | lower bound above -2.0 | lower bound above 0 | **NEW DATA**: the bp100 and `small_ball` samples caused the loss; identity is the lever, no population reshuffle runs |
+  | upper bound under -2.0 | interval contains 0 | **MIX OR CONTINUATION**: the loss comes without new data; D-null runs (the same command at `--heur-batch 10000`, same read); D-null also down means continuation, D-null holding means the mix (next population sets C engine to ext near fb2's by cutting `--steps`) |
+  | upper bound under -2.0 | lower bound above 0 | **BOTH**: report B as the part due to the new data |
+  | any other combination | | **INCONCLUSIVE**: recorded with no lever decision (F straddles -2.0, B straddles 0 while F holds, or D0 worse than B1) |
+
+* **Writes on gb10-d and rollback:** `~/d0-run` (rollback: delete the directory; it holds the code, `ckpt/d0`,
+  `ckpt/d0smoke`, `logs/`, `x2r/`). Nothing in `~/poker-ai-lab-rl`, `~/poker-ai-lab-x2r` or `~/poker-ai-lab-league`.
+  No push of `d0`.
+* **Budget:** the training above, then about 40 minutes of reads on cores 0-17. AD1 starts after the reads.
+* **Review record:** plan review 1 REVISE (match counts used where the update counts decisions, so `--heur-batch 5000`
+  did not reproduce B1's old mix and the void check would void any honest run; no rate shown for 1,200 iterations and a
+  short run would have been read; read side not literal; the catch-all rule gave a verdict to contradictory
+  intervals). Fixed above with B1's logged decisions, a smoke rate, literal read commands and an INCONCLUSIVE row.
+  Tier 2 allows one review; execution follows with the outcome verifier on the read.
 
 ### AD1. Seeded identity: does one network keep the specialists' gains when told who it faces? (spec, 2026-11-25; tier 2)
 
