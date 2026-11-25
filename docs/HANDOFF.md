@@ -31,7 +31,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   Not trained: gated by AD0.
 * **AD0 built** (holdem-rl `ad0` 8b7ea8b, holdem-x2r `ad0-x2r` 541bf81; worktrees poker-ai-lab-ad0, poker-ai-lab-ad0x2r;
   record in the roadmap AD0 spec). Fit corrected to the spec (at most 30 epochs, best held-out epoch, patience 3) and
-  hold-out by pair. Outcome verifier running since 17:46. Runners: `tools/ad0_run.sh check|data|fit|relabel|refit`
+  hold-out by pair. Verifier CONFIRMED; shipped 17:56 to ~/ad0-run/code and code-x2r, pins match. Runners: `tools/ad0_run.sh check|data|fit|relabel|refit`
   in ~/ad0-run/code (holdem-rl archive), `tools/ad0_play.sh play N|read N` in ~/ad0-run/code-x2r; `AD0_TASKSET`
   for cores 18-19 while D0 runs. Then data (seed 106), GPU fits, play (seed 95) after D0's reads.
 * **Merges (local) done:** holdem-rl fast-forwarded to b1-rl db446d7, then b047c04 drops rl/bot_b1.py and
