@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 09:46 UTC, box clock UTC+8)
+## Now (2026-11-25 10:10 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -31,6 +31,9 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
     confirm seed 95, then gate pairs 200-399 plus heuristic head to head); it calls bare `python`, so put
     ~/poker-ai-lab-rl/.venv/bin on PATH. Report the chipflow shove table (14.33). Fallback P1b if no checkpoint
     passes the league screen. Delete ~/b1-build after the reads.
+  * **Amendment 10:09 UTC before any read (research 4732eda):** read set to 2,700 plus latest; `loose_passive`
+    guard cell (mr_hide's style); headroom and decision-share lines; fb2-900's seed-95 baseline arm now on cores
+    18-19. B1 builder doing it in b1-x2r, then ships to ~/poker-ai-lab-x2r.
 * **14.32 G1 (corrected, research a591050), rule 2:** a known-name model. Verifier REFUTED the first record:
   rule 2 had joined opponents' rows (149 names); fixed in holdem-d2 3e988c8 (test 9, 2 plants caught), rule rerun:
   29 names, R +0.183 [+0.123, +0.266], P -0.306 better than per-name X1. Unseen names fail; cold start stays X1.
@@ -40,9 +43,11 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * **14.34 G1 step 2a (research 5b1c5ca): rule FAIL** on one calibration bucket (autodidact_fast largest bucket
   5.16 points vs 5.0); the R condition passes for all three bots (G1 fine-tuned beats λ by +0.43 to +0.64 and D2a
   from scratch by +0.13 to +0.47 nats at 1,000 matches). Per the rule G1 gets no more GPU; any follow-up is a new
-  pre-registered slice. Branch g1-2a f3d1afd (local). Outcome verifier checking the read.
+  pre-registered slice. Branch g1-2a f3d1afd (local). Verifier: numbers confirmed; FAIL holds under the spec's
+  postflop bucket definition (7.07 points, stable over three seeds), research 13712ca. Fable: no new G1 slice; the
+  lookahead line stays parked until B1's read shows the adaptation headroom per class.
 
-**gb10-d:** bpopp queue and cores 0-17: B1 training until about 15:05 UTC. Cores 18-19 and the GPU: verifier reads, then free. Fetcher pid
+**gb10-d:** bpopp queue and cores 0-17: B1 training until about 15:05 UTC. Cores 18-19: B1 judge work and fb2-900's seed-95 baselines. GPU: idle (Fable: nothing worth it). Fetcher pid
 1838186, the only one.
 
 **Branches not pushed (local only, by rule):** holdem-x2r (poker-ai-lab-x2r, 159e9ba), holdem-d2
