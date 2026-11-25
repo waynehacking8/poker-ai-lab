@@ -588,6 +588,23 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   except bp100 at 2 of 12 entries (the two freed entries go to `chipzen` and `ext:ashwing_v2`), screen seed 99,
   confirmation seed 100, league screen pairs 500 to 599 (gate pairs unchanged, 200 to 399). A second failure ends B1
   at this representation and brings B1r forward. (14.33: a pure bp100 response costs 13 points on other styles.)
+* **Amendment, 2026-11-25 10:09 UTC, before any checkpoint was read** (no `screen*` directory existed under
+  `~/poker-ai-lab-x2r/logs/b1/` or `~/poker-ai-lab-league/out/b1/`; training at iteration 560; the outcome verifier
+  confirms this from file times):
+  1. Read set extended: training runs at about 8.8 iterations a minute (about 3,100 in 360 minutes), so the read set
+     becomes 300, 600, 900, 1,200, 1,500, 1,800, 2,100, 2,400, 2,700 iterations after the first row's `it` minus 1,
+     plus `latest.npz` (ten). Selection stays on seed 94 and league pairs 400 to 499.
+  2. Guard cell `loose_passive` (judge only, holdem-x2r STYLES): mr_hide's style, 5.7% of entrant seats, 0.36 from
+     the nearest cell. Target A0's `vectors.json` mr_hide: vpip 0.774, pfr 0.315, shove 0.015, fold_pre_raise
+     0.200, post_aggr 0.269, post_fold_bet 0.210, bet_size 0.307, showdown 0.353. Acceptance as `small_ball_b`
+     (under 0.25 from the target on style seeds 3 and 4, 300 matches against fb2-900). It enters the screen (500
+     matches, reported, not ranked) and the confirmation (2,000, seed 95) as a guard under the existing -2.0 rule;
+     the headline weights are unchanged, so the rule only gets stricter.
+  3. Reported in the read, not deciding: adaptation headroom per class = the single-opponent ceiling (T1 +19.9 on
+     bp100, C1 +21.9 on `small_ball`) minus B1's paired gain on that cell; and bp100's and `small_ball`'s share of
+     `sdk_samples` (decisions) beside their share of matches from `wr`.
+  4. fb2-900's baseline arm on seed 95 for every non-container confirmation cell runs before training ends (cores
+     18-19), so tomorrow's confirmation needs only the candidate arm.
 * **Consumers:** candidate v5 (with S0); B1r's direction; later judges' weights.
 * **Executor checks first:** v4's exact E1 command; a holdem-rl checkpoint loads in holdem-x2r; the iteration rate
   with this mix (smoke run); wall-clock effect of slow SDK opponents on bp100's share; whether fb2's recipe still
