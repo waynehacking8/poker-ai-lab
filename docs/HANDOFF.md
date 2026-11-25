@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 15:39 UTC, box clock UTC+8)
+## Now (2026-11-25 15:54 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -36,18 +36,17 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
     failing families are P1's own (autodidact = autodidact_fast; Ashwing = ashwing_v2/value/adaptive's package) at
     half fb2's SDK share (4/6 to 4/12; chipzen 2/6 to 2/12, h2h -8.5). Dilution and interference both fit. Asked
     Fable; its B1v (bigger SDK batch) was withdrawn after I showed batch shares, not counts, set the pull.
-* **D0 trains first** (research 5818738, tier 2): B1's command minus the bp100 and small_ball data (fb2's SDK list,
-  --heur-batch 5000), so old-data ratios equal B1's. Code holdem-rl d0 4902f50 (a4d765d + 3-row guard), run dir
-  ~/d0-run on gb10-d (inputs checked, pool_b1 built), 190 min. Plan review running; launch after it. Read it001200
-  on seed 95 ext cells against fb2-900 and B1 rows. AD1 amended (B1 it001200 baseline arm), trains after D0.
-* **Next: AD1** (research 0eb29f1, tier 2, Fable): seed the opponent counts per opponent (H0 40, share 0.75) so one
-  network knows who it faces; 240 min on B1's command; rule decides X2b vs representation vs capacity. Plan review
-  1 REVISE, fixed in research 50a48d0 (tier 2: execution follows). Builder on worktrees poker-ai-lab-ad1 (branch
-  ad1 from b1-rl 126c673) and poker-ai-lab-ad1x2r (ad1-x2r from 8be6e38): code, tests and plants, sdk_prior.npz on
-  seed 101; no ship, no training until the verifier. Launch also waits on R1. Tier-1 reads R1 (identification curve, seed 102) and R2 (bp100 against arena Blueprint) with an executor
-  on b1-rl, outputs ~/poker-ai-lab-rl/logs/ad1r/.
+* **D0 training** since 15:53 UTC on gb10-d, due about 19:03 (research b640cfe, revised after plan review 1):
+  B1's command minus the bp100 and small_ball data, fb2's SDK list at --heur-batch 5750 (B1's old-family SDK
+  decisions, 5,971 per iteration). Code holdem-rl d0 60ff10d, run dir ~/d0-run (eval tree ~/d0-run/x2r = x2r
+  8be6e38, reproduces B1's fb2 rows 60/60). Markers logs/d0/. Then: `tools/d0_read.py void`, four ext cells on
+  seed 95 from it001200 (literal commands in the spec), `d0_read.py rule`; outcome verifier. Stopped before it
+  1,200 = void, rerun once.
+* **14.37 (R1/R2), corrected after its verifier (research 9e29019):** weighted by hands, the counts already name the
+  opponent for 53% of hands and 71% of bp100's; AD1's prior is now capacity (fail branch 4). Asked Fable whether
+  AD1 or S7 (wider trunk) goes after D0. AD1 builder still running (worktrees poker-ai-lab-ad1, ad1x2r).
 * **Merges (local):** holdem-x2r fast-forwarded to b1-x2r 8be6e38, holdem-league to b1-league 857660c. holdem-rl
-  waits for the R1/R2 executor (on b1-rl); then merge and drop rl/models/b1.npz and rl/bot_b1.py from the trunk
+  next (R1/R2 done, b1-rl db446d7): merge and drop rl/models/b1.npz and rl/bot_b1.py from the trunk
   (kept at b1-rl 59b1ad3).
   * Code shipped: b1-rl a4d765d → ~/poker-ai-lab-rl, b1-league 857660c → ~/poker-ai-lab-league, b1-x2r 50b0a28 →
     ~/poker-ai-lab-x2r. Verifier 1 REFUTED (4 launch defects, fixed); verifier 2 REFUTED only on the judge's bp100
