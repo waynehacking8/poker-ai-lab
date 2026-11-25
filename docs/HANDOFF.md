@@ -1,10 +1,10 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-25 05:45 UTC. Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-25 04:32 UTC. Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 05:45 UTC, box clock UTC+8)
+## Now (2026-11-25 04:32 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project (he may write Chinese; when he asks "中文說明", answer in
 Traditional Chinese). Think from first principles, not narrowly. Goal is the long-term "future king", not the
@@ -28,17 +28,22 @@ busy on purpose. Plan of record: `docs/research/roadmap.md` on branch research (
   Facts re-checked first-hand: fixture times, fb2-900 opens 3% of SBs in the first 10 hands, R1 per-cell
   numbers, bp100 at 400 matches in 70 s.
 
-**Running on gb10-d:**
-* **S2r** (pre-registered, roadmap Revision 3): `~/poker-ai-lab-rl/tools/s2r_run.sh`, fb2-900 then it1800
-  against bp100, 4,000 matches each, seed 81, rows for pairing, then chipflow on fb2-900 (P0's data). Started
-  04:57 UTC, cores 8-15 plus 6 bpopp containers (not pinned). Markers `logs/s2r/done`, `logs/s2r/failed`.
-* Replay fetcher (`~/chipzen-fetch`, pid 1838186), pass 2. The only fetcher.
+**Results since (research 4107aa1, 85447e2):**
+* 14.27 S2r: fb2-900 vs bp100 59.85% [58.3, 61.4] at n = 4,000 (seed 81); it1800 minus fb2-900 -1.1 [-2.8, +0.6]
+  paired, so B1 starts from fb2-900. P0: fb2-900's lost matches end in a commitment under 0.35 equity 77.6% of
+  the time, bp100's 47.8%: +29.8 [+26.7, +32.9], **B0 fires** (big-pot play-time logic goes before G1, X5, B1).
+  Main ways: flop shoves called (chip-positive, bust-heavy: a match-equity error), river calls of bp100's
+  shoves at 0.198 equity (-2.46M chips). River shoves pay (+5.8M), leave them.
+* Revision 3 envelope settled (reviews 1 and 2 REVISE, fixed, cap reached, standing approval).
+* T1 spec: plan review 1 REVISE (6 blockers, fixed in 85447e2); plan review 2 running. Then an executor in a
+  holdem-rl worktree builds `make_opp("bp100")`, `tests/test_t1_bp100.py`, `tools/t1_run.sh`.
 
-**Revision 3 envelope:** plan reviews 1 and 2 REVISE, all fixed (research 9579a3f), cap reached, carried by
-standing approval. Serial bpopp queue on gb10-d: S2r, T1, D2b generation, T2 (after A0). P0 judged against bp100's
-own lost matches. Clones never judge candidates. L0 (live challenge series) waits for Wayne's yes.
-**In review:** plan-verifier on T1 (then the executor: `bp100` in holdem-rl `rl/sdk_rollout.make_opp`).
-S2r so far: fb2-900 vs bp100 59.85% [58.3, 61.4] at n = 4,000 (seed 81, 182 s on 6 workers); it1800 running.
+**gb10-d:** idle since S2r ended 04:28 UTC; the bpopp queue waits for T1 (then D2b generation, then T2 after
+A0). Runners and tools: holdem-rl local f2d6c5d (s2r_run.sh), 8d77826 (p0_read.py). Fetcher pid 1838186, the
+only one.
+
+**Next:** T1 review, executor, verify, run. Specs to write: B0 (now first in Phase 1), A0, D2b. L0 waits for
+Wayne's yes.
 
 **Branches not pushed (local only, by rule):**
 * holdem-x2r, `C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r`, tip cb12f5f (X3a/X3b/R1/X4 tools; ext bots
