@@ -379,6 +379,10 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 
 ### G1 step 1. Does one card-conditioned population model predict unseen names better than what we have? (pre-registration, 2026-11-25; tier 2)
 
+* **Review record:** plan review 1 REVISE (P's outcome space; big-pot tag keyed on the action; unseen names not
+  on the cold-start path; rule 2's baseline and bootstrap; tier budget). All fixed below; tier 2 allows one
+  review, so none further.
+
 * **Question:** on names the model never saw, does one network conditioned on hole cards and on a profile of the
   player give a better range at shown hands and a better prediction at big-pot decisions than X1's prior with the
   λ range (X3)? It decides whether G1 can replace X1 at the lookahead's root and feed B0a for unseen names. Clone
@@ -399,8 +403,8 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Extraction (`g1_extract.py`, cores 18-19, nice 19):** every decision of both seats, so each match gives two
   modelled players. Per decision: D2a's 176 features from `base_vector` unchanged, the two profile blocks, action
   code and size bucket, legal mask, hand id, player and opponent name ids, match time, chips at stake (pot plus
-  to_call in bb), the big-pot tag (facing an all-in or a bet of at least 60% of the remaining stack, or the
-  player's own all-in). Per hand: board mask, the player's hole cards if shown. Shards of 500 matches as npz.
+  to_call in bb), the big-pot tag, from pre-action state only (facing an all-in or a bet of at least 60% of the
+  remaining stack, or the player's remaining stack at most the pot before acting; never the action taken). Per hand: board mask, the player's hole cards if shown. Shards of 500 matches as npz.
   * Hidden cards: EM exactly as D2a (uniform prior over combos without board cards, posterior proportional to the
     product of that player's action likelihoods in the hand, K = 32 sampled combos, shown hands fixed with weight
     1, 5 start epochs on shown hands, 8 iterations). Both hands are shown at 99.9% of non-fold endings (215,203 of
@@ -424,7 +428,10 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Metrics:** R, range score: at held-out hands with the player's cards shown, log posterior of the actual holding
   after all its actions minus log uniform over live combos (nats per hand, as X3a); overall and for final pots of
   20 bb or more. P, public big-pot prediction: log loss of the action code at held-out big-pot decisions, the model
-  marginalized over its own posterior range from earlier actions (no card given). Reported only: likelihood with
+  marginalized over its own posterior range from earlier actions (no card given). P's outcome
+  space is X1's five classes (`rl/oppmodel.py`: FOLD, CALL with check merged, RAISE_POT, RAISE_OVER, ALLIN): G1's
+  CHECK and CALL map to CALL, its RAISE code and size bucket to RAISE_POT or RAISE_OVER by X1's own pot boundary;
+  both models renormalized over the classes legal at the decision. Reported only: likelihood with
   true cards, its chip-weighted form, predicted against actual fold rate by bet-size bucket.
   * Baselines on the same rows: for R the λ range of X3 (`tools/x3_range.py`, holdem-x2r; +1.09 nats, 14.20), and
     uniform; for P, X1's prior with its in-match update (`rl/oppmodel.py`). If `x3_range.py` cannot run over an
@@ -435,10 +442,14 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Rule (pre-registered):** leave-name-out rows pooled over folds, bootstrap over held-out names (2,000 resamples,
   seed 47), for the better of U and W chosen by R on the training folds' own validation split (never on held-out
   names):
+  The rule's unseen-name figures use the cold-start path: held-out names scored with the history block zeroed
+  and flag 0; the filled path (history from the name's own earlier matches) is reported beside it.
   1. Pass: R beats the λ range by at least +0.10 nats per shown hand with the 95% lower bound above zero, and P is
      not worse than X1 (upper bound of G1's loss minus X1's under +0.02). Then G1 step 2: G1 as the lookahead's
      root range, read on real code as X3b was, plus capacity arms on the GPU.
-  2. Pass on the time split's "100 or more" group, fail on unseen names: a known-name model; serves B0a and the
+  2. On the time split's "100 or more" group, against X1 with its per-name profile fitted on pre-cutoff matches
+     plus in-match update (and the λ range under those frequencies), rule 1's thresholds pass, bootstrapped over
+     the names in that group (seed 47), while rule 1 fails on unseen names: a known-name model; serves B0a and the
      lookahead for names with history; cold start stays with X1; no more GPU on the unseen-name question.
   3. Fail both: G1 stops; recorded.
   Why +0.10: X3a's range fix was about 1 nat and moved the lookahead about 3 points (14.20, 14.21); a tenth is the
@@ -450,13 +461,18 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   held-out name or sibling as a modelled player in its fold's training shards (plant: split by match); 3 unshown
   hands give no known combo, shown combo is the logged one (plant: opponent's cards); 4 extraction vectors equal
   `d2_clone.base_vector` for both seats (plant: seat swapped); 5 W's weights capped at 200, mean 1 (plant: no
-  cap); 6 the marginal public prediction sums to 1 and equals a brute-force combo sum on a toy net (plant: uniform
+  cap); 5b the big-pot tag reads no field of the predicted decision (plant: tag by the action taken); 5c held-out
+  rows on the cold-start path carry a zero history block and flag 0 (plant: filled history); 5d G1 and X1
+  probabilities on X1's five classes each sum to 1 on the same rows (plant: CHECK dropped from CALL); 6 the marginal public prediction sums to 1 and equals a brute-force combo sum on a toy net (plant: uniform
   prior marginal); 7 R on a toy equals hand-computed nats (plant: prior includes board cards); 8 literals (30, 5,
   300, 30%, 32, 8, 20 bb, 200, +0.10, +0.02, seeds 92 and 47, the cutoff time).
 * **Cost and box:** extraction 1 to 2 core-hours on cores 18-19 at nice 19 (shared with A0's read); fits on the GPU
   one at a time, about 6 GPU-hours; baselines and reads about 1 core-hour. No container, so the bpopp queue is
-  untouched. A pilot (fold 1, loss U, timed) fixes the estimate before the other eleven. **Stop:** 24 GPU-hours or
-  8 core-hours of extraction; what finished is recorded.
+  untouched. A pilot (fold 1, loss U, timed) fixes the estimate before the other eleven; if it projects the twelve past
+  the stop, W is dropped from the folds first, then folds cut to 3. **Stop:** 24 GPU-hours or 8 core-hours of
+  extraction; what finished is recorded. **Tier exception:** tier 2's two-box-hour cap is kept for cores and the
+  bpopp queue (3 core-hours here at most besides extraction's stop); GPU-hours are exempt because the GPU has no
+  other consumer under the ordering.
 * **Consumers:** the lookahead's root range (step 2), B0a for names without code, X5's posterior, B1's population
   only indirectly.
 * **Executor checks before the run:** the replay timestamp field (else order by API match id and say so); A0 Part
