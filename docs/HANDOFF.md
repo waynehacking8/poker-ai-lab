@@ -24,7 +24,9 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   it001200 (literal commands in the roadmap D0 spec), `d0_read.py rule`, record 14.38, outcome verifier, tell Fable.
   Stopped before it 1,200 = void, rerun once. MIX OR CONTINUATION = run D-null (heur 10000).
 * **AD1 built** (local: holdem-rl `ad1` 0482bff, holdem-x2r `ad1-x2r` eb5d747; `sdk_prior.npz` c77f058e…, record in
-  the roadmap AD1 spec). Outcome verifier running. Not trained: gated by AD0.
+  the roadmap AD1 spec). Verifier 1 REFUTED: amendment items 2 to 4 (B1 arm on seed 104,
+  "AD1 minus B1" reading with D0's verdict) missing; executor fixing on ad1-x2r since 17:24, then a fresh verifier.
+  Not trained: gated by AD0.
 * **AD0 build running** (executor; worktrees poker-ai-lab-ad0 branch `ad0` from 0482bff, poker-ai-lab-ad0x2r branch
   `ad0-x2r` from eb5d747; spec research 79eac81). Code and tests only. I run data (seed 106), GPU fits and play
   (seed 95) after D0's reads, then the rule.
