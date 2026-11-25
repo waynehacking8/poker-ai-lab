@@ -24,7 +24,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   train.py logs the last minibatch, often a 1 to 306 sample tail; the weights moved normally. Read unaffected.
   Fix for the next run on b1-rl (local): 666ab39 and e287ada (batch-mean logging, approx_kl and n, tail fold,
   3-row guard; PPO update bit-exact to 59b1ad3 by the verifier). Verifier REFUTED the guard's checkpoint name for a
-  NaN inside a low streak; fixed in 233c549 and 126c673 (tests and plants r5, r6 caught); fresh verifier on it.
+  NaN inside a low streak; fixed in 233c549 and 126c673 (tests and plants r5, r6 caught); fresh verifier CONFIRMED.
   Not shipped to the box yet. Next-run budget 180 minutes needs a dated amendment.
   * **Screen done 13:49 UTC: chosen it001200** (sha256 5e9c6fc6…). Score 70.53 (bp100 65.3, tight_sticky 92.0,
     sticky_overbettor 78.6, small_ball_b 80.4; never_fold_pre 93.8, loose_passive 90.6; league lowest 83.5). All
