@@ -1,10 +1,10 @@
 # HANDOFF: Chipzen Season 16 hold'em bot
 
-Updated 2026-11-24 10:55 UTC. Read "Now" first; the session context is compacted often, so this file is
+Updated 2026-11-25 04:40 UTC. Read "Now" first; the session context is compacted often, so this file is
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-24 10:55 UTC, box clock UTC+8; Wayne paused the session here to continue in a new one)
+## Now (2026-11-25 04:40 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project (he may write Chinese; when he asks "中文說明", answer in
 Traditional Chinese). Think from first principles, not narrowly. Goal is the long-term "future king", not the
@@ -12,56 +12,26 @@ Season 16 deadline. He accepts my recommendations when worth it; uploads and swa
 Process gates still hold: plan-verifier READY/REVISE (cap 2), outcome verifier CONFIRMED/REFUTED. Keep gb10-d
 busy on purpose. Plan of record: `docs/research/roadmap.md` on branch research ("Where we are" at the top).
 
-**Results this session (research experiments, branch research, pushed):**
-* 14.20 X3a: X1's range misleads (below the uniform prior); the λ range (R4) fixes it; frequency error is the
-  larger part of the remaining gap.
-* 14.21 X3b: lookahead with the λ range, N = 128: real bots +5.1 [+2.5, +7.7], rule pool -1.7 [-3.6, +0.3]
-  (sticky_overbettor -11.7). Not a candidate.
-* 14.22 R1: N = 32 fits the arena (box core 0.25 to 0.43 s mean, 1.0 s max per decision) and keeps the gain:
-  `ext:` +2.8 [+0.9, +4.7] paired, rule pool +0.1 [-1.6, +1.8], sticky -3.0. N = 8 loses 12 on both. Deploy
-  path is the lookahead at N = 32 (no distillation needed for runtime). Not a candidate (rule lower -1.6).
-* 14.23 X4 where: X1 predicts the middle in every rule cell (sticky bets 0.76 to 0.83 when checked to, X1 about
-  0.47). Cause: unnamed opponents use (in-match counts + k_im x prior) / (count + k_im), k_im = 8, and a spot sees
-  about 10 actions per match.
+**Done this session (research c6f4372, pushed):**
+* 14.24 X4 step 2: k_im sweep, CHOSEN none (best k_im 4, lower bound -0.0001); k_im stays 8. Verifier CONFIRMED.
+* 14.25 D2a stage 2: Wolf and autodidact clones trusted from 1,000 matches; Ashwing not (5,000 clone +6.8).
+  Every adaptive clone is easier than the real bot by 2 to 7 points; better likelihood, weaker clone.
+* Live record in the archive: our bots 7 matches, 6 won. Only loss: v4 vs MonteCarlo (unrated, 2026-11-24
+  18:30 UTC, match 4b2a2beb), busted in 26 hands: folds to flop/turn bets (~3,500), river value raises into
+  better hands (~3,500), river all-in 4,798 into a 150 pot with one pair (bust). The site's "1-0, 100%" counts
+  rated matches only (Wayne asked why it said won).
+* No Season 16 league match of v4 in the public API yet (only challenges and daily house tournaments).
 
-**Running unattended on gb10-d (nothing needs me; read the markers):**
-1. **X4 step 2, the k_im sweep** (pre-registered in roadmap X4, "Step 2"): `~/poker-ai-lab-x4s`, holdem-x2r
-   cb12f5f, `tools/x4_sweep_run.sh` (pid 2156926, detached), cores 0-3. Done marker `logs/x4s/done`, failures
-   `logs/x4s/failed`, the read with the rule's verdict in `logs/x4s/report.txt`. Started about 10:40 UTC;
-   autodidact in four parts first (about 40 min), then the other cells (minutes), then the report.
-   * The code (cb12f5f) was written by an executor I stopped when Wayne paused; it was NOT verified. Before
-     using the result: read tools/x4_sweep.py, run tests/test_x4_sweep.py and tests/test_oppmodel.py, and check
-     that the k_im = 8 arm reproduces 14.20's R4 per cell (the report compares it against REF
-     `~/poker-ai-lab-x3v2/logs/x3a`). Then a fresh outcome verifier.
-   * Power warning, already measured (`logs/x4s/shares.txt`): 90% of the held-out replay actions go through a
-     named profile (k = 20, w = 2), only 10% through k_im. The deciding pool (ext: + replays) will be carried by
-     the simulated `ext:` cells. Say so when reading it.
-   * If an arm is chosen: the next step is the N = 32 match read (seed 49, rule and `ext:` cells paired, against
-     an N = 1 off arm with the same k_im). `tools/x2r_oracle.py` needs a k_im option first. If none: X4 moves to
-     the per-name prior from D's archive.
-2. **D2a stage 2** (roadmap D2a): `~/poker-ai-lab-d2s2`, holdem-d2 3f0d58d, `/tmp/d2_queue.sh` (pid 2008260)
-   then `tools/d2_eval.sh` OUT=logs/d2, cores 4-19 plus GPU, started 09:32 UTC. At 10:50 UTC ashwing finished
-   generation, fits and its arena reads; autodidact_fast was running; wolf follows. Expected end about 11:30 to
-   12:30 UTC. Markers: `logs/d2_queue_end` (exit code and time), `logs/d2/done` only when nothing failed,
-   `logs/d2/failed`. Per bot: `logs/d2/<bot>/read1_63.json` (or `_64` after a failed control), `read2_*.json`.
-   * Read it against the pre-registered rules in roadmap D2a (read 1: paired on (seed, hero_seat), z 1.645, the
-     90% interval inside ±5 points; the control must pass; read 2: held-out log-likelihood). Record as
-     experiments 14.24. If clones pass, D3 (style population, GPU training) becomes the next GPU work.
-   * The running job uses the old d2_eval.sh (table fits serial on one core, about 17 idle minutes per bot);
-     holdem-d2 d621a16 fixes it for later runs.
-3. **Replay fetcher** (`~/chipzen-fetch`, `tools/fetch_chipzen_all.sh`, pid 1838186): 4,381 files in
-   `~/chipzen-replays` at 10:50 UTC; sleeps 30 min on a 429 and resumes; ends with `~/chipzen-replays.done`
-   when a pass saves nothing. The only fetcher: never start a second one.
+**In flight:**
+* A Fable 5.2 agent rethinks the whole roadmap from first principles (Wayne suggested it, tokens plentiful).
+  Read-only. Its proposal feeds the X4 step 3 and D3 specs; then plan review, then queue on gb10-d.
+* Replay fetcher (`~/chipzen-fetch`, pid 1838186): 19,488 files at 03:50 UTC, pass 2. The only fetcher.
 
-**Box after these end:** idle. Nothing else is specified enough to queue without me. GPU is idle except the
-D2a fits.
+**Box:** gb10-d idle since 2026-11-24 12:28 UTC (both jobs done). Next work goes on it after the plan review.
 
-**Next session, in order:**
-1. Read `logs/x4s/report.txt` (after verifying cb12f5f as above) and record experiments 14.24 or 14.25.
-2. Read D2a stage 2 and record it.
-3. Decide X4's next step (k_im match read, or per-name prior) and D3 from those two reads; write specs, plan
-   review, then queue on the box.
-4. M3: v4's Season 16 matches are in the fetched replays; analyze how v4 actually loses.
+**Next, in order:** synthesize the Fable proposal into the roadmap; specs (X4 step 3 per-name prior from the
+archive, D3); plan review; queue; M3 (v4's live losses: measure the overfolding and river shoves in league
+logs, MonteCarlo has 195 archived matches).
 
 **Branches not pushed (local only, by rule):**
 * holdem-x2r, `C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r`, tip cb12f5f (X3a/X3b/R1/X4 tools; ext bots
