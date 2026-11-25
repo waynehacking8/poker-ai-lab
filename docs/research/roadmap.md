@@ -783,6 +783,16 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Judge literal for the next candidate slice (any):** it reports the solver class on bp100 and on the Blueprint
   clone side by side; a candidate that gains on one and loses on the other with both intervals excluding zero is
   flagged for Wayne, not passed on the headline.
+* **Built (2026-11-26, local only):** holdem-rl `ad0` 98058f7, f770230, 8b7ea8b (on 0482bff): `rl/models/ad0_prior.npz`
+  (sha256 `2ea5aef1…6368`, the bp100 and `small_ball` rows of `sdk_prior.npz`), `tools/ad0_log.py`, `tools/ad0_fit.py`,
+  `tools/ad0_run.sh check|data|fit|relabel|refit`, `rl/ad0_student.py`, registry 95/106/107. holdem-x2r `ad0-x2r`
+  50b4d7e, 5209b6a, 541bf81 (on eb5d747): `rl.eval_arena --student`, `tools/ad0_play.sh play N|read N`,
+  `tools/ad0_read.py`. Tests: holdem-rl 107 passed, 6 skipped with the data link; holdem-x2r 86 passed; plants 34 of 34
+  and 28 of 28. Choices where the spec is silent or off: the listed data cells add to 9,000 matches (the "10,000" above
+  was an addition slip); the hold-out is by pair seed, both seats together (seats share deals); the fit's patience is
+  3 epochs, keeping the best held-out epoch (a first build ran fixed cosine steps and was corrected before any run);
+  after the relabel round rules 1 to 4 then rule 7; "best student" in rule 6 is the highest overall held-out bp100
+  agreement; relabel states of all four students are pooled. Outcome verifier: running.
 * **Review record:** plan review 1 REVISE (no Python path for the `bot:` clones and their seeded rows described a
   different player; seeded students would meet seeded ext inputs at play never seen in data; the label at the
   wrapper was undefined; seeds 95 and the relabel round unregistered and unbudgeted). Fixed above: clones dropped,
