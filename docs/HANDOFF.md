@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 12:06 UTC, box clock UTC+8)
+## Now (2026-11-25 12:13 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -33,8 +33,10 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
     passes the league screen. Delete ~/b1-build after the reads.
   * **Amendment 10:09 UTC before any read (research 4732eda):** read set to 2,700 plus latest; `loose_passive`
     guard cell (mr_hide's style); headroom and decision-share lines; fb2-900's seed-95 baseline arm now on cores
-    18-19. Built in b1-x2r e3cc88d (36 B1 tests, 33/33 plants), shipped to ~/poker-ai-lab-x2r; outcome verifier
-    on it. `loose_passive` params frozen (distance 0.152 and 0.150 on seeds 3 and 4). fb2-900 baseline arm
+    18-19. Built in b1-x2r e3cc88d, verifier CONFIRMED; then 8be6e38 (confirm stops on a missing guard cell,
+    37 B1 tests, plant caught), all shipped to ~/poker-ai-lab-x2r. **Before confirm:** move
+    logs/b1/confirm/fb2/ext:wolf.* to confirm/fb2_1819/ so wolf's fb2 arm reruns with the candidate's placement
+    (wolf thinks on a 300 ms wall clock). `loose_passive` params frozen (distance 0.152 and 0.150 on seeds 3 and 4). fb2-900 baseline arm
     (`b1_judge.sh baseline`, cores 18-19) wrote 10 of 12 cells to logs/b1/confirm/fb2/; ext:autodidact and
     ext:wolf finish about 13:00 to 13:30 UTC, marker ~/x2r_baseline.rc (0 = complete; rerun the same command if it
     dies, finished cells are skipped).
