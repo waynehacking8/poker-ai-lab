@@ -308,6 +308,197 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Runtime note for B0a (if built):** one river enumeration over at most 990 holdings per decision with numpy,
   well under R1's 0.4 s per lookahead decision (14.22); measured in B0a's own spec.
 
+### A0. The re-aimed judge: field map from the archive, a small-ball aggressor cell, bp100 in the lookahead tool (spec, 2026-11-25)
+
+* **Question:** which opponent classes exist, how strong and how common is each, and are the envelope's
+  "unmeasured, to A0" claims true? Plus two judge cells for T2. Instrument, no rule, except the fixed acceptance
+  checks and fixed definitions below (fixed so no number is chosen after seeing it).
+* **Probe facts behind it (single pass, the roadmap agent's `a0probe.py` with `style_map.hand_stats`, 16,061
+  files, 289 names):** slopBot (390 matches) bets 95% of unbet flops at about 0.44 pot and folds 77 to 86% when
+  bet into; HRT and Shadow bet 1.3 to 1.6 pots and fold 16 to 23%. So "the aggressors" are two families: Shadow
+  is 0.14 from the existing `sticky_overbettor` target (HRT 0.37), slopBot is nearly alone (nearest names 0.36).
+  MonteCarlo is 0.09 to 0.16 from Blueprint, NashForge, fermat6 on the 8 axes, which cannot see hand selection or
+  adaptation, hence step 6's second test.
+* **Where it lives: holdem-x2r, one executor, one worktree.** The style vector that defines the 0.25 check is
+  `tools/style_map.py` there, the rule bots are `holdem/opponents.py` there, and T2 runs `tools/x2r_oracle.py`
+  there; one definition of the distance. B1 later cherry-picks the bot to holdem-rl.
+* **Owner files:** `tools/a0_field.py`, `tests/test_a0_field.py` with fixtures `tests/data/a0/` (hand-written
+  replay files), `holdem/opponents.py` (one StyleBot subclass, one attribute), `tools/style_bots_check.py` (one
+  TARGETS entry), `tools/x2r_oracle.py` and `rl/search.py` (bp100, `--k`, the class tag), `tests/test_a0_cells.py`,
+  `tools/a0_mutate.py` (plant runner), `tools/README.md` (one line per tool). **Non-goals:** no change to the
+  fetcher, `rl/oppmodel.py`, the four existing style bots' behaviour, the deployed bot, training code; no clone;
+  no request to chipzen.ai. **Writes on gb10-d:** `~/poker-ai-lab-x2r/logs/a0/` only (box tree refreshed from the
+  commit). **Rollback:** revert the holdem-x2r commits, delete `logs/a0/`.
+* **Part 1, `tools/a0_field.py ARCHIVE_DIR --out logs/a0`** (numpy and stdlib; one pass, JSON tables and a
+  printed summary):
+  1. Inventory: poker files, names, matches per name by `match_type` and `rated`, first and last match time per
+     name. The executor reads the timestamp field name from a file; if none exists the tool orders by fetch
+     listing and says so.
+  2. Style vectors: `style_map.hand_stats` imported, not copied, for names with 100 or more hands; plus four axes:
+     fold to a postflop bet in three size buckets (under 0.8 pot, 0.8 to 3, above 3) and share of unbet flops bet.
+  3. Fold by size against break-even: per name and street, fold rate in buckets 0.35 to 0.8, 0.8 to 1.5, 1.5 to 3,
+     3 to 8, above 8 pot next to the bucket's mean b / (P + b) (the `m3_leaks.py` method), with counts.
+  4. Classes: average-linkage clustering of the 12-axis vectors of names with 30 or more matches, cut at 0.25 on
+     the 8 base axes (E6's threshold); clusters labelled by a seed name they contain: Blueprint (solver),
+     slopBot (small-ball aggressor), PluriBot (big-bet aggressor), DeepStack (station); else "other"; names under
+     30 matches "tail". House bot: marked by the API if a field does (executor checks), otherwise a name in 20% or
+     more of all other names' schedules. Reported: members, matches, share of all and of rated matches per class.
+  5. Rating: Bradley-Terry by maximum likelihood, one parameter per name with 30 or more matches, the rest pooled
+     as "tail", ridge prior of one virtual win and one loss against the mean player, 200 bootstrap resamples over
+     matches (seed 47) for 90% intervals. Schedule checks printed beside it: largest connected component and who
+     is outside; refit on rated matches only; every pair with 30 or more matches whose observed rate differs from
+     the fitted one by more than 10 points (slopBot against Blueprint, 125 of 199, appears or not). Per name and
+     class mean. Bradley-Terry over raw rates because it conditions on who was played; not Elo (order dependent,
+     needs a K factor).
+  6. MonteCarlo in the solver family: "yes" needs both: it falls in Blueprint's cluster in step 4, and its
+     fold-by-size profile and shown river shove range (hand categories at called river all-ins) lie inside the
+     min to max of Blueprint, NashForge and fermat6 per bucket, widened by its own binomial 90% interval.
+     Adaptation probe (reported): its unbet-flop bet share per match against the opponent's fold-to-flop-bet rate
+     in that match's earlier hands, slope with interval.
+  7. Top bots exploitable: for the top 10 by rating, (a) best observed opponent: the highest Wilson 95% lower
+     bound of any name's win rate against it over 30 or more matches; (b) over-folding: the largest excess of its
+     fold rate over break-even in any bucket with 200 or more spots; (c) for the solver proxy, T1's gain (cited).
+     "Exploitable" holds when (a) is above 55% or (b) above 10 points. L8 is over-weighted if that holds for at
+     least 5 of the 10; otherwise E3 stays a primary metric as in Revision 2.
+  8. Cold start: matches in time order; per seat, how many earlier archived matches its opponent's name had (0, 1
+     to 9, 10 to 99, 100 or more); shares over all, rated, and the top 10. New names per week; share of names in
+     the last 14 days that are a version suffix of an older name (same stem after stripping trailing digits and
+     `-vN`).
+  9. Swing: share of matches with a hand where a stack changed by at least half the smaller stack at that hand's
+     start; and by at least 5,000 chips; street of the final hand's last all-in. Re-measures the 76% figure.
+  10. Shown all-ins: called all-ins with both hands shown per name and street, counting covering-stack shoves.
+* **Part 2, the small-ball cell `SmallBall(StyleBot)`, name `small_ball`, in STYLES** (evaluation only). StyleBot
+  gains `street_bet = (1.0, 1.0, 1.0)`, a multiplier on `bet[i]` per flop, turn, river, default 1 so the four
+  existing bots are unchanged. Starting parameters (tuned only against the style distance, never a win rate):
+  `open_p 0.36, play_p 0.28, face_p 0.45, pre_size 2.5, bet (0.93, 0.95, 0.97, 1, 1), street_bet (1.0, 0.92,
+  0.64), bet_size 0.44, rr (0, 0, 0.02, 0.1, 0.2), cont (0.03, 0.25, 0.75, 1, 1)`. Draft target `vpip 0.72, pfr
+  0.64, shove 0.04, fold_pre_raise 0.40, post_aggr 0.73, post_fold_bet 0.80, bet_size 0.22, showdown 0.13`,
+  replaced by Part 1's slopBot vector once the committed tool produces it (the tool's number is the target of
+  record); `pre_size` follows Part 1's measured opening size.
+  * Acceptance (as E6): `tools/style_map.py sim small_ball rl/models/fb2_it000900.npz 300 3 4 OUT.json`, then
+    `style_bots_check.py`: distance under 0.25, on seeds 3 and 4 both.
+  * Strength sanity, reported, labels the cell: bp100 against `small_ball`, 400 matches (bpopp queue). If bp100
+    wins more than 60%, the cell is labelled "style cell, not a strength proxy" wherever it is used and the
+    aggressor class's strength judge is L0 only (slopBot beats the live Blueprint 63%, 14.26; a bot folding 80%
+    to bets is easy for whoever bets).
+  * The big-bet aggressor is the existing `sticky_overbettor`; T2's aggressor cell is `small_ball`.
+  * If `small_ball` cannot get under 0.25 after three parameter rounds, it ships with its distance stated and T2
+    names it "nearest reachable" (the reversible choice; the other is a new bot class).
+* **Part 3, bp100 in `tools/x2r_oracle.py` for T2** (today it refuses any non-STYLES name except `ext:`, line 422):
+  1. `--opp bp100` with `--model x1` or `x3`, factory `rl.eval_arena.make_bp100`; refuses unless
+     BP_IMAGE=bpopp:v011.
+  2. `--k FLOAT` (default 4.68): `rl.search.win_prob(x, T, k=None)` takes an optional curvature (K is a module
+     constant at `rl/search.py:36`) and the hero passes its own. Default output unchanged.
+  3. Every decision row gains `cls`: `facing_allin` (B0 step 1's definition), `hero_shove_cheaper` (policy action
+     all-in with another non-fold action legal), `other`.
+  4. `--model oracle` with bp100 stays refused (a second container seat inside rollouts; B0 step 1 covers the
+     true-range question offline).
+* **Tests, each shown to fail on a planted fault (`tools/a0_mutate.py`, as `d2_mutate.py`):**
+  1. Fixture archive of 6 names: Bradley-Terry order and one pair's fitted rate hand-computed (plants: wins and
+     losses swapped; ridge removed, the unbeaten name diverges and the finite check fails).
+  2. A fixture 2-pot bet lands in the 1.5 to 3 bucket and the fold counts for the folder (plant: size measured
+     after the bet).
+  3. Cold-start counts use only earlier matches (plant: all matches of the name).
+  4. Swing: a 6,000-chip hand counts under both definitions; a 4,000-chip hand at 6,000 effective under the first
+     only (plant: one definition aliased to the other).
+  5. A fixture name's style vector equals `style_map.vector` on the same hands (plant: a copied, edited
+     `hand_stats`).
+  6. The shown all-in detector counts a covering-stack shove (plant: bettor's own stack only).
+  7. The four existing style bots give the same actions on a fixed seed and state stream before and after the
+     StyleBot change, as a hash recorded at the pre-change commit (plant: `street_bet` default 0.9).
+  8. `small_ball` literals: the target, the 0.25 bound, seeds 3 and 4 (plant: bound 0.35).
+  9. On gb10-d: `x2r_oracle --opp bp100 --model x3 --n 1 --matches 4 --seed 9 --workers 2` runs, twice gives
+     identical rows, and refuses under BP_IMAGE=bpopp:v010 (plant: guard removed).
+  10. `--k 0.80` gives `win_prob(5000, 20000)` = 0.5498 and the default stays 0.9120 (plant: hero ignores `--k`).
+  11. A hand-built state facing an all-in is tagged `facing_allin`; a policy all-in with a legal call is tagged
+      `hero_shove_cheaper` (plant: tags swapped).
+  12. `docker ps --filter name=bpopp-` is empty within 60 s after test 9.
+* **Where it runs:** tests 1 to 8, 10, 11 and the `small_ball` style sim on the PC or box without containers. The
+  archive read on gb10-d cores 18-19 at nice 19 (under 10 minutes on one core by the probe). Tests 9 and 12 and
+  the strength sanity start containers: one bpopp-queue slot, about 15 minutes, after T1 and B0 step 1.
+* **Read:** one experiments.md section, a line per "unmeasured, to A0" claim: confirmed, refuted or changed, with
+  the number. The class table, rating, cold-start shares and swing replace the envelope's one-pass figures.
+* **Consumers:** T2 (the cells and Part 3), the L8 weight (step 7), family pools of later reads (step 4), L0's
+  opponent list and weights (steps 4, 5, 8), G1 and B0a (steps 8, 10), X5 and K1 (class ratings as the prior win
+  rate that sets K).
+* **Cost and stop:** executor about half a day; box about 0.5 box-hours. Stop at 2. An acceptance test still
+  failing after two fix rounds stops the slice.
+* **Flag carried to T2:** at R1's 0.4 s per lookahead decision a bp100 match is about 45 s of hero time, so 2,000
+  matches per arm is about 25 core-hours; T2's spec takes a measured rate from test 9's run at N = 32 before it
+  fixes n.
+* **Unverified:** the timestamp and house-bot fields in the replay JSON; whether rated fixtures can be told from
+  challenges (14.26: the API labels both `challenge`); the probe's style numbers.
+
+### D2b. Is the solver proxy clonable? D2a's protocol on bp100 (spec, 2026-11-25)
+
+* **Question:** does D2a's neural clone, fitted to arena-visible logs of bp100, play like bp100 against us, and
+  from how many matches (100, 1,000, 2,000)?
+* **Unchanged from D2a (spec above, 14.25):** replay-shaped logs with hole cards only at showdowns and a separate
+  true-cards file; feature builder, network, EM (start 5 epochs, 8 iterations, K = 32); the table baseline;
+  read 1's cells, pairing on (seed, hero seat), z = 1.645, pass when the 90% interval lies within ±5 points; the
+  control and its one rerun; read 2 on held-out logs. D2a's power figure carries over because fb2-900 is at
+  59.85% against bp100 (14.27), the rate it assumed.
+* **Changes:**
+  1. The cloned bot is `bp100`: `d2_generate.make_target` and `d2_clone.make_opp` (kinds `real` and `control`)
+     gain a bp100 branch returning `bpopp.opponent.make_bp100()`; its container is cached per process, so a
+     worker loads the blueprint once. `play_one` already calls `set_seed(pair * 13 + hero_seat)` and `Offset`
+     shifts it for the control. Both refuse bp100 unless BP_IMAGE=bpopp:v011. Eval card BP_* exports unchanged.
+  2. Seeds: fitting logs 83 (2,000 matches), held-out 84 (1,000), read 1 85, control rerun 86. Sizes are the
+     first matches by index.
+  3. Hero mix: D2a's six, unchanged (fb2-900's bare policy, the heuristic bot, the four style bots, k mod 6):
+     comparable with 14.25; archive names are logged against a mixed field, so a mix-fitted clone is the honest
+     test; bp100 keeps no opponent statistics, so the mix changes coverage, not behaviour. At size 100 only about
+     17 matches are against our policy; the ladder measures that.
+  4. Read 1 cells: real, control, neural 1,000, neural 2,000, table 2,000; fb2-900 as hero with the all-in answer
+     and search off (`rl.eval_arena.make_hero`), 3,000 matches per cell. The real cell replicates S2r: a value
+     outside [56.5, 63.2] (S2r's interval widened by this cell's 1.8) stops the read as a harness fault.
+  5. Read 2 additions, reported, not deciding: per-decision log-likelihood weighted by chips at stake (pot plus
+     to_call, in big blinds), and unweighted on the big-pot class alone (B0 step 1's facing-all-in definition
+     plus the bot's own all-ins). Tests 14.25's guess that cheap decisions dominate the score.
+* **Rule (the envelope's):** the control passes first (one rerun on seed 86; a second failure leaves bp100
+  unjudged, a harness fault). The neural method passes at the smallest of 1,000 and 2,000 whose cell passes. A
+  pass at size S: archive clones of solver-family names (A0's cluster) with at least S matches may be training
+  opponents in B1 and D2c subjects, never judges. Fail at 2,000: no clone of the family is used and B1 trains
+  against bp100 itself. A 1,000 pass with a 2,000 fail reads as Ashwing in 14.25: not trusted. (Archive counts:
+  S = 1,000 reaches Blueprint 2,242 only, fermat6 990 and NashForge 882 just under.)
+* **Owner files (executor, holdem-d2, a worktree):** `tools/d2_generate.py` (`make_target`, the image guard),
+  `tools/d2_clone.py` (`make_opp`, read 2's two lines), `tools/d2b_queue.sh` and `tools/d2b_fit.sh` (new),
+  `tests/test_d2b.py` (new), `tools/d2_mutate.py` (plants extended). **Non-goals:** no change to the feature
+  builder, network, EM, `d2_read.py`'s rule, `tools/d2_eval.sh`, D2a's literals or tests; nothing reaches the
+  deployed bot. **Writes:** `~/poker-ai-lab-d2s2/logs/d2b/` only. **Rollback:** revert, delete `logs/d2b/`.
+* **Two runners, so the serial bpopp queue holds:**
+  * `tools/d2b_queue.sh`, the only one that starts containers, alone in its queue slot: generation seeds 83 and
+    84, then read 1's `real:bp100` and `control:bp100` cells on 85 and on 86 (86's rows opened only if 85's
+    control fails), 6 workers; ends by checking `docker ps --filter name=bpopp-` is empty, writes
+    `logs/d2b/queue.done`.
+  * `tools/d2b_fit.sh`, never starts a container: neural fits at 100, 1,000, 2,000 on the GPU, table fits beside
+    them one core each, then the clone cells (neural 1,000, neural 2,000, table 2,000 on 85; 86 only if needed),
+    `d2_read.py`, read 2. Pinned to cores 16-17, nice 10, 2 workers. Seeded, so sharing the box changes times,
+    not outcomes; the executor first checks `holdem/engine.py` and `rl/bot.py` for any wall-clock limit that
+    contention could trip.
+* **Tests (`tests/test_d2b.py`, gb10-d, eval card exports), each shown to fail on a planted fault:**
+  1. Two generated matches in one process use one container (plant: a new container per match).
+  2. The same match index generated twice gives byte-identical files, a different index differs (plant:
+     `set_seed` not called); under bpopp:v010 the generator and the arena cell refuse (plant: guard removed).
+  3. D2a's test 1 on bp100 logs: chips conserve, hole cards only in showdown hands; a hand where the client
+     repaired or clamped the container's frame logs the action the engine applied (plant: logging the frame).
+  4. The control reaches the container with the offset seed and differs from the real cell in at least one of
+     20 matches (plant: `Offset` not applied to bp100).
+  5. The fit path never opens the true-cards file, on bp100 logs (D2a's test 3, parametrized).
+  6. Fit-side vectors equal play-side vectors at the same bp100 decisions (D2a's test 2, parametrized).
+  7. Literals: seeds 83 to 86, sizes 100, 1,000, 2,000, 3,000 matches, ±5, z 1.645, the S2r replicate band.
+  8. `d2b_fit.sh` end to end on a 12-match toy leaves `docker ps --filter name=bpopp-` empty throughout (plant: a
+     `real:` cell moved into it); `d2b_queue.sh` leaves it empty within 60 s of exit.
+  9. Read 2's chip-weighted score on a two-decision toy equals the hand-computed value (plant: weights dropped).
+* **Cost:** queue slot about 3,000 generated matches plus four cells of 3,000, roughly 12 container-minutes at
+  S2r's rate (rule heroes unmeasured; budget 30). Off the queue: fits about 0.1 GPU-hour, table fits about 25
+  CPU-minutes, clone cells about 1 core-hour on two cores. Under 1 box-hour; stop at 2.
+* **Consumers:** B1 (training opponents: solver-family clones or bp100 itself), D2c (transfer subjects), G1
+  (whether pot weighting moves the score toward strength).
+* **Limits, stated in the read:** bp100 is the blueprint with the resolver off; whether the archive's Blueprint,
+  NashForge or fermat6 resolve or adapt is unknown, so a pass licenses their clones as training opponents only.
+  A passing clone is still biased easy by 2 to 3 points (14.25), so it never judges.
+
 ## Revision 2 (2026-11-23): the problem from first principles
 
 Wayne: "The biggest fault that you made is thinking too narrowly." S0, S2 and the diversity slice I had
