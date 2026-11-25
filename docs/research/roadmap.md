@@ -601,28 +601,55 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   true cards, without containers, on logs that exist.
 * **Data:** D2a's logs on gb10-d (`~/poker-ai-lab-d2s2/logs/d2/`) for `ext:ashwing`, `ext:autodidact_fast`,
   `ext:wolf`: fitting logs (seed 61, sizes 100 and 1,000 by index) and held-out logs (seed 62, 1,000 matches) with
-  `true_cards.jsonl`. No new arena seed. The executor checks first that these logs exist and that G1's feature
-  builder reads them unchanged.
-* **Arms, per bot and size:** (a) the λ range under per-name X1 fitted on the same logs; (b) D2a's per-name network
-  from scratch (exists for 1,000; refit for 100); (c) G1's network (fold-0 W fit) fine-tuned on the bot's logs, same
-  EM, 4 iterations, learning rate 3e-4; (d) G1 as is, the bot's logs only as its history profile.
+  `true_cards.jsonl`. No new arena seed. Only the bot's seat is modelled and scored.
+* **Adapter `tools/g1_2a_extract.py`:** D2a's match headers have no `started_at`/`completed_at`, so G1's extractor
+  cannot read them unchanged. The adapter imports `g1_extract.match_arrays` and `player_rows` and supplies a synthetic
+  match order (the log's match index k as time) and the history block defined in arm (d); no edit to
+  `g1_extract.py`. If `match_arrays` still fails on D2a's files, stop and record.
+* **Base fit per bot, by the held-out rule:** each bot uses the W fit of the fold in which its archive name and
+  version siblings were held out (`data/g1/folds.json`: `Ashwing_v3` and `AutodidactInnovations` are in fold 2, so
+  `fit_fold2_W.pt`). The executor records each bot's archive names and fold before any fit. Wolf: if its archive name
+  is a held-out name, its fold's fit; if it is absent from the archive, fold 0's fit (it was never a modelled player)
+  and that is recorded; if it was a modelled player in every fold's training, Wolf is dropped and the rule becomes
+  both of the two remaining bots.
+* **Fitting and calibration split:** arms (a), (b) and (c) fit on the first 90% of the N fitting matches by index;
+  the calibration bias uses the last 10% (10 matches at size 100, 100 at 1,000). No fit or calibration reads any
+  `true_cards.jsonl` (seed 61 or 62); hidden cards are handled by EM exactly as D2a and G1.
+* **Arms, per bot and size N:** (a) the λ range under per-name X1 fitted on the fitting split; (b) D2a's per-name
+  network from scratch on the fitting split (refit at both sizes so the split is the same); (c) the base fit
+  fine-tuned on the fitting split: start epochs 0, 4 EM iterations, D2a's epochs per iteration (`d2_clone`'s constant,
+  pinned by literal in the test), Adam learning rate 3e-4, history block filled with (d)'s fixed block in training and
+  scoring; (d) the base fit as is, history block = `hist_vector(match_stats)` over the bot's fitting-split matches
+  (log1p of their number, flag 1), the same fixed block for every held-out match; the in-match block as usual.
 * **Calibration first:** a per-street bias on the fold logit fitted on the fitting logs' last 10%, applied to (c) and
   (d); the fold-rate table by bet-size bucket reported before and after.
-* **Read** on the held-out logs with true cards: R on every hand that reached the river (not only shown hands), P at
-  big-pot decisions, fold rate predicted against actual per bet-size bucket. Bootstrap over matches, 2,000, seed 47.
+* **Read** on the held-out logs (seed 62) with true cards: R on every hand that reached the river (not only shown
+  hands): log posterior of the bot's true holding after its actions minus log uniform over live combos (1,326 minus
+  combos touching the board or the other seat's true cards, as `x3_range`), joined on (held-out match index, hand
+  number, bot seat). One row set per bot and size, scored by all four arms; the read fails if any arm drops or adds a
+  row. P at big-pot decisions (G1 step 1's definition). Fold rate predicted against actual per bet-size bucket,
+  buckets by `g1_extract.size_bucket3`. Bootstrap over held-out matches, 2,000, seed 47.
 * **Rule:** (c) beats both (a) and (b) on R by at least +0.10 nats with the lower bound above zero at size 1,000 for
-  at least two of the three bots, and its fold calibration error is 5 points or less in every bucket with 200 or
-  more spots. Pass: G1 step 2b is specified (the lookahead with G1's range at the root against those bots, on real
+  at least two of the three bots, and its fold calibration error, measured on the held-out logs after the bias, is
+  5 points or less in every `size_bucket3` bucket with 200 or more spots. Size 100 is reported only. Pass: G1 step 2b is specified (the lookahead with G1's range at the root against those bots, on real
   code, paired against the λ root as X3b was, on top of B1's candidate). Fail: G1 stays an archive analysis tool
   and gets no more GPU.
 * **Box and cost:** GPU and cores 18-19 only; no bpopp, no containers. About 12 short fits, under 2 GPU-hours; reads
   about 2 core-hours. Stop at 8 GPU-hours.
-* **Owner files (holdem-d2, executor worktree):** `tools/g1_tune.py`, `tools/g1_2a_read.py`, `tests/test_g1_2a.py`,
+* **Owner files (holdem-d2, executor worktree):** `tools/g1_2a_extract.py`, `tools/g1_tune.py`, `tools/g1_2a_read.py`, `tests/test_g1_2a.py`,
   plants in `tests/g1_plants.py`. **Non-goals:** no change to G1 step 1's tools or outputs, the lookahead, the bot.
   **Writes on gb10-d:** `~/poker-ai-lab-d2s2/data/g1_2a/`, `logs/g1_2a/`. **Rollback:** revert, delete those.
-* **Tests (each failing on its plant):** the fine-tune never reads held-out (seed 62) logs; the calibration bias is
-  fitted on the fitting logs' last 10% only; R on river hands equals a hand computation on a toy; arm (a) equals
-  `x3_range` on 50 hands; the rule's literals (+0.10, 5 points, 200 spots, sizes 100 and 1,000, two of three).
+* **Tests (each failing on its plant):** the adapter on a toy D2a-shaped file with no `started_at` gives shards whose
+  `base` rows equal `d2_clone.hand_decisions` (plant: k ignored); the base fit per bot is the held-out fold (plant: a
+  fold where the bot was in training); no fit or calibration opens any `true_cards.jsonl` (plant: a fit reading seed
+  61's); the fits use only the first 90% and the bias only the last 10% (plants: fine-tune including the last 10%;
+  bias on held-out logs); (c)'s and (d)'s history block is the fixed fitting-split block (plants: history state
+  flipped; history built from held-out matches); all four arms score the same rows (plant: one arm drops a row); R on
+  river hands equals a hand computation on a toy; arm (a) equals `x3_range` on 50 hands; literals (+0.10, 5 points,
+  200 spots, sizes 100 and 1,000, two of three, start epochs 0, 4 iterations, 3e-4, 90/10, `size_bucket3`).
+* **Review record:** plan review 1 REVISE (no adapter for D2a's headers; base fit not tied to held-out folds; arms'
+  knobs unpinned; calibration and true-card separation; read join, row equality, bucket function, size 100's role).
+  Fixed above; tier 2 allows one review, so execution follows with the outcome verifier on the read.
 
 ### G1 step 1. Does one card-conditioned population model predict unseen names better than what we have? (pre-registration, 2026-11-25; tier 2)
 
