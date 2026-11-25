@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-26 22:02 UTC, box clock UTC+8)
+## Now (2026-11-26 22:33 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -30,18 +30,12 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   detached (`~/d0-run/c0run.sh`, logs ~/d0-run/logs/c0/, done marker `done`, read in `read.txt`). Rule: PEAK = no
   D-null, screens add the Ashwing cells and autodidact_fast, P1b closes; NOT PEAK = D-null after AD0's play; MIXED =
   D-null only if AD0 lands on rule 1.
-* **AD0 data done** 20:15 to 21:52 UTC, rc 0: 991,921 rows from 9,000 matches, 93,880 held out
-  (~/ad0-run/data.npz, 510 MB). Overran the spec's 3x stop line (97 min vs about 15): the logging path
-  (Python run_arena, hook, second Tracker) runs 7x to 30x slower than the eval_arena rates the estimate used; missed
-  before the fit. Fable: a deviation, not a void; **amendment registered 21:58 before play 1's read** (research
-  2513a6f): A1 converged refit (cap 300, patience 10), A2 play 2 only if no 30-epoch student passes, A3 rules 5 and 6
-  reworded, A4 relabel cut. **A1 refit done** 21:59 to 22:02 (holdem-rl ad0 5b09abe adds `--patience`;
-  ~/ad0-run/code-a1): epochs run / best held-out loss / bp100 agreement W1 201 / 0.543 / 0.914, W1s 137 / 0.523 /
-  0.929, W2 147 / 0.536 / 0.921, W2s 159 / 0.514 / 0.941 (students_a1, offline_a1.json). Play 2 dir staged:
-  `AD0_DIR=~/ad0-run-a1` (students and offline.json symlinked); runs only if play 1 has no pass. Fit 21:54 to 21:55: all four students hit
-  the 30-epoch cap with held-out loss still falling; held-out bp100 agreement W1 0.891, W1s 0.911, W2 0.900, W2s
-  0.918 (offline.json). **AD0 play 1 running** since 21:56 on cores 0-17 (`~/ad0-run/playrun.sh`, detached: play 1
-  then read 1; markers logs/play1.rc, read1.rc, read in logs/read1.txt).
+* **AD0 (14.39, research eb2281c): RULE 1, W1 passes.** Play 1 (seed 95, 21:56 to 22:31): W1 (256 raw, 30
+  epochs) bp100 +19.4 [+16.9, +21.8], `small_ball` +19.8 [+17.8, +21.7], ext +1.1 [-0.7, +2.9] vs fb2-900; W2s also
+  passes, W1s and W2 fail on the ext lower bound. B1's shortfall is the training method; next is a distil-then-PPO
+  candidate slice (full process); AD1 and S7 drop. Data overran its time line (deviation recorded in the amendment,
+  research 2513a6f). A1 converged refits (students_a1) exist, not played (A2). Outcome verifier running; Fable asked
+  for the next slice's spec and whether D-null still runs. Students: ~/ad0-run/students/W1.npz etc.
 * **AD1 built** (local: holdem-rl `ad1` 0482bff, holdem-x2r `ad1-x2r` eb5d747; `sdk_prior.npz` c77f058e…, record in
   the roadmap AD1 spec). Verifier 1 REFUTED: amendment items 2 to 4 (B1 arm on seed 104,
   "AD1 minus B1" reading with D0's verdict) missing; fixed on ad1-x2r 4b85994; verifier 2 REFUTED the GAINS ONLY line
@@ -57,7 +51,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   rl/models/b1.npz (kept at b1-rl 59b1ad3). holdem-league 57a63b8 commits the leaderboard with cand:rl-b1 (rank 4,
   PASS 23/23). Delete ~/b1-build after the AD builds no longer need it (AD0 and AD1 tests link it).
 
-**gb10-d:** cores 0-17 AD0 play 1; cores 18-19 C0. bpopp queue AD0 seed 95. GPU idle. Fetcher pid 1838186, the only one.
+**gb10-d:** cores 0-17 free; cores 18-19 C0 and the AD0 verifier. bpopp queue free. GPU idle. Fetcher pid 1838186, the only one.
 
 **Branches not pushed (local only, by rule):** holdem-rl, holdem-x2r, holdem-league, holdem-d2 (`python
 tools/d2_mutate.py --jobs 4` must catch every plant after a change), b1-rl, b1-x2r, b1-league, d0, ad1, ad1-x2r,
