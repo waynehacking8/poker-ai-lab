@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 08:45 UTC, box clock UTC+8)
+## Now (2026-11-25 08:53 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -20,19 +20,24 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * C1 (14.30): `small_ball` 75.7% → 97.6%; `small_ball` is in B1's training.
 * **B1 built** (local, unpushed): poker-ai-lab-b1rl `b1-rl` 24c8c9d, poker-ai-lab-b1x2r `b1-x2r` faa7eb5,
   poker-ai-lab-b1lg `b1-league` 857660c. Tests all pass, every plant caught; P1 smoke shares bp100 0.335,
-  small_ball 0.167, heuristic 0.165, 3.7 it/min; `--init` restarts at it 1. **Outcome verifier REFUTED (1 of 2)**
-  on three launch defects: bp100 containers not pinned off G1's cores (no --cpuset-cpus), a crashed job marked
-  `done` rc 0, the entropy/NaN stop missing; plus a ship trap (libfastenv rebuild by mtime). Executor fixing; then a
-  fresh verifier. Commit code vs box code differs only by default-off paths (checked).
+  small_ball 0.167, heuristic 0.165, 3.7 it/min; `--init` restarts at it 1. Verifier 1 REFUTED (pinning,
+  crash marked done, entropy/NaN stop missing, libfastenv ship trap); all fixed (b1-rl a4d765d, b1-x2r 7002c23;
+  live smoke shows CpusetCpus 0-17). **Verifier 2 running.** Commit code vs box code differs only by default-off
+  paths (checked).
   On CONFIRMED: ship b1-rl to ~/poker-ai-lab-rl (`git -c core.autocrlf=false archive b1-rl | ssh gb10-d 'tar -x
   -C ~/poker-ai-lab-rl'`), b1-x2r and b1-league likewise, then `cd ~/poker-ai-lab-rl && setsid -f taskset -c 0-17
   bash tools/b1_run.sh P1`. Then screen (seed 94, league pairs 400-499), confirmation (seed 95), gate (E1
   pairs 200-399 plus heuristic head to head), verifier, Wayne. Delete ~/b1-build after launch.
-* **14.32 G1 DONE 08:43 UTC (research 33aa069), rule 2:** a known-name model. Time split, names with 100+
-  earlier matches: R +0.175 [+0.120, +0.246] vs λ, P -0.258 better than per-name X1. Unseen names fail (R -0.087,
-  P worse), so cold start stays with X1; no more GPU on unseen names. Outcome verifier checking the read.
+* **14.32 G1 (corrected, research a591050), rule 2:** a known-name model. Verifier REFUTED the first record:
+  rule 2 had joined opponents' rows (149 names); fixed in holdem-d2 3e988c8 (test 9, 2 plants caught), rule rerun:
+  29 names, R +0.183 [+0.123, +0.266], P -0.306 better than per-name X1. Unseen names fail; cold start stays X1.
+* **14.33:** T1's shoves are chip-positive on every street (P0 retired as a decision statistic; B1's read adds the
+  shove class table). Pure bp100 specialization costs -13.4 [-14.9, -11.8] on other styles (seed 98), so B1's
+  guards are the risk; fallback P1b (bp100 2 of 12, seeds 99/100, league pairs 500-599) pre-registered.
+* **G1 step 2a** (tier 2, spec in roadmap): plan review running; then executor in a holdem-d2 worktree; GPU and
+  cores 18-19.
 
-**gb10-d:** bpopp queue and cores 0-17: B1 training once launched. Cores 18-19 and the GPU: free (G1 done; verifier reads on 18-19). Fetcher pid
+**gb10-d:** bpopp queue and cores 0-17: B1 training once launched. Cores 18-19 and the GPU: G1 step 2a after its plan review. Fetcher pid
 1838186, the only one.
 
 **Branches not pushed (local only, by rule):** holdem-x2r (poker-ai-lab-x2r, 159e9ba), holdem-d2
