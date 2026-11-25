@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 15:54 UTC, box clock UTC+8)
+## Now (2026-11-25 15:57 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -43,8 +43,10 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   seed 95 from it001200 (literal commands in the spec), `d0_read.py rule`; outcome verifier. Stopped before it
   1,200 = void, rerun once.
 * **14.37 (R1/R2), corrected after its verifier (research 9e29019):** weighted by hands, the counts already name the
-  opponent for 53% of hands and 71% of bp100's; AD1's prior is now capacity (fail branch 4). Asked Fable whether
-  AD1 or S7 (wider trunk) goes after D0. AD1 builder still running (worktrees poker-ai-lab-ad1, ad1x2r).
+  opponent for 53% of hands and 71% of bp100's. Fable: AD1 and S7 wait behind **AD0** (research 2e774a1, tier 2):
+  supervised students (256 or 512 wide, seeded or not) fitted to T1 on bp100, C1 on small_ball, fb2-900 elsewhere;
+  the student that plays well says whether identity, width or the training method is the limit. Plan review
+  running; build after the AD1 builder (worktrees poker-ai-lab-ad1, ad1x2r) returns, since AD0 reuses its seeding.
 * **Merges (local):** holdem-x2r fast-forwarded to b1-x2r 8be6e38, holdem-league to b1-league 857660c. holdem-rl
   next (R1/R2 done, b1-rl db446d7): merge and drop rl/models/b1.npz and rl/bot_b1.py from the trunk
   (kept at b1-rl 59b1ad3).
