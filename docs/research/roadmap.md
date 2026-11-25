@@ -780,9 +780,23 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   B1's runner and reader reused where they fit, rows under `logs/v5a/`); holdem-rl branch `v5a` from `ad0` 5b09abe
   (registry lines; `rl/models/v5a.npz` and `rl/bot_v5a.py` only after the confirmation passes); holdem-league for
   the leaderboard row. Non-goals: no training, no change to the deployed bot, no upload.
-* **Writes on gb10-d and rollback:** `~/poker-ai-lab-x2r/logs/v5a/`, `~/poker-ai-lab-league/out/v5a/` and
-  `out/verify-rl-v5a`, `~/poker-ai-lab-rl/logs/eval_card/v5a*` and `ckpt/probe_card_v5a`, registry lines; rollback:
-  delete them.
+* **Writes, each with its rollback (B1's list adapted):**
+  1. Commits on holdem-rl, holdem-x2r, holdem-league (local branches `v5a`): revert them.
+  2. gb10-d `~/poker-ai-lab-x2r/logs/v5a/`; `~/poker-ai-lab-rl/logs/eval_card/v5a*` and `ckpt/probe_card_v5a/`;
+     registry lines `94 V5A read`, `95 V5A read`, `108 V5A read`: delete.
+  3. gb10-d `~/poker-ai-lab-league/`: `candidates/rl-v5a/`, `out/v5a/`, `out/verify-rl-v5a/`, `logs/add-rl-v5a.*`:
+     delete; the `rl-v5a` entry in `candidates.json`: remove; rows with `cand:rl-v5a` in `out/league/results.jsonl`
+     (the runner copies the file to `results.jsonl.pre-v5a` before `league_add.sh` runs, and refuses to run the add
+     without that copy): restore the copy; `out/leaderboard.md`: rebuild with `PYTHONPATH=. .venv/bin/python -m
+     league.report --out out/league --md out/leaderboard.md`.
+  4. PC `poker-ai-lab-league/reports/league/leaderboard.md` (written by `league_add.sh`): copy the rebuilt
+     `out/leaderboard.md` back.
+  5. `~/bpq.lock` (empty lock file): leave.
+* **Review record:** plan review 1 REVISE (the Ashwing selection cells were not in the fresh-seed check; "+6.5"
+  read as a point or a bound; no action on a replay mismatch; the repair round could not run and contradicted the
+  non-goal). Fixed above; the repair round was removed. Plan review 2 REVISE (the league writes of `league_add.sh`
+  and the branch commits had no rollback). The review cap of two is reached; the one blocker was mechanical with a
+  stated minimum revision, applied first-hand at 2026-11-25 22:43 UTC as the list above (B1's items 1, 4, 5), and recorded here.
 * **Budget (measured rates):** screen about 25 minutes for both candidates (arena cells minutes, league 4 minutes
   each); confirmation about 90 minutes (`ext:autodidact` 1,000 about 57 minutes at 6 workers, B1's 3,392 s);
   fresh-seed check about 15 minutes (two Ashwing cells of about 3 minutes each, both arms); E1 about 10; eval card about 60 (E3 400 iterations). About 3.2 box-hours on
