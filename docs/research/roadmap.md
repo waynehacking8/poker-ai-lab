@@ -697,6 +697,32 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   intervals). Fixed above with B1's logged decisions, a smoke rate, literal read commands and an INCONCLUSIVE row.
   Tier 2 allows one review; execution follows with the outcome verifier on the read.
 
+### C0. Is fb2-900 a peak on the Ashwing families? (spec, 2026-11-26; tier 1, the roadmap agent's recommendation after 14.38)
+
+* **Question:** do fb2's own neighbouring checkpoints lose to the Ashwing families as B1 and D0 did? If so, fb2-900 is
+  a local high and the -2.0 guard sits inside one run's checkpoint spread; if not, D-null separates the old-data
+  ratio (D0 ran C engine to old-family SDK about 1:1, fb2 about 6,250 to 10,000) from continued training.
+* **Arms (no training, no containers):** fb2's run (`~/poker-ai-lab-rl/ckpt/fb2/`, one run, `train.jsonl` it 1 to 965
+  monotonic) it000700 (1b102dbc…), it000800 (10b4cafd…) and latest = it 965 (a8507305…). Baseline: the fb2-900 rows
+  on disk (`~/poker-ai-lab-x2r/logs/b1/confirm/fb2`; `ckpt/fb2/it000900.npz` holds the same policy arrays as
+  `rl/models/fb2_it000900.npz`, checked). Reported beside them under D0's spec, no rule: D0 it000300 and it001600.
+  B1's screen rows hold no ext cell.
+* **Cells:** `ext:ashwing`, `ext:ashwing_hive`, `ext:ashwing_search`, 1,000 each, seed 95, from `~/d0-run/x2r`
+  (holdem-x2r 8be6e38, the tree of the baseline rows), `rl.eval_arena --model CKPT --opp CELL --matches 1000 --seed 95
+  --workers 2 --rows ~/d0-run/logs/c0/ARM/CELL.jsonl` under `taskset -c 18-19 nice -n 10` (AD0 holds cores 0-17;
+  Ashwing uses no wall clock, 14.36). `ext:autodidact` is left out (slow; it moved with the others in D0).
+* **Read:** per arm, each cell paired with fb2-900 on (seed, hero seat), points of match win rate; pooled = mean of the
+  three, se sqrt(sum se²)/3, 95% interval ±1.96 se. Reader holdem-rl d0 `tools/c0_read.py`.
+* **Rule (pre-registered), on the three fb2 checkpoints:**
+  * **PEAK:** at least two of the three pooled points under -2.0 with upper bound under zero. D-null does not run;
+    every future screen includes the three Ashwing cells and `ext:autodidact_fast` at 500 each and selection is among
+    checkpoints that hold them; B1's and D0's guard losses are recorded as within the run's own checkpoint spread; P1b
+    and any "restore the shares" slice close.
+  * **NOT PEAK:** all three pooled points within [-2.0, +2.0] with intervals that include zero. D-null runs as
+    specified (D0's command at `--heur-batch 10000`) once AD0's play frees cores 0-17.
+  * **MIXED:** anything else. D-null runs only if AD0 lands on its rule 1 (distil, then PPO fine-tune).
+* **Writes:** `~/d0-run/logs/c0/` and `~/d0-run/tools/c0_read.py` (rollback: delete). Nothing else.
+
 ### AD0. Can one network hold both specialists and fb2-900, and what does it need? (spec, 2026-11-25; tier 2)
 
 * **Question:** can one policy network reproduce T1 against bp100, C1 against `small_ball` and fb2-900 against the
