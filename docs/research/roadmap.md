@@ -700,6 +700,120 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   intervals). Fixed above with B1's logged decisions, a smoke rate, literal read commands and an INCONCLUSIVE row.
   Tier 2 allows one review; execution follows with the outcome verifier on the read.
 
+### V5a. Is the distilled student itself the candidate? (spec, 2026-11-25; full process, the roadmap agent's call after 14.39)
+
+* **Question:** does the 256-wide student distilled from T1, C1 and fb2-900 (AD0's W1) pass B1's registered rule and
+  the deploy gate as it is, with no PPO?
+* **Why (14.39, roadmap agent):** W1 at the deployed size holds T1's play on bp100 (+19.4 of +19.9), C1's on
+  `small_ball` (+19.8 of +21.9) and fb2-900's on two Ashwing cells. B1 and D0 show that continued PPO from a good
+  network costs about 3 points on the real-bot families, and the student already sits at both ceilings, so a PPO step
+  has nothing to gain on the measured cells. AD0's rule 1 text "distil, then fine-tune with PPO" becomes "distil,
+  judge, and fine-tune only if a named cell needs it"; there is no PPO in this slice.
+* **Decision it feeds:** pass → eval card with E3, a fresh outcome verifier, then Wayne as v5 = the student plus S0
+  (the all-in answer; no upload or swap without his yes). Fail on named cells → the repair round below; a second
+  failure stops the slice and goes back to the roadmap agent.
+* **Candidates (pinned, sha256 checked by the runner before any cell):** W1 at 30 epochs
+  `~/ad0-run/students/W1.npz` (9bc31660a279f3c44069a8d92ea42011682c7b8a8f094e3f552d64b75f9cb4e9, the played one) and
+  the A1 refit `~/ad0-run/students_a1/W1.npz` (3c37549815a9bb5bcc8bc78085a0d697321c9110d2fed4440f8053b94a9fd3fd).
+  Raw counts, 256 wide. The files hold exactly fb2-900's policy keys and shapes (`pw0` 56x256 to `pb2` 6), so every
+  B1 tool takes them through `--model` and `RL_CKPT` unchanged. W1s, W2, W2s are out (seeding needs live names and
+  did not help in play; width did not help).
+* **Screen, seed 94 (selection only):** per candidate B1's screen cells unchanged (bp100 1,000; `tight_sticky`,
+  `sticky_overbettor`, `small_ball_b`, `never_fold_pre`, `loose_passive` 500 each) and the league screen on pairs 400
+  to 499 (`tools/league_fresh.py` with `rl.bot_ckpt` `CkptBot`, `RL_CKPT` the candidate, 4,600 matches). Score: B1's
+  literal (unpaired weighted win rate, bp100 0.7216, `tight_sticky` 0.1031, `sticky_overbettor` 0.0928,
+  `small_ball_b` 0.0825). Filter: the lowest of the 23 league opponents at least 78.0%. Chosen: the higher score that
+  passes the filter. Neither passes → V5a ends with that finding (the league clones have no Python logging path, so
+  no repair round covers them).
+* **Confirmation, seed 95, chosen candidate only:** B1's confirmation cells and counts (bp100 4,000; `tight_sticky`,
+  `sticky_overbettor`, `small_ball_b`, `never_fold_pre`, `raise_station`, `small_ball`, `loose_passive` 2,000 each;
+  `ext:ashwing`, `ext:ashwing_search`, `ext:ashwing_hive`, `ext:autodidact`, `ext:wolf` 1,000 each), paired on
+  (seed, hero seat) against the fb2-900 arm on disk (`~/poker-ai-lab-x2r/logs/b1/confirm/fb2`; the `ext:wolf` fb2-900
+  arm rerun with the candidate's placement, as B1's amendment 4). B1's arm (`.../confirm/cand`) is reported beside.
+  The first 2,000 bp100 matches repeat AD0's play rows for the 30-epoch W1; if it is chosen, those must be
+  identical row for row (a harness check, not a result).
+* **Rule (pre-registered), B1's verbatim plus one check:** headline = weighted sum of paired gains over fb2-900 on
+  seed 95 (bp100 0.70, `tight_sticky` 0.10, `sticky_overbettor` 0.09, `small_ball_b` 0.08, `ext:autodidact` 0.03),
+  interval from the cells' paired standard errors. **Pass** when all of: (1) headline 95% lower bound above zero;
+  (2) no cell, weighted or guard, with a paired gain under -2.0 and its upper bound under zero; (3) the fresh-seed
+  check below holds; (4) E1 holds. The fresh-seed check covers the selection of W1 among four students on four
+  seed-95 cells (14.39).
+* **Fresh-seed check, seed 108:** chosen candidate and a new fb2-900 arm, bp100 2,000 (k < 1,000) and `small_ball`
+  2,000, paired. Holds when the bp100 gain has its 95% lower bound above +5.4 and the `small_ball` gain above +6.5
+  (B1's points).
+* **Gate E1 (B1's command, pairs never used in selection):** a holdem-rl commit adds `rl/models/v5a.npz` (byte-equal
+  to the chosen file) and `rl/bot_v5a.py` (`class V5aBot(RLBot)`), the B1 way; from the PC league checkout
+  `tools/league_add.sh <holdem-rl> <that commit> rl-v5a rl.bot_v5a V5aBot` (pairs 0 to 199, the leaderboard row);
+  on gb10-d `tools/league_fresh.py --name rl-v5a --root candidates/rl-v5a --module rl.bot_v5a --class V5aBot --p0 200
+  --p1 400 --h2h chipzen-102b05e --workers 8 --out out/verify-rl-v5a`. Holds when all 23 opponents are at 80% or
+  more over pairs 200 to 399 (Wilson lower bounds reported) and the heuristic head to head has its Wilson 95% lower
+  bound above 50%; per-opponent paired difference against fb2-900's verify rows reported.
+* **Reported and flagged, not gating:**
+  1. bp100's confirmation gain beside the Blueprint clone's paired E1 difference (14.37's literal: opposite signs
+     with both intervals excluding zero is flagged to Wayne, not passed on the headline).
+  2. The eval card (`tools/eval_card.sh v5a <chosen> <INIT>`, INIT the checkpoint fb2-900's card used): E2 real-bot
+     families, E3 exploit probe, E4 against the king, and the chipflow file against bp100 read with
+     `tools/p0_read.py` beside T1's `logs/t1/flow_br.jsonl` and fb2-900's card (the shove table; the student carries
+     T1's shoving style and Wayne sees what a counter-strategy gets from it).
+  3. Decision time: same architecture and code path as fb2-900 (identical keys and shapes), so equal by
+     construction; stated, not measured.
+  4. The fit's batch mix (bp100 30%, `small_ball` 15%, the rest 55%) beside the judge weights: it acts as the
+     student's prior over opponents before the counts speak.
+  5. The cells no teacher covered (`tight_sticky`, `sticky_overbettor`, `never_fold_pre`, `raise_station`,
+     `loose_passive`, `small_ball_b`, `ext:autodidact`, `ext:ashwing_search`, `ext:wolf`, the clones, the heuristic)
+     are expected to decide it: 14.33 put T1's play at -12 to -18 on `sticky_overbettor`, `small_ball` and
+     `never_fold_pre`, and 14.37 has `never_fold_pre` and `sticky_overbettor` named late (12% and 27% of hands).
+* **Repair round (one), only on confirmation guard cells no teacher covers:** for each failing such cell, fb2-900
+  plays it through `tools/ad0_log.py` (300 matches, seed 109); the estimate from 14.39's measured seconds is written
+  here before launch, stop line two times it, checked by the runner. Rows join the fb2-900 group (55%) of the data;
+  W1 refits with the chosen candidate's recipe; screen seed 94 again; confirmation seed 110 (every cell, new fb2-900
+  arm); fresh-seed check seed 111. A failure on bp100, `small_ball` or a league opponent, or a second failure,
+  stops the slice.
+* **Seeds (registered as `N V5A read` in `~/poker-ai-lab-rl/tools/seed_registry.txt` and the branch):** 94, 95, 108,
+  109, 110, 111; E3 uses the card's fixed seeds 1 and 3.
+* **Tests (each failing on its plant; plant runner committed with them):** candidate sha256 refusal; screen weights,
+  the 78.0% filter and the choice rule; the rule's four conditions (plants: guard dropped, headline bound at zero,
+  fresh-seed bound 5.4 changed, E1 dropped); the confirmation and fresh-seed cells and counts literal; the bp100
+  replay check against AD0's rows; gate pairs 200 to 399 never overlapping the screen's 400 to 499; the repair round
+  refuses a teacher-covered cell and a second round; seeds literal.
+* **Owners and base:** holdem-x2r branch `v5a` from `ad0-x2r` 541bf81 (judge runner `tools/v5a_judge.sh` and reader;
+  B1's runner and reader reused where they fit, rows under `logs/v5a/`); holdem-rl branch `v5a` from `ad0` 5b09abe
+  (registry lines; `rl/models/v5a.npz` and `rl/bot_v5a.py` only after the confirmation passes; the repair data
+  cells); holdem-league for the leaderboard row. Non-goals: no training, no change to the deployed bot, no upload.
+* **Writes on gb10-d and rollback:** `~/poker-ai-lab-x2r/logs/v5a/`, `~/poker-ai-lab-league/out/v5a/` and
+  `out/verify-rl-v5a`, `~/poker-ai-lab-rl/logs/eval_card/v5a*` and `ckpt/probe_card_v5a`, registry lines; rollback:
+  delete them.
+* **Budget (measured rates):** screen about 25 minutes for both candidates (arena cells minutes, league 4 minutes
+  each); confirmation about 90 minutes (`ext:autodidact` 1,000 about 57 minutes at 6 workers, B1's 3,392 s);
+  fresh-seed check about 5 minutes; E1 about 10; eval card about 60 (E3 400 iterations). About 3.2 box-hours on
+  cores 0-17; stop and record at two times any phase.
+* **Limits:** the judge covers 52% of entrant seats by weight (B1's map); the clones are copies of past behaviour;
+  a pass is a candidate for Wayne, not a deployment.
+
+### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
+
+* **Question:** which further opponents does a specialist beat by a wide margin over fb2-900, so that its play is
+  worth distilling into a second student (V5b)?
+* **Why:** 14.39 shows the method scales with teachers. 14.37 left open whether `ext:ashwing` and
+  `ext:ashwing_search` (one shared profile) share a best response.
+* **T-a (reads, no training):** the M1 specialists of 14.12 on disk: `~/poker-ai-lab-rl/ckpt/br_ashwing/latest.npz`
+  (it 580, trained on `ext:ashwing`) on `ext:ashwing`, `ext:ashwing_search`, `ext:ashwing_hive`, and
+  `ckpt/br_autofast/latest.npz` (it 240, trained on `ext:autodidact_fast`) on `ext:autodidact`; 1,000 matches each,
+  seed 95, holdem-x2r `rl.eval_arena --model`, paired with the fb2-900 rows on disk.
+* **T-b (training, 60 minutes each):** `tools/rl_br.sh` from fb2-900 against `sticky_overbettor`, `loose_passive`,
+  `never_fold_pre` and `chipzen`, 3 SDK workers each, C1's recipe; `loose_passive` is ported into the holdem-rl
+  `holdem/opponents.py` STYLES from holdem-x2r (byte-equal class; holdem-rl has the other two). Read: 2,000 matches
+  on seed 93 per style cell paired against fb2-900; for `chipzen` the heuristic head to head, 2,000 on seed 93.
+  `tight_sticky` is left out (C1 found -4.0, no gain).
+* **Use (pre-registered):** a teacher whose paired gain has a 95% lower bound of +8.0 or more joins V5b's data after
+  V5a reads. V5a does not wait for these and is not changed by them.
+* **Placement:** V5a has priority on cores 0-17. T-a runs on cores 18-19 (2 workers) after C0; T-b runs when V5a's
+  confirmation is done or in gaps, four runs at 4 processes each (16 cores).
+* **Tests:** the port of `loose_passive` is byte-equal to the holdem-x2r class and plays the same actions on 200
+  recorded states; the reader's pairing and the +8.0 line literal (plant: line moved).
+* **Writes and rollback:** `~/poker-ai-lab-rl/ckpt/br_{sticky_overbettor,loose_passive,never_fold_pre,chipzen}`,
+  `logs/`, `~/poker-ai-lab-x2r/logs/tt/`, registry line `93 TT read`; delete to roll back.
+
 ### C0. Is fb2-900 a peak on the Ashwing families? (spec, 2026-11-25; tier 1, the roadmap agent's recommendation after 14.38)
 
 * **Question:** do fb2's own neighbouring checkpoints lose to the Ashwing families as B1 and D0 did? If so, fb2-900 is
