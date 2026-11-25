@@ -29,12 +29,11 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   (it ignored a cell's "seeding hurt"); fixed first-hand in 91510c3 at 17:37 (86 tests, 24 of 24 amendment plants).
   Verifier cap reached on this claim; AD1 build done (ad1-x2r 91510c3).
   Not trained: gated by AD0.
-* **AD0 built, being corrected** (holdem-rl `ad0` f770230, holdem-x2r `ad0-x2r` 541bf81; worktrees poker-ai-lab-ad0,
-  poker-ai-lab-ad0x2r). Runners: `tools/ad0_run.sh check|data|fit|relabel|refit` in ~/ad0-run/code (holdem-rl
-  archive), `tools/ad0_play.sh play N|read N` in ~/ad0-run/code-x2r; `AD0_TASKSET` for cores 18-19 while D0 runs.
-  Since 17:39 the builder is fixing two things I found: the fit ran fixed 30,000 cosine steps instead of the spec's
-  at most 30 epochs with held-out stopping, and the hold-out split pairs by seat (shared deals). Then an outcome
-  verifier, then data (seed 106), GPU fits, play (seed 95) after D0's reads.
+* **AD0 built** (holdem-rl `ad0` 8b7ea8b, holdem-x2r `ad0-x2r` 541bf81; worktrees poker-ai-lab-ad0, poker-ai-lab-ad0x2r;
+  record in the roadmap AD0 spec). Fit corrected to the spec (at most 30 epochs, best held-out epoch, patience 3) and
+  hold-out by pair. Outcome verifier running since 17:46. Runners: `tools/ad0_run.sh check|data|fit|relabel|refit`
+  in ~/ad0-run/code (holdem-rl archive), `tools/ad0_play.sh play N|read N` in ~/ad0-run/code-x2r; `AD0_TASKSET`
+  for cores 18-19 while D0 runs. Then data (seed 106), GPU fits, play (seed 95) after D0's reads.
 * **Merges (local) done:** holdem-rl fast-forwarded to b1-rl db446d7, then b047c04 drops rl/bot_b1.py and
   rl/models/b1.npz (kept at b1-rl 59b1ad3). holdem-league 57a63b8 commits the leaderboard with cand:rl-b1 (rank 4,
   PASS 23/23). Delete ~/b1-build after the AD builds no longer need it (AD0 and AD1 tests link it).
