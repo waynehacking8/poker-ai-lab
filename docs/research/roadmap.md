@@ -148,7 +148,8 @@ training question for clones was never asked; D2c first); resuming S2 (14.15: th
   may reuse an earlier read's seed when that earlier run is its named paired baseline and the seed was never
   seen in training. Registry: 81 S2r; 81 again for T1's read (its named baseline is S2r's fb2-900 rows); 82 T2;
   83 and 84 D2b (fitting logs, held-out logs); 85 D2b read 1 (86 its control rerun); 87 T1's `ext:` cost check (unpaired); 88 B0 step 1 fit logs; 89 unused (B0b cut); 90 A0's strength sanity (bp100 against `small_ball`); 91 B0 step 1's
-  optional reread; 92 G1 step 1's folds and draw; 93 C1's reads (rule cells, paired). Training seeds stay those of
+  optional reread; 92 G1 step 1's folds and draw; 93 C1's reads (rule cells, paired); 94 B1 screen; 95 B1 confirmation; 96 B1 rerun if a
+  harness fault voids a read; 97 `small_ball_b`'s strength note. Training seeds stay those of
   `tools/rl_br.sh`. A new read takes the next unused number and writes it here.
 * **Pairing:** every A/B is paired on (seed, hero seat) with a paired 95% interval (`tools/paired_stats.py`,
   holdem-x2r), and real-code opponents are pooled by family (Ashwing, autodidact, Wolf, bp100), equal weight
@@ -397,6 +398,103 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   minutes on 6 containers; scoring minutes. Budget 2 box-hours; stop at 4.
 * **Runtime note for B0a (if built):** one river enumeration over at most 990 holdings per decision with numpy,
   well under R1's 0.4 s per lookahead decision (14.22); measured in B0a's own spec.
+
+### B1. A base policy for the opponents an entrant faces (spec, 2026-11-25; full process; T1's number filled in at its read)
+
+* **Question:** does continuing fb2-900 with the solver proxy and the small-ball aggressor in its population beat
+  fb2-900 on the entrant-weighted judge, without losing the league gate?
+* **Why:** C1 (14.30) showed the population is the limit for the aggressor class (+21.9), with a cost elsewhere when
+  trained alone (`tight_sticky` -4.0). T1 gives the same reading for bp100: **T1 gain = ____ [____, ____]** (filled
+  in at T1's read, 14.31). 14.29: an entrant meets a regular in 5.4% of its seats, so the judge is weighted by what
+  an entrant faces.
+* **Branch on T1 (the only blank):** A, T1's lower bound at or above +8, or between the thresholds: population P1
+  (with bp100). C, T1's upper bound under +4: population P2 (without bp100; no containers, no bpopp queue) and a
+  representation slice B1r (a range-aware hand feature) is specified next; in the "between" case B1r is specified
+  after B1's read.
+* **Facts it rests on (roadmap agent's read of holdem-rl 114a136):** `rl.train` feeds each update from C-engine
+  workers (`--workers`, `--steps`: the league mix from `data/clones.npz`, snapshots and `--pool-dir`, PFSP weights)
+  and SDK workers (`--sdk-workers`), each walking `--sdk-opps` round robin, one opponent per seat pair, staggered by
+  worker index (`opps[(k // 2 + offset) % len(opps)]`); the learner waits for `--heur-batch` SDK samples. So an SDK
+  opponent's share is its share of list entries, in matches. fb2's recipe (`tools/rl_fb2.sh`): 2 C workers x 3,000
+  decisions, 10 SDK workers, `--heur-batch 10000`, SDK list `chipzen, ext:ashwing_v2, ext:ashwing_value, chipzen,
+  ext:ashwing_adaptive, ext:autodidact_fast`, lr 1.5e-4, clip 0.1, floor 0.15, snapshots 0.3 every 25,
+  `--opp-w arch:5=4,arch:2=3`, maniac distillation 0.5; 960 iterations in 180 minutes. A bp100 container holds
+  2.365 GiB; ten fit.
+* **Trains in holdem-rl on gb10-d, judged in holdem-x2r.** Patch into holdem-rl: `SmallBall`, `street_bet` and the
+  STYLES entry (holdem-x2r 9939bd4) and the STYLES line of `make_opp` (159e9ba). Nothing else moves between trees.
+* **Start:** `ckpt/fb2/it000900.npz`, with T1's policy-array check reused.
+* **Population (fb2's recipe unchanged except the SDK list; 10 SDK workers):**
+  * P1 (12 entries): `bp100, chipzen, small_ball, ext:ashwing_v2, bp100, ext:ashwing_value, bp100, chipzen,
+    small_ball, ext:ashwing_adaptive, bp100, ext:autodidact_fast`: bp100 4 of 12, `small_ball` 2 of 12, fb2's six
+    entries 6 of 12; the C-engine league mix stays about 38% of each update.
+  * P2 (8 entries): fb2's six plus `small_ball` twice.
+  * Not in training, so they stay honest judges: `tight_sticky`, `sticky_overbettor`, `never_fold_pre`,
+    `raise_station`, `small_ball_b`, and E6's held-out `ext:` members.
+* **Length and checkpoints:** 360 minutes; read set: iterations 300, 600, 900, 1200, 1500, 1800 that exist, plus
+  `latest.npz`.
+* **Queue runner `tools/bpq.sh` (lifted once from `tools/t1_run.sh`, sourced by every bp100 job from here on):** the
+  single BP_* export block (bpopp:v011, BP_AT=65000, BP_THRESHOLD=0.35; BP_CPUS=1 only for training), `flock` on
+  `~/bpq.lock`, launch in its own process group, T1's rate stop (with the half-written-row case counted as rate 0),
+  wait with `kill -0`, a final empty `docker ps --filter name=bpopp-` check, markers `done`, `failed`, `stopped`, and
+  a seed check against `tools/seed_registry.txt` (refuses an unregistered seed or one registered to another slice).
+  T1's tests move with it.
+* **Owner files (executor, holdem-rl worktree):** `tools/bpq.sh`, `tools/b1_run.sh`, `tools/seed_registry.txt`;
+  `holdem/opponents.py`, `rl/sdk_rollout.py` (the patch); `tests/test_b1.py`, `tests/test_bpq.py`, plants in
+  `tools/b1_mutate.py`. In holdem-x2r: `SmallBallB` in STYLES, its target in `tools/style_bots_check.py`,
+  `tools/b1_judge.sh`, `tools/b1_read.py`, and the entrant-seat step in `tools/a0_field.py`. **Non-goals:** no change
+  to `rl/train.py`, `rl/features.py`, the network, `rl/bot.py`, `rl/allin.py`, the eval card or the league tools;
+  nothing into `rl/models/` or an image. **Writes on gb10-d:** `ckpt/b1/`, `logs/b1/` in both trees. **Rollback:**
+  revert, delete those folders.
+* **Reads: select on one seed, confirm on another.**
+  * Screen, seed 94: each read-set checkpoint against bp100 (1,000 matches), `tight_sticky`, `sticky_overbettor`,
+    `small_ball_b`, `never_fold_pre` (500 each), and the E1 league table in the C engine (23 opponents x 400, the
+    command that produced v4's gate). Chosen: the highest screen headline among checkpoints with every league
+    opponent at 80% or more; none → B1 ends with that finding.
+  * Confirmation, seed 95, chosen checkpoint and fb2-900 on the same seeds, paired on (seed, hero seat): bp100 4,000;
+    `tight_sticky`, `sticky_overbettor`, `small_ball_b`, `never_fold_pre`, `raise_station` 2,000 each; `small_ball`
+    2,000 (reported, trained on); `ext:` held-out families (ashwing, ashwing_search, ashwing_hive, autodidact, wolf)
+    1,000 each, seeded in holdem-x2r.
+  * Seeds 94 screen, 95 confirmation, 96 one rerun if a harness fault voids a read, 97 `small_ball_b`'s strength note.
+  * Cross-tree check before any read: fb2-900's action probabilities on 200 recorded states identical in holdem-rl
+    and holdem-x2r; a holdem-rl checkpoint loads as hero in holdem-x2r's `rl.eval_arena`.
+* **Judge weights (entrant seats, 14.29):** bp100 0.70 (Blueprint, fermat6, NashForge, hoops, MonteCarlo,
+  tidewater_rnr, LimitLess: 36.9% of entrant seats), `tight_sticky` 0.10 (r0ckGarden 5.3%), `sticky_overbettor` 0.09
+  (PluriBot, HRT), `small_ball_b` 0.08 (slopBot and its three nearest names), `ext:autodidact` 0.03. They cover 52% of
+  entrant seats; mr_hide (5.7%), WSmithSimLab (2.3%) and the tail are not covered, said in the read. The executor
+  recomputes the shares with the added `a0_field.py` step; a literal changes only if it differs by more than 0.02.
+* **Rule (pre-registered):** headline = the weighted sum of paired gains over fb2-900 on seed 95, its interval from
+  the cells' paired standard errors. Pass: headline 95% lower bound above zero; no cell (weighted or guard) with a
+  paired gain under -2.0 and its upper bound under zero; E1 holds. Then the remaining gate: heuristic head to head
+  (400 matches, Wilson lower bound above 50%), the eval card with E3 reported, a fresh outcome verifier, Wayne. A
+  headline fail with a bp100 pass is recorded as "exploits the proxy, does not generalize" and feeds B1r.
+* **`small_ball_b`, judge only:** target the mean of BonnieBlue, Chaos_Incarnate, Velvet_Shark in A0's
+  `vectors.json`: vpip 0.75, pfr 0.54, shove 0.07, fold_pre_raise 0.33, post_aggr 0.58, post_fold_bet 0.56,
+  bet_size 0.38, showdown 0.12 (0.35 from `small_ball`'s target). Acceptance: under 0.25 from its target on style
+  seeds 3 and 4 (300 matches against fb2-900, explicit commands as A0's) and more than 0.25 from `small_ball`'s
+  measured vector. Strength note: bp100 against it, 400 matches, seed 97.
+* **Tests (each failing on its plant):** 1 a 3-minute P1 smoke run: `sdk_samples` has exactly P1's eight names and
+  bp100's share of SDK matches is between 25% and 42% (plant: bp100 once in the list); 2 `small_ball` in holdem-rl
+  plays the same actions as in holdem-x2r on a fixed stream, by a hash recorded in x2r (plant: `street_bet`
+  dropped); 3 no judge-only name in the training command or any `sdk_samples` key (plant: `small_ball_b` added); 4
+  the INIT and cross-tree checks (plant: a changed feature in one tree); 5 `bpq.sh`: a second container job blocks
+  on the lock, the rate stop kills only its group and leaves no container, a normal exit leaves none within 60 s, an
+  unregistered seed is refused, a half-written last row gives rate 0 (plants: lock removed; own-group kill;
+  registry check skipped; JSON error uncaught); 6 `b1_read.py` on toy rows: selection reads only seed 94,
+  confirmation only 95 (plant: selection on 95), weights are the literals and sum to 1, a cell at -3 with upper
+  bound under zero fails the rule even when the headline passes (plant: guard dropped); 7 literals (360, the read
+  set, 94 to 97, every n, 80%, -2.0, P1 and P2).
+* **Stops:** rate stop at minute 15 (floor 2 per minute); entropy under 0.2 or a non-finite loss stops the run and
+  keeps the last good checkpoint; budget 9 box-hours, stop at 18; a test still failing after two fix rounds stops the
+  slice.
+* **Box:** under P1 training holds the bpopp queue for 6 hours (10 containers at one CPU each), pinned to cores
+  0-17; G1 keeps cores 18-19 and the GPU. Screen and confirmation after training, bp100 cells alone in the queue.
+  Under P2 there are no containers and the queue is free for B0 step 1.
+* **Consumers:** candidate v5 (with S0, and B0a if it survives T1's chipflow read); B1r's direction; later judges'
+  weights.
+* **Executor checks first:** v4's exact E1 command; a holdem-rl checkpoint loads in holdem-x2r; the iteration rate
+  with this mix (smoke run); wall-clock effect of slow SDK opponents on bp100's share; whether fb2's recipe still
+  moves past 900 (if no checkpoint beats fb2-900 on bp100 and `small_ball_b` at the screen, that is a finding and
+  B1r comes forward).
 
 ### G1 step 1. Does one card-conditioned population model predict unseen names better than what we have? (pre-registration, 2026-11-25; tier 2)
 
