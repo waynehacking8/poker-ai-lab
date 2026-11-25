@@ -1558,8 +1558,8 @@ Pre-registered in roadmap "After A0" (C1, tier 2, seed 93). Best-response fine-t
 
 ### 14.31 T1: training against bp100 lifts fb2-900 from 59.9% to 79.7% (+19.9); B1 takes branch A, B0 step 1 does not run
 
-Pre-registered in roadmap "T1" (tier 3, verifier CONFIRMED the runner). Best response from fb2-900 against bp100
-alone (`tools/t1_run.sh`, holdem-rl 114a136, 120 minutes, `ckpt/br_bp100`), read on seed 81, 4,000 matches, paired
+Pre-registered in roadmap "T1" (tier 3, verifier CONFIRMED the runner). Best response from fb2-900 against bp100 as
+the only SDK opponent (plus `rl_br.sh`'s frozen fb2-900 mirror, about 5% of matches; `tools/t1_run.sh`, holdem-rl 114a136, 120 minutes, `ckpt/br_bp100`), read on seed 81, 4,000 matches, paired
 on (seed, hero seat) with S2r's fb2-900 rows (`logs/t1/paired.out`, 4,000 pairs joined):
 
 | arm | win rate vs bp100 | paired diff | 95% interval |
@@ -1573,8 +1573,15 @@ on (seed, hero seat) with S2r's fb2-900 rows (`logs/t1/paired.out`, 4,000 pairs 
   equity 0.198 (-2.46M chips expected) to 57 at 0.675 (+0.11M). Under half of fb2-900's rate, so B0 step 1 does
   not run: training fixes it for a known bot, and B0a returns later as the unseen-name version on top of G1.
 * P0's statistic on the same rows (`tools/p0_read.py`): loser equity under 0.35 in 54.5% of the best response's
-  losses against bp100's 26.3%, +28.1 [+24.1, +32.1] (fb2-900: +29.8). The losses moved off the river calls onto
-  called preflop and turn shoves (mean loser equity 0.541 and 0.455), so the remaining gap is mostly variance in
-  big pots, not chip-losing calls. Lost matches 811: final hand all-in as favourite 304, as underdog 507.
+  losses against bp100's 26.3%, +28.1 [+24.1, +32.1] (fb2-900: +29.8): the gap did not shrink. The losses moved
+  off the river calls (the hero's own calls end only 89 of 775 losses) onto the hero's own shoves being called:
+  preflop 217 (mean loser equity 0.541, 28% under 0.35), turn 212 (0.455, 48%), flop 143 (0.376, 60%), river 114
+  (0, 100%). Only the preflop bucket looks like variance; whether the flop, turn and river shoves lose chips cannot
+  be judged from P0 (chipflow counts river shoves +6.69M net including the folds they win). Lost matches 811:
+  final hand all-in as favourite 304, as underdog 507. Where the remaining losses come from is an open reading for
+  B1's candidate, not settled here.
+* Outcome verifier: every number, the 4,000-pair join, the seeds, the checkpoint provenance and both rule
+  applications reproduced; one sentence ("mostly variance in big pots") was refuted against P0's own buckets and
+  is replaced by the bullet above.
 * Single run, one seed; a pure best response, so its cost on other opponents is unmeasured here (B1 trains on a
   mix and judges on held-out cells for that reason; C1 showed -4.0 on `tight_sticky` for a pure response).
