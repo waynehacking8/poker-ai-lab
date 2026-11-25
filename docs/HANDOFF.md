@@ -22,7 +22,8 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * **D0 (14.38, research 31825b5): rule INCONCLUSIVE.** Valid run (void check ok). Pooled four ext cells: D0 vs
   fb2-900 -2.70 [-4.02, -1.38] (straddles -2.0), D0 minus B1 +1.07 [-0.28, +2.43]. Three families sit within 0.2 of
   B1 (the loss stays without the new data); `ext:ashwing_hive` recovers 4.2 of B1's 4.6. No lever decision, no
-  D-null by the rule. Outcome verifier running since 20:17; then the record goes to Fable for the next step.
+  D-null by the rule. Verifier CONFIRMED the numbers, REFUTED wording (corrected, research 280bdd4). Sent to Fable 20:21
+  with a proposed probe (fb2's own neighbouring checkpoints on these cells: continuation or not).
 * **AD0 data** running since 20:15 UTC on cores 0-17 (`~/ad0-run`, detached; markers logs/data.start, data.rc;
   background wait prints the end). Then `ad0_run.sh fit` (GPU), `ad0_play.sh play 1`, `read 1`.
 * **AD1 built** (local: holdem-rl `ad1` 0482bff, holdem-x2r `ad1-x2r` eb5d747; `sdk_prior.npz` c77f058e…, record in
