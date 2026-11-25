@@ -22,8 +22,14 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * **D0 (14.38, research 31825b5): rule INCONCLUSIVE.** Valid run (void check ok). Pooled four ext cells: D0 vs
   fb2-900 -2.70 [-4.02, -1.38] (straddles -2.0), D0 minus B1 +1.07 [-0.28, +2.43]. Three families sit within 0.2 of
   B1 (the loss stays without the new data); `ext:ashwing_hive` recovers 4.2 of B1's 4.6. No lever decision, no
-  D-null by the rule. Verifier CONFIRMED the numbers, REFUTED wording (corrected, research 280bdd4). Sent to Fable 20:21
-  with a proposed probe (fb2's own neighbouring checkpoints on these cells: continuation or not).
+  D-null by the rule. Verifier CONFIRMED the numbers, REFUTED wording (corrected, research 280bdd4). Fable: run **C0** now,
+  hold D-null.
+* **C0 running** since 20:23 UTC (research a5fd3ed, tier 1, pre-registered; reader holdem-rl d0 6c3f594
+  `tools/c0_read.py`): fb2's own it000700, it000800 and latest (it 965) on ext:ashwing, ashwing_hive, ashwing_search,
+  1,000 each, seed 95, paired with fb2-900's rows; D0 it000300 and it001600 reported beside. Cores 18-19, 2 workers,
+  detached (`~/d0-run/c0run.sh`, logs ~/d0-run/logs/c0/, done marker `done`, read in `read.txt`). Rule: PEAK = no
+  D-null, screens add the Ashwing cells and autodidact_fast, P1b closes; NOT PEAK = D-null after AD0's play; MIXED =
+  D-null only if AD0 lands on rule 1.
 * **AD0 data** running since 20:15 UTC on cores 0-17 (`~/ad0-run`, detached; markers logs/data.start, data.rc;
   background wait prints the end). Then `ad0_run.sh fit` (GPU), `ad0_play.sh play 1`, `read 1`.
 * **AD1 built** (local: holdem-rl `ad1` 0482bff, holdem-x2r `ad1-x2r` eb5d747; `sdk_prior.npz` c77f058e…, record in
