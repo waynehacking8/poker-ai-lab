@@ -19,9 +19,12 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   fb2-900. No v5; v4 stays entered. Chosen checkpoint it001200 (rows in ~/poker-ai-lab-x2r/logs/b1/confirm/cand).
 * 14.37: weighted by hands, the counts name the opponent for 53% of hands and 71% of bp100's, so seeding (AD1) has
   limited room. AD1 and S7 wait behind AD0.
-* **D0 trained** 15:53 to 19:03 UTC (time stop at it 1,730; it001200 present). Void check ok: C engine 6,070, old-family
-  SDK 5,926, ext : heuristic 3.15 per iteration. Reads running since 19:04: four ext cells on seed 95 from it001200 on
-  cores 0-17 (~12 min), then `d0_read.py rule`; then 14.38, outcome verifier, Fable. MIX OR CONTINUATION = D-null.
+* **D0 (14.38, research 31825b5): rule INCONCLUSIVE.** Valid run (void check ok). Pooled four ext cells: D0 vs
+  fb2-900 -2.70 [-4.02, -1.38] (straddles -2.0), D0 minus B1 +1.07 [-0.28, +2.43]. Three families sit within 0.2 of
+  B1 (the loss stays without the new data); `ext:ashwing_hive` recovers 4.2 of B1's 4.6. No lever decision, no
+  D-null by the rule. Outcome verifier running since 20:17; then the record goes to Fable for the next step.
+* **AD0 data** running since 20:15 UTC on cores 0-17 (`~/ad0-run`, detached; markers logs/data.start, data.rc;
+  background wait prints the end). Then `ad0_run.sh fit` (GPU), `ad0_play.sh play 1`, `read 1`.
 * **AD1 built** (local: holdem-rl `ad1` 0482bff, holdem-x2r `ad1-x2r` eb5d747; `sdk_prior.npz` c77f058e…, record in
   the roadmap AD1 spec). Verifier 1 REFUTED: amendment items 2 to 4 (B1 arm on seed 104,
   "AD1 minus B1" reading with D0's verdict) missing; fixed on ad1-x2r 4b85994; verifier 2 REFUTED the GAINS ONLY line
