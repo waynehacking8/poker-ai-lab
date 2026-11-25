@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 22:38 UTC, box clock UTC+8)
+## Now (2026-11-25 22:41 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -33,12 +33,12 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   candidate slice (full process); AD1 and S7 drop. Data overran its time line (deviation recorded in the amendment,
   research 2513a6f). A1 converged refits (students_a1) exist, not played (A2). Outcome verifier CONFIRMED; Fable asked
   for the next slice's spec and whether D-null still runs. Students: ~/ad0-run/students/W1.npz etc.
-* **Next (Fable after 14.39), specs pushed research d4428f8, plan reviews running:** **V5a** (full process): judge
+* **Next (Fable after 14.39), specs research 74f4098:** V5a plan review 1 REVISE (fixed: Ashwing cells in the fresh-seed check, lower bounds, replay stop, repair round removed, arena cells on 8be6e38), review 2 running. TT review 1 REVISE fixed (fresh seed 109 with fb2 arms, chipzen read, tree pinned); building in worktree poker-ai-lab-tt (holdem-rl `tt` from ad0 5b09abe). **V5a** (full process): judge
   W1 (30 epochs, 9bc31660…) and its A1 refit (3c375498…) as the candidate with no PPO: B1's screen (seed 94, league
   400-499, filter 78.0%), B1's rule on seed 95, fresh-seed check seed 108 (bp100 lb > +5.4, small_ball lb > +6.5), E1
-  gate, eval card with E3; one repair round on uncovered guard cells (seeds 109-111). **TT** (tier 2): T-a reads
+  gate, eval card with E3; **TT** (tier 2): T-a reads
   br_ashwing and br_autofast on seed 95 (cores 18-19 after C0); T-b 60-min specialists vs sticky_overbettor,
-  loose_passive (port to holdem-rl), never_fold_pre, chipzen, read on seed 93; lb +8.0 joins V5b. Dropped: AD1, S7,
+  loose_passive (port to holdem-rl), never_fold_pre, chipzen, read on seed 109; lb +8.0 joins V5b. Dropped: AD1, S7,
   D-null, P1b, B1v, the seeding path.
 * **AD1 built** (local: holdem-rl `ad1` 0482bff, holdem-x2r `ad1-x2r` eb5d747; `sdk_prior.npz` c77f058e…, record in
   the roadmap AD1 spec). Verifier 1 REFUTED: amendment items 2 to 4 (B1 arm on seed 104,
