@@ -197,25 +197,32 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   3. A short real run, `rl.train` through `tools/rl_br.sh` with `--sdk-opps bp100`, 2 SDK workers, 3 minutes:
      every `sdk_samples` entry in its `train.jsonl` is `bp100` only and `wr` has the key `bp100`.
   4. `docker ps --filter name=bpopp-` is empty within 60 s after the short run's normal `--max-minutes` exit,
-     and within 60 s after `tools/t1_run.sh`'s stop branch (below) is invoked on a second short run.
+     and within 60 s after the stop branch fires on a second short run, forced with `T1_CHECK_MIN=4
+     T1_MIN_RATE=1000` (and the run's name and minutes overridable for the test: `T1_OUT=t1test`,
+     `T1_MINUTES=8`); that case must also leave `logs/t1/stopped` written by the script after the kill.
 * **Pre-run check (in `tools/t1_run.sh`):** the policy arrays (`pw0`..`pw2`, `pb0`..`pb2`) of
   `ckpt/fb2/it000900.npz` equal those of `rl/models/fb2_it000900.npz`, which S2r read; otherwise it stops.
   Checked by hand 2026-11-25: equal (the ckpt adds the value head `vw*`, `vb*` that the fine-tune needs, so the
   ckpt is INIT and the mirror opponent of `rl_br.sh`).
 * **Train (`tools/t1_run.sh`, launched with `setsid -f`, alone in the bpopp queue):** exports the eval card's
-  BP_* variables (BP_IMAGE=bpopp:v011, BP_DATA, BP_RUN, BP_AT=65000, BP_THRESHOLD=0.35) and BP_CPUS=1, then
-  `bash tools/rl_br.sh br_bp100 ckpt/fb2/it000900.npz bp100 120 6` in the background. **Rate stop:** at wall
-  minute 12 the script reads the last row of `ckpt/br_bp100/train.jsonl`; rate = (it of that row minus it of
-  the first row with min at least 2) over (their min difference). Under 2 iterations a minute: it kills the
-  run's process group (`kill -TERM -<pgid>`, then `-KILL` after 30 s), runs `docker kill` on every
-  `bpopp-` container (the run is alone in the queue, so all are its own), writes the rate to
-  `logs/t1/stopped`, and exits. Otherwise it waits for the learner's pid (`kill -0`, never `pgrep -f`).
+  BP_* variables (BP_IMAGE=bpopp:v011, BP_DATA, BP_RUN, BP_AT=65000, BP_THRESHOLD=0.35) and BP_CPUS=1 for the
+  training only, then launches `setsid bash tools/rl_br.sh br_bp100 ckpt/fb2/it000900.npz bp100 120 6 &`
+  (plain `setsid`, not `-f`): `rl_br.sh` ends in `exec python -m rl.train`, so `$!` is both the learner's pid
+  and the pgid of a new group that does not contain the script. **Rate stop:** at wall minute T1_CHECK_MIN
+  (default 12) the script reads `ckpt/br_bp100/train.jsonl`. Qualifying rows are those with `min` at least 2.
+  With two or more, rate = (it of the last qualifying row minus it of the first) over (their `min`
+  difference); with fewer than two, or no file, rate = 0. If rate < T1_MIN_RATE (default 2): `kill -TERM
+  -$PGID` (that pgid only, never the script's own group), `-KILL` after 30 s, `docker kill` on every `bpopp-`
+  container (the run is alone in the queue, so all are its own), the rate and row count into
+  `logs/t1/stopped`, exit 3. Otherwise it waits for the learner with `kill -0 $PGID` (never `pgrep -f`).
 * **Read (same script, after training; identical to S2r's command except `--model` and the output paths):**
-  `taskset -c 8-15 nice -n 5 python -m rl.eval_arena --model ckpt/br_bp100/<last it>.npz --opp bp100
-  --matches 4000 --seed 81 --workers 6 --rows logs/t1/rows_br.jsonl` under the same exports as
-  `tools/s2r_run.sh`, then `python tools/paired_stats.py logs/s2r/rows_fb2.jsonl logs/t1/rows_br.jsonl`
-  (copied from holdem-x2r), which must join all 4,000 (seed, hero_seat) keys. Then `tools/chipflow.py --model
-  ckpt/br_bp100/<last it>.npz --opp bp100 --matches 4000 --seed 81 --workers 6` (compares with S2r's chipflow,
+  first `unset BP_CPUS`, so `env | grep BP_` equals `tools/s2r_run.sh`'s exports exactly; then
+  `taskset -c 8-15 nice -n 5 python -m rl.eval_arena --model ckpt/br_bp100/latest.npz --opp bp100
+  --matches 4000 --seed 81 --workers 6 --rows logs/t1/rows_br.jsonl` (`latest.npz` holds the final
+  parameters saved at the `--max-minutes` break; the `itNNNNNN.npz` files are every 100 iterations only), then `python tools/paired_stats.py logs/s2r/rows_fb2.jsonl logs/t1/rows_br.jsonl`
+  (copied from holdem-x2r), which must join all 4,000 (seed, hero_seat) keys. Then `taskset -c 8-15 nice -n 5 python
+  tools/chipflow.py --model ckpt/br_bp100/latest.npz --opp bp100 --matches 4000 --seed 81 --workers 6 --out
+  logs/t1/flow_br.jsonl` (compares with S2r's chipflow,
   and with `tools/p0_read.py` gives P0's statistic for the fine-tune). Gain = br minus fb2-900, paired normal
   95% interval. Seed 81 is S2r's read seed, the named paired baseline, never seen in training.
 * **Also reported, not deciding:** br_bp100 and fb2-900 on the `ext:` families, 400 matches per bot, seed 87
@@ -228,6 +235,11 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   bands are decidable.
 * **Budget and stop:** about 2.5 box-hours (tests 15 minutes, training 120, reads 20); stop at twice that.
   Nothing reaches the deployed bot.
+* **Review record:** plan review 1 REVISE (INIT file not shown equal to S2r's model; read not pinned; seed 21
+  unregistered; no rate-stop mechanism; tests did not prove bp100, seeding or cleanup on both exits; no scope,
+  owner or rollback). Review 2 REVISE (the group kill would kill the script; the rate undefined with few rows
+  and no test hook; chipflow's `--out`, the read model and BP_CPUS). All fixed here; cap reached, carried by
+  Wayne's standing approval. The executor's work gets a fresh outcome verifier before the training starts.
 
 ## Revision 2 (2026-11-23): the problem from first principles
 
