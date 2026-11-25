@@ -89,13 +89,14 @@ training question for clones was never asked; D2c first); resuming S2 (14.15: th
 * **Seeds:** a read seed is never a training seed and is fresh per read, with one allowed exception: a read
   may reuse an earlier read's seed when that earlier run is its named paired baseline and the seed was never
   seen in training. Registry: 81 S2r; 81 again for T1's read (its named baseline is S2r's fb2-900 rows); 82 T2;
-  83 and 84 D2b (fitting logs, held-out logs); 85 D2b read 1 (86 its control rerun); 87 T1's `ext:` cost check (unpaired). Training seeds stay those of
+  83 and 84 D2b (fitting logs, held-out logs); 85 D2b read 1 (86 its control rerun); 87 T1's `ext:` cost check (unpaired); 88 B0 step 1 fit logs; 89 B0b's tagged read (with T2). Training seeds stay those of
   `tools/rl_br.sh`. A new read takes the next unused number and writes it here.
 * **Pairing:** every A/B is paired on (seed, hero seat) with a paired 95% interval (`tools/paired_stats.py`,
   holdem-x2r), and real-code opponents are pooled by family (Ashwing, autodidact, Wolf, bp100), equal weight
   per family; the aggressor family joins the pools only once A0's aggressor cell exists.
 * **Box (gb10-d, 20 cores, one GPU):** every job that starts bpopp containers runs alone in one serial queue,
-  because the containers are not pinned to cores: S2r, then T1, then D2b's generation (seeds 83, 84), then T2
+  because the containers are not pinned to cores: S2r, then T1, then B0 step 1's logged runs (seeds 81, 88) and range queries, then D2b's
+  generation (seeds 83, 84), then T2
   (after A0). D2b's fits run on the GPU while the queue moves on; P0 runs on cores 18-19 (CPU minutes); A0 is
   written and tested on the PC and reads the archive on gb10-d cores 18-19 at nice 19. Phase 0 aggregate
   budget: 12 box-hours; past 24, Phase 0 stops and what finished is recorded and judged.
@@ -125,9 +126,11 @@ it unlocks.
   family. Unlocks: T2 (needs the cells), the L8 weight, the family pools of every later read.
 * **T2**, the lookahead against the solver proxy and the aggressor. Prerequisite: A0's aggressor cell and
   bp100 support in `tools/x2r_oracle.py`. Does the lookahead at N = 32 gain on these two families, and does K
-  matter? Arms at N = 32, Z = 2.6: K = 4.68 and K = 0.73, each paired against the N = 1 arm, 1,000 seed pairs
+  matter? Arms at N = 32, Z = 2.6: K = 4.68 and K = 0.80 (the measured curve, 14.28), each paired against the N = 1 arm, 1,000 seed pairs
   per cell (bp100 and the aggressor), seed 82. Rule: an arm gains when its paired lower bound against N = 1 is above zero; the K arms separate
-  when the paired interval of (K = 0.73 minus K = 4.68) excludes zero. Unlocks: K1 only if they separate; the
+  when the paired interval of (K = 0.80 minus K = 4.68) excludes zero. Every override is logged with a
+  decision-class tag (facing an all-in; hero shove with a cheaper action legal; other), so the read splits its
+  gain by class and B0b (the flop-shove veto) is read from that split, seed 89, not built separately. Unlocks: K1 only if they separate; the
   lookahead's place in the Phase 2 candidate only if an arm gains.
 * **D2b** (GPU), is the solver proxy clonable? D2a's protocol and rule on bp100 (sizes 100, 1,000, 2,000,
   control first). Pass at some size: archive clones of the solver-family names with at least that many
@@ -141,7 +144,9 @@ it unlocks.
   of the field-weighted sum.
 
 **Phase 1, chosen by Phase 0's reads.** Each gets its own spec and review before it runs.
-* **B0** big-pot play-time logic, only if P0's rule fires.
+* **B0** big-pot play-time logic (P0 fired, 14.27). Step 1 (spec below): the headroom of a river all-in answer
+  against bp100, offline, with bp100's true range read from its container. B0a (the play-time answer) only if
+  step 1's rule fires; B0b (flop-shove veto) only from T2's tagged split.
 * **X5** model-uncertainty gate: rollouts draw the opponent's frequencies from their posterior, so the Z gate
   covers model error (the safety blend).
 * **G1** one card-conditioned opponent model fitted on the archive (D2a's network with profile inputs, a
@@ -240,6 +245,68 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   owner or rollback). Review 2 REVISE (the group kill would kill the script; the rate undefined with few rows
   and no test hook; chipflow's `--out`, the read model and BP_CPUS). All fixed here; cap reached, carried by
   Wayne's standing approval. The executor's work gets a fresh outcome verifier before the training starts.
+
+### B0 step 1. Headroom of a river all-in answer against bp100 (spec, 2026-11-25)
+
+* **Why:** P0 fired (14.27). Of its parts, only the river call of an all-in loses under every match-value
+  curve (594 calls at equity 0.198, -2.46M chips; 14.27, 14.28). fb2-900's only hand input is equity against a
+  random hand (`rl/features.py`), so it cannot see that bp100's river shoving range beats two pair. A river
+  call-off is terminal (no runout), so its value is exact given the opponent's range, and the range is the
+  only modelled object. This step measures the headroom before anything is built; the design follows S0
+  (`rl/allin.py`: the policy acts, a narrow module may replace one action). The flop-shove veto (B0b) is a
+  counterfactual that needs a continuation model; it is measured as a tagged split of T2's read, not here.
+* **Decision class:** a hero decision on the river facing a bet that puts hero all in, or leaves hero less
+  than 40% of its stack at the hand's start behind (to_call at least 60% of hero's remaining stack). Actions
+  compared: fold and call (a raise is not legal or not considered).
+* **Data (bpopp queue, after T1):**
+  * Score logs: fb2-900 against bp100, seed 81, 4,000 matches, the same matches as S2r, with a hero-side log of
+    every hero decision (hole cards, board, pot, to_call, both stacks, the action history, legal actions, the
+    action taken) and both players' true hole cards for every hand.
+  * Fit logs: the same on seed 88 (registered), 4,000 matches. Never scored.
+  * Check: the seed 81 rerun with logging reproduces S2r's per-match results (`won`, `hands`) for all 4,000
+    (seeded hero and bp100); otherwise stop.
+* **Match value V:** the empirical curve P(win | hero stack at hand start) from the seed 88 logs (as in 14.28),
+  in 10 bins of 2,000 chips, linear between bin centres. Reported also with K = 0.80.
+* **Four ways to answer each decision, each valued in match-win probability with equity against bp100's true
+  range at that node:** call value e V(s + m) + (1 - e) V(s - m), fold value V(s), where s is hero's stack
+  before the call and m the chips at risk (the smaller of to_call and the matched stack, plus the pot share;
+  the tool computes the exact end stacks for both outcomes).
+  1. **Policy:** the action fb2-900 took.
+  2. **True range (oracle):** bp100's probability of the action it took at its shoving node, for every holding
+     consistent with the board and hero's cards, read from the container itself: the same wire state with each
+     alternative hole-card pair, 8 seeds each, averaged. Before use, a reproduction check: resending the
+     logged state with bp100's actual cards gives back its logged action distribution on 50 nodes; if the
+     container keeps per-hand state that a single resend does not reproduce, the hand's earlier states are
+     resent in order; if neither reproduces, step 1 stops with that finding.
+  3. **Fitted table:** a range from the seed 88 logs only: for each shown bp100 river shove, its hand's
+     strength percentile among all holdings on that board, histogrammed in 10 bins per shove-to-pot bucket
+     (under 1, 1 to 3, 3 to 8, above 8); card removal at play time.
+  4. **True cards:** call if hero's actual equity against bp100's actual hand beats the price. A hindsight
+     bound, reported only.
+  Ways 2 and 3 choose the action with the larger value under their own range; every way is then valued under
+  the true range (2). Per decision, gain = value of the way's action minus the policy's; points of win rate =
+  100 x (sum of gains) / 4,000. Bootstrap over matches (2,000 resamples, seed 47) for 95% intervals.
+* **Calibration check (reported, gates the build):** on the seed 81 called river shoves, the fitted table's
+  predicted hero equity against the realized result, in 5 bins, with counts.
+* **Rule (pre-registered):** B0a (the river all-in answer at play time) is specified and built if the true-range
+  way gains at least +1.0 point with its lower bound above zero. If the fitted table recovers less than half of
+  the true-range gain, its range model is revised before any build (and the revision is read again on these
+  logs). If the true-range gain is under +1.0, B0a is not built and the river loss is recorded as a
+  representation problem for B1 (L10). Expected from the gross figure (about -4 points over all river
+  call-offs, 14.27 split): +1 to +2.5; a guess, not a prior that changes the rule.
+* **Code (holdem-rl, local, an executor in a worktree):** `tools/b0_log.py` (plays fb2-900 against bp100 with
+  the hero-side log and true cards; the same seeding and hero as `rl.eval_arena`), `tools/b0_oracle.py` (the
+  reproduction check, the range queries, the four ways, the read), `tests/test_b0.py` run on gb10-d, each test
+  shown to fail on a planted fault: the log's stacks and pot conserve chips per hand; the seed 81 rerun matches
+  S2r's rows; the fit path never opens the seed 81 logs; the oracle's range sums to 1 over the live holdings
+  and excludes cards on the board or in hero's hand; a decision's call and fold values use the exact end
+  stacks; the four-way read on a planted toy log returns hand-computed gains. Non-goals: no change to the
+  deployed bot, `rl/bot.py`, `rl/allin.py` or any training code.
+* **Cost:** the two logged runs about 10 box-minutes each (S2r ran 4,000 in 182 s without logging); range
+  queries about 1,000 decisions x up to 990 holdings x 8 seeds against the container, unmeasured, capped at 90
+  minutes on 6 containers; scoring minutes. Budget 2 box-hours; stop at 4.
+* **Runtime note for B0a (if built):** one river enumeration over at most 990 holdings per decision with numpy,
+  well under R1's 0.4 s per lookahead decision (14.22); measured in B0a's own spec.
 
 ## Revision 2 (2026-11-23): the problem from first principles
 

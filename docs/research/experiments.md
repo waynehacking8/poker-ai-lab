@@ -1464,3 +1464,36 @@ card's settings, seed 81 (fresh), 4,000 matches per arm, 6 workers. Output `logs
   carries the street mix; fb2-900 gets its stack in on the flop and river, bp100 before the flop at near coin
   flips. That mix is itself the policy's choice, and the flop-shove and river-call lines above are each a
   decision error on their own terms, so the conclusion does not rest on the mix alone.
+
+### 14.28 Match value against bp100 is near linear: K = 4.68 overstates it, and 14.27's flop-shove reading is withdrawn
+
+Data: S2r's chipflow rows (14.27; fb2-900 against bp100, seed 81, 4,000 matches, 173,553 hands). Hero stack at
+each hand start (10,000 plus the running sum of `delta`; every match ends at 0 or 20,000) against the match
+result. Tool: `kcal.py` (gb10-d `~/m3/`; moves into holdem-rl tools with B0). `win_prob(x, T) =
+expm1(-K x / T) / expm1(-K)` from `rl/search.py` (holdem-x2r), where K = 2 ln(0.912 / 0.088) = 4.68 comes from
+v4's league field rate.
+
+| hero stack (k chips) | hands | empirical P(win) | win_prob, K = 0.80 | win_prob, K = 4.68 |
+|---|---|---|---|---|
+| 2 to 4 | 5,122 | 0.220 | 0.205 | 0.509 |
+| 6 to 8 | 21,808 | 0.456 | 0.443 | 0.813 |
+| 8 to 10 | 39,774 | 0.584 | 0.549 | 0.887 |
+| 12 to 14 | 19,753 | 0.775 | 0.736 | 0.961 |
+| 16 to 18 | 10,203 | 0.947 | 0.896 | 0.990 |
+
+(The K columns are win_prob at the bin's midpoint, checked by hand for 3k: 0.205 and 0.509.)
+
+* **Against bp100 the match value is close to the chip share.** K = 2 ln(p / (1 - p)) from fb2-900's 59.85%
+  gives 0.80, and that curve sits within about 0.04 of the data in every bin. K = 4.68 claims 51% with
+  3,000 of 20,000 chips; the data say 22%.
+* **Correction to 14.27:** its bullet "flop shoves are a match-equity error, so B0 must decide by the K of
+  `rl/search.py`" assumed K = 4.68. At the measured curve the flop shoves' net match value is unresolved (a
+  single-pass read by the roadmap agent puts all flop shoves at about +0.2 to +0.6 points of win rate, valued
+  against a hand that moves no chips, not against the cheaper action; unverified). Whether a cheaper action
+  beats them is a counterfactual nobody has measured; B0b's oracle read is that measurement. P0's rule still
+  fired as pre-registered, and the river call-offs (594 at equity 0.198, -2.46M chips) are a loss under every
+  curve.
+* **Consequence for the lookahead:** every X2/X3/R1 match read used K = 4.68 (`rl/search.py`), which is right
+  only against opponents we beat about 91% of the time. Against the strong families the utility is too
+  risk-averse. T2 takes the calibrated K as an arm (0.80 replaces the 0.73 of the envelope draft), and the K1
+  slice (K from the estimated edge) gains direct evidence.
