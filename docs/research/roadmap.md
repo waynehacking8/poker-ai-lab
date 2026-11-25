@@ -53,6 +53,76 @@ UTC), was to the solver family. Our one proxy of that family, bp100, is real cod
 about 70 s, yet every read of it used n = 400 (59.0 [54.1, 63.7], 14.9). The full revision is written after
 the first reads below.
 
+**What decides the long-term win rate** (the decomposition the revision orders by): a field-weighted sum
+over opponent classes of P(win | class); within a class, per-hand edge over variance at the current depth,
+where one or two stack-sized pots carry most of the variance (76% of archived matches have a hand that moves
+half a stack or more; one-pass archive read, to be re-derived by A0's tool). Classes in the archive: ten
+stationary house bots (weak to middling, about 8,000 matches among themselves), the solver family, small-ball
+aggressors, and a long tail of new names (cold start is the common case in a season). Levers, with the
+evidence that sets their weight:
+
+| lever | evidence | weight now |
+|---|---|---|
+| L1 base strategy against the top classes | bp100 59.0 [54.1, 63.7] (14.9); never measured against aggressors; fb2-900 opens 3% of small blinds in a match's first 10 hands (D2a logs) | under: raise |
+| L2 big-pot decisions | 14.26 river shoves pay against callers; against bp100 the lost matches end in underdog all-ins (flow_bp100.out, to re-read in P0); every model score weights a 16x shove like a min-bet | under: raise |
+| L3 real-arena measurement | E7 has 7 matches; 14.25 says only real code and the real arena judge | under: needs Wayne (L0) |
+| L4 exploitation of a known bot | M1 +11 to +15 per bot (14.12); the lookahead realizes +2.8 on one family (14.22) | right |
+| L5 opponent model at the root | 14.19, 14.20; the oracle's +4.2 against +0.1 today (14.17, 14.22) | right, scored wrong (L2) |
+| L6 model-uncertainty safety (Wayne's third part) | the Z gate tests rollout noise only; X2m lost 4.6 with every override past 2.6 standard errors (14.18) | missing: add |
+| L7 risk attitude K | K = 4.68 fixed from an overstated clone-league rate | under: cheap arm in T2 |
+| L8 floor against a white-box exploiter (E3) | 96.5 to 78.7 then a plateau (14.10, 14.15); the field's top bot slopBot is highly exploitable | over: keep E3 as information |
+| L9 cold start and name families | 14.24 (one weight cannot serve deterministic and mixing bots) | under: in G1 |
+| L10 policy representation (range-aware equity, sizes) | the bust hand of 14.26: all-in 0.93 with second pair, the only hand feature is equity against a random hand | unmeasured: T1 separates it from population |
+
+**Stopped or changed by this revision:** X4's per-name prior as specified (every simulated cell is nameless,
+so it cannot reach the X3b match read; folded into G1); D3 (no gain from generated archetypes in 14.2, and the
+training question for clones was never asked; D2c first); resuming S2 (14.15: the recipe is finished); the
+`ext:` pool as "real bots" (pool by family from now on); bp100 reads at n = 400 (default 4,000).
+
+**Phase 0 (cheap reads that order everything after; slice IDs are stable):**
+* **S2r** (running, below): fb2-900 and S2 it1800 against bp100 at 4,000.
+* **P0** big-pot audit: chipflow on S2r's fb2-900 run, split by hand class and equity against the caller's
+  actual hand. Rule: if busts at equity under 0.35 with a cheaper legal line are 10% or more of all matches,
+  a big-pot slice goes ahead of the model work.
+* **T1** best-response ceiling against bp100 (spec below; the next executable slice).
+* **A0** re-aimed judge: the archive tool committed; cells bp100 and a slopBot-style aggressor (style check
+  distance under 0.25, as E6) added to the lookahead judge; pools by family.
+* **T2** the lookahead at N = 32 against bp100 (needs A0), two K arms (4.68 and 0.73).
+* **D2b** (GPU) is the solver family clonable: D2a's protocol on bp100 at 100, 1,000, 2,000 matches.
+* **L0** challenge series: Wayne's decision (outward-facing); proposed, not run.
+
+**Phase 1, chosen by Phase 0's reads:** X5 model-uncertainty gate (rollouts draw the opponent's frequencies
+from their posterior, so the Z gate covers model error: the safety blend); G1 one card-conditioned opponent
+model fitted on the archive (D2a's network with profile inputs, pot-weighted loss, leave-name-out read),
+subsuming X4's hierarchical prior; D2c clone-to-real transfer (fine-tune on the 1,000-match clones, play the
+real bots: transfer ratio against M1); B1 base policy for the top classes, shaped by T1 and P0; K1 K from the
+estimated edge if T2 separates the arms. Each gets its own spec and review before it runs.
+
+### T1. Best-response ceiling against bp100 (spec, 2026-11-25)
+
+* **Question:** is fb2-900's 59% against the solver-family proxy a limit of its training population or of its
+  representation? M1's method (14.12) measured +11 to +15 against Ashwing and autodidact; it was never pointed
+  at bp100.
+* **Code (holdem-rl, local branch):** `rl/sdk_rollout.make_opp` gains `bp100`: one `bpopp.opponent`
+  BlueprintOpponent per worker process (its container loads the blueprint in about a minute and is reused for
+  every match of that process, as in `rl.eval_arena`), seeded before each match with `set_seed(seed * 13 +
+  seat)` as `holdem/arena.py` does; no per-match close (the container exits with the process, `atexit`).
+  Tests: two training-path matches on the same seed against bp100 give identical batches; a second match in the
+  same process reuses the container (one `docker ps` entry); after the worker exits no bpopp container is left.
+* **Train:** after S2r ends (bpopp containers are not pinned to cores, so the two would contend):
+  `bash tools/rl_br.sh br_bp100 ckpt/fb2/it000900.npz bp100 120 6` with the eval card's BP_* variables and
+  BP_CPUS=1 (6 SDK workers, 6 containers, the learner; about 13 of 20 cores). Its first 10 minutes give the
+  iteration rate; under 2 iterations a minute it stops and the rate is recorded (M1 ran about 6).
+* **Read:** the last checkpoint against bp100, 4,000 matches, seed 81, rows paired on (seed, hero seat) with
+  S2r's fb2-900 rows (seed 81 is never seen in training); gain = br minus fb2-900 with a paired normal 95%
+  interval. Also reported, not deciding: br_bp100 on the `ext:` families (400 per bot, seed 21, M1's cost
+  check) and its chipflow against bp100.
+* **Rule (pre-registered):** gain lower bound at or above +8 points: population is the limit, a solver-family
+  member enters training (B1) and the lookahead is expected to recover part of it (T2). Gain upper bound
+  below +4: the reactive policy cannot exploit it, B1 goes to representation and sizing. In between: both,
+  representation second.
+* **Budget and stop:** about 2.5 box-hours on cores 0-7; stop at twice that. Nothing reaches the deployed bot.
+
 ### S2r and P0 data: fb2-900 and S2 it1800 against bp100 at n = 4,000 (pre-registered 2026-11-25, before the run)
 
 * **Why:** the two policies were never compared against the strongest family at a size that can tell them
