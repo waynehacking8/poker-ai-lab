@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 15:25 UTC, box clock UTC+8)
+## Now (2026-11-25 15:27 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -35,7 +35,9 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
     +15.4. No v5; v4 stays; P1b retired, B1r parked. Outcome verifier on the read.
 * **Next: AD1** (research 0eb29f1, tier 2, Fable): seed the opponent counts per opponent (H0 40, share 0.75) so one
   network knows who it faces; 240 min on B1's command; rule decides X2b vs representation vs capacity. Plan review
-  running. Tier-1 reads R1 (identification curve, seed 102) and R2 (bp100 against arena Blueprint) with an executor
+  1 REVISE, fixed in research 50a48d0 (tier 2: execution follows). Builder on worktrees poker-ai-lab-ad1 (branch
+  ad1 from b1-rl 126c673) and poker-ai-lab-ad1x2r (ad1-x2r from 8be6e38): code, tests and plants, sdk_prior.npz on
+  seed 101; no ship, no training until the verifier. Launch also waits on R1. Tier-1 reads R1 (identification curve, seed 102) and R2 (bp100 against arena Blueprint) with an executor
   on b1-rl, outputs ~/poker-ai-lab-rl/logs/ad1r/.
 * **Merges (local):** holdem-x2r fast-forwarded to b1-x2r 8be6e38, holdem-league to b1-league 857660c. holdem-rl
   waits for the R1/R2 executor (on b1-rl); then merge and drop rl/models/b1.npz and rl/bot_b1.py from the trunk
