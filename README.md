@@ -150,7 +150,7 @@ Online poker platforms must detect three main fraud types:
 
 | Type | Behavior | Detection signal |
 |---|---|---|
-| **Collusion (夥牌)** | Players share hole-card info; soft-play partners | Pairwise fold-against-partner rate, simultaneous folds, chip flow |
+| **Collusion** | Players share hole-card info; soft-play partners | Pairwise fold-against-partner rate, simultaneous folds, chip flow |
 | **Bots** | Automated decisions, no human fatigue | Decision latency distribution, mouse trajectory, 24-hour activity |
 | **Multi-accounting** | Same person on multiple accounts | Device fingerprint, IP, behavior similarity |
 
