@@ -4,80 +4,37 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 07:47 UTC, box clock UTC+8)
+## Now (2026-11-25 08:13 UTC, box clock UTC+8)
 
-**Standing rules from Wayne:** English in this project (he may write Chinese; when he asks for an explanation in Chinese, answer in
-Traditional Chinese). Think from first principles, not narrowly. Goal is the long-term "future king", not the
-Season 16 deadline. He accepts my recommendations when worth it; uploads and swaps still need his explicit yes.
-Process gates still hold: plan-verifier READY/REVISE (cap 2), outcome verifier CONFIRMED/REFUTED. Keep gb10-d
-busy on purpose. Plan of record: `docs/research/roadmap.md` on branch research ("Where we are" at the top).
+**Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
+Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
+recommendations; open questions go to the Fable roadmap agent, never to Wayne. Uploads, swaps and L0 live
+challenges need his explicit yes and are not raised. Process gates hold: plan-verifier READY/REVISE (cap 2),
+outcome verifier CONFIRMED/REFUTED. Memory and docs English only. On every new result, update the matching doc
+(experiments, roadmap, HANDOFF) and drop what is stale. Plan of record: `docs/research/roadmap.md` on branch
+research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u +%H:%M'`.
 
-**Done this session (research a6fd1d3, pushed):**
-* 14.24 X4 step 2: k_im sweep, CHOSEN none (best k_im 4, lower bound -0.0001); k_im stays 8. Verifier CONFIRMED.
-* 14.25 D2a stage 2: Wolf and autodidact clones trusted from 1,000 matches; Ashwing not (5,000 clone +6.8).
-  Every adaptive clone is easier than the real bot by 2 to 7 points; better likelihood, weaker clone.
-* 14.26 M3 first read. CORRECTION: the MonteCarlo loss (2026-11-24 18:30 UTC, match 4b2a2beb) IS v4's Season 16
-  round 1 fixture, the fermat-mini win (22:50 UTC) round 2; the API labels both `challenge`. Season 1-1 after 2
-  of 8 rounds. Flop overfold measured (60.7% folds vs a 39.5% break-even at half pot); river shoves pay against
-  callers. The site's "1-0, 100%" counts rated matches only (round 1 is unrated). Probes: holdem-chipzen
-  `tools/m3_leaks.py`, `tools/m3_flop_aggr.py` (a6ff531).
-* A Fable 5.2 agent rethought the roadmap (read-only). Adopted as roadmap **Revision 3** (research ef5bb38): the
-  judge is aimed at the wrong opponents (ext: pool is one family; the archive's top is a solver-like family,
-  Blueprint/NashForge/fermat6/MonteCarlo, plus small-ball aggressors like slopBot). X4 per-name prior and D3
-  stopped; Phase 0 = S2r, P0, T1, A0, T2, D2b, L0 (L0 = live challenge series, needs Wayne's yes).
-  Facts re-checked first-hand: fixture times, fb2-900 opens 3% of SBs in the first 10 hands, R1 per-cell
-  numbers, bp100 at 400 matches in 70 s.
+**State (details in experiments 14.27 to 14.31 and the roadmap's B1 spec):**
+* T1 (14.31, verifier CONFIRMED the numbers, one sentence corrected): bp100-trained 79.7% vs fb2-900 59.85%,
+  +19.9 [+18.1, +21.6]. B1 takes branch A (P1, with bp100). B0 step 1 does not run (river call-offs 594 → 57).
+* C1 (14.30): `small_ball` 75.7% → 97.6%; `small_ball` is in B1's training.
+* **B1 built** (local, unpushed): poker-ai-lab-b1rl `b1-rl` 24c8c9d, poker-ai-lab-b1x2r `b1-x2r` faa7eb5,
+  poker-ai-lab-b1lg `b1-league` 857660c. Tests all pass, every plant caught; P1 smoke shares bp100 0.335,
+  small_ball 0.167, heuristic 0.165, 3.7 it/min; `--init` restarts at it 1. **Outcome verifier running.**
+  On CONFIRMED: ship b1-rl to ~/poker-ai-lab-rl (`git -c core.autocrlf=false archive b1-rl | ssh gb10-d 'tar -x
+  -C ~/poker-ai-lab-rl'`), b1-x2r and b1-league likewise, then `cd ~/poker-ai-lab-rl && setsid -f taskset -c 0-17
+  bash tools/b1_run.sh P1`. Then screen (seed 94, league pairs 400-499), confirmation (seed 95), gate (E1
+  pairs 200-399 plus heuristic head to head), verifier, Wayne. Delete ~/b1-build after launch.
+* G1 RUNNING (holdem-d2 2520b27 on the box at ~/poker-ai-lab-d2s2, `tools/g1_run.sh`, logs/g1/run.log, rule in
+  logs/g1/rule.txt): five folds done, time split last. Then record the result; an outcome verifier checks it.
 
-**Results since (research 4107aa1, 85447e2):**
-* 14.27 S2r: fb2-900 vs bp100 59.85% [58.3, 61.4] at n = 4,000 (seed 81); it1800 minus fb2-900 -1.1 [-2.8, +0.6]
-  paired, so B1 starts from fb2-900. P0: fb2-900's lost matches end in a commitment under 0.35 equity 77.6% of
-  the time, bp100's 47.8%: +29.8 [+26.7, +32.9], **B0 fires** (big-pot play-time logic goes before G1, X5, B1).
-  Main ways: flop shoves called (chip-positive, bust-heavy: a match-equity error), river calls of bp100's
-  shoves at 0.198 equity (-2.46M chips). River shoves pay (+5.8M), leave them.
-* Revision 3 envelope settled (reviews 1 and 2 REVISE, fixed, cap reached, standing approval).
-* T1 spec final after plan reviews 1 and 2 (research 173d776; cap reached, standing approval). Executor in a
-  holdem-rl worktree builds `make_opp("bp100")`, `tests/test_t1_bp100.py` (4 tests with plants), `tools/t1_run.sh`;
-  then a fresh verifier; then I launch `tools/t1_run.sh` with `setsid -f` (120 min training, 4,000-match read).
-* 14.28: match value vs bp100 is near linear (K = 0.80, not 4.68); 14.27's flop-shove reading withdrawn.
-* **Ordering adopted (research 71c52db, roadmap "Ordering after Phase 0", Fable's):** K1 and B0b cut; T2, D2b,
-  A0 Part 3 deferred; B0 step 1 HELD until T1's chipflow read (revised exact-oracle design recorded); critical path
-  T1 read → B1 spec → B1 training 26-28 Nov → candidate reads 29 Nov → verifier, then Wayne, 30 Nov earliest.
-* 14.29 (research 543d0d4): A0 field map. Two pools: entrants face the ten regulars in 5.4% of seats; they face
-  Blueprint 15.4%, fermat6 6.8%, NashForge 6.1%, hoops 5.8%, mr_hide 5.7%, r0ckGarden 5.3%, slopBot 2.7%. slopBot
-  rates first and over-folds small flop bets by 44 points; 5 of top 10 exploitable (L8 over-weighted). Verifier
-  found an inverted best-opponent rate; fixed (holdem-x2r 1d2dd06) and rerun.
-* **14.31 T1 DONE 07:46 UTC (research 0907f95):** best response vs bp100 79.7% vs fb2-900 59.85%, paired +19.9
-  [+18.1, +21.6] (4,000 pairs, seed 81). Population is the limit: **B1 branch A (P1, with bp100)**. River
-  call-offs 594 → 57, so **B0 step 1 does not run** (B0a later on top of G1). Outcome verifier checking the read.
-* G1 RUNNING since 05:35 UTC (holdem-d2 `tools/g1_run.sh`; ~/poker-ai-lab-d2s2/logs/g1/run.log, per-step
-  .done markers, `failed` on error, rule in logs/g1/rule.txt). base_fold0 crashed 06:01 (x3_range KeyError on
-  one-sided showdown reveals); fixed in `g1_read.lam_scores` (holdem-d2, those hands replayed, not scored),
-  resumed 06:03; fold 0 and 1 done at 06:30.
-* **14.30 C1 FIRED (research 16fb10b):** best response vs `small_ball` 97.6% vs fb2-900 75.7%, paired +21.9
-  [+19.9, +23.8]; `tight_sticky` -4.0 [-5.5, -2.4]. `small_ball` joins B1's training.
-* **B1 spec in roadmap (research 6e0f647, 4435d81):** Fable's draft; plan review 1 REVISE (E1 command and
-  disjoint pair ranges 400-499 screen / 200-399 gate via new holdem-league `tools/league_fresh.py`; test 1 unit;
-  literal `rl.train` command with pinned input hashes and frozen `pool_b1`), fixed; plan review 2 REVISE
-  (registry, screen score, test 1 keys, P2 branch and lock, writes and rollback), fixed (research d23f111); cap
-  reached, standing approval. **Executor building since 06:42 UTC** in worktrees poker-ai-lab-b1rl (b1-rl),
-  poker-ai-lab-b1x2r (b1-x2r), poker-ai-lab-b1lg (b1-league); box test copies under ~/b1-build only; no
-  container job before T1 ends (the executor's P1 smoke run took the bpopp queue after T1). Then a fresh
-  verifier, then I launch `tools/b1_run.sh P1`.
-* A0 and T1 agent worktrees sit under poker-ai-lab/.claude/worktrees
-  (commits already cherry-picked); remove them at cleanup.
-* **Wayne 2026-11-25: act on Fable's recommendations, open questions go to Fable; memory and docs English only**
-  (reading guide translated on all five branches, 90208e5 here). L0 stays parked: outward.
+**gb10-d:** bpopp queue and cores 0-17: B1 training once launched. Cores 18-19 and the GPU: G1. Fetcher pid
+1838186, the only one.
 
-**gb10-d:** bpopp queue: B1 executor smoke runs, then B1 training (6 h). Cores 0-5: free (C1 done). Cores 18-19:
-G1 (running). GPU: G1 fits. Fetcher pid 1838186, the only one.
-
-**Branches not pushed (local only, by rule):**
-* holdem-x2r, `C:\Users\WEI-CHENG\Desktop\poker-ai-lab-x2r`, tip cb12f5f (X3a/X3b/R1/X4 tools; ext bots
-  seeded since 30cfa1a).
-* holdem-d2, `C:\Users\WEI-CHENG\Desktop\poker-ai-lab-d2`, tip d621a16 (D2a; 21 tests; `python
-  tools/d2_mutate.py --jobs 4` must report 25 of 25 plants caught after any change).
-* Leftover agent worktrees under `poker-ai-lab\.claude\worktrees\` are harvested (their commits are in
-  holdem-x2r); delete them when convenient.
+**Branches not pushed (local only, by rule):** holdem-x2r (poker-ai-lab-x2r, 159e9ba), holdem-d2
+(poker-ai-lab-d2, 2520b27; `python tools/d2_mutate.py --jobs 4` must catch every plant after a change),
+holdem-rl (poker-ai-lab-rl, 114a136), and the three B1 branches above (merge into holdem-rl, holdem-x2r,
+holdem-league after B1's read).
 
 ## Goal and gate
 - Heads-up NLHE bot for Chipzen.ai Season 16. Registration closes Mon 23 Nov 23:59 UTC.
