@@ -4,7 +4,7 @@ Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The 
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
-## Where we are (2026-11-25 08:13 UTC)
+## Where we are (2026-11-25 09:07 UTC)
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
 win probability against it, and a safety blend. Revision 2's lookahead work (14.17 to 14.24) showed the
@@ -19,9 +19,10 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    The bp100-trained policy still loses big pots on its own called shoves; whether those lose chips is open.
 3. **Match value is near linear against bp100** (14.28), so chip EV is a fair training target there.
 
-Running: **B1** (the next base policy, spec below, branch A) is built and in its outcome verification; then 6
-hours of training, a seed-94 screen, a seed-95 confirmation and the E1 gate. **G1** (archive opponent model)
-is on its last split.
+Running: **B1** (the next base policy, spec below, branch A) trains from 09:04 to about 15:05 UTC 25 Nov; then
+a seed-94 screen, a seed-95 confirmation and the E1 gate. **G1** step 1 ended in rule 2 (14.32, a known-name
+model); **G1 step 2a** (per-name fine-tune from G1 on three real bots) runs on the GPU. 14.33: the bp100-trained
+shoves are chip-positive; pure bp100 training costs 13 points on other styles, so B1's guards are the risk.
 
 Next: B1's candidate → v5 = B1 + S0 → gate → Wayne. G1's rule decides whether the per-name model returns to the
 lookahead (B0a for unseen names, X5).
