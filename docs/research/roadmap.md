@@ -712,26 +712,29 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   `tools/t1_run.sh` at 114a136 names it; latest.npz is 5eb525fb… on gb10-d), C1 = `~/poker-ai-lab-x2r/ckpt/
   br_small_ball/latest.npz` (97f051f3…, 14.30), fb2-900 = `rl/models/fb2_it000900.npz` (f7a29a39…). The network is
   56 inputs, hidden 256 and 256, 6 actions (`pw0` 56x256, `pw1` 256x256, `pw2` 256x6).
-* **Data (holdem-rl `tools/ad0_log.py`, seed 106, registered `106 AD0 read`):** each teacher plays its own opponents
-  as hero with the all-in wrapper of B1's reads: T1 against bp100 2,000 matches (through the bpopp queue,
+* **Seeding (one table for data and play):** only the two specialists' opponents are ever seeded. `rl/models/
+  ad0_prior.npz` holds exactly the bp100 and `small_ball` rows of AD1's `rl/models/sdk_prior.npz` (fb2-900's own
+  Tracker counts on seed 101, H0 = 40), its sha256 in the runner. Every other name (chipzen, every `ext:`) has no row,
+  so it is unseeded at data time and at play for every student. A seeded student therefore learns "bp100's profile,
+  `small_ball`'s profile, or unknown"; the ext guard cells see the same unseeded input they were trained on.
+* **Data (holdem-rl `tools/ad0_log.py`, seed 106, registered `106 AD0 read`):** each teacher plays as hero through
+  `holdem.arena.run_arena` with `RLBot` and the all-in wrapper of B1's reads: T1 against bp100 2,000 matches (queue:
   `BPQ_SLICE=AD0 BPQ_SEED=106 BPQ_KIND=read BPQ_CONTAINERS=1`); C1 against `small_ball` 2,000; fb2-900 against chipzen,
-  `ext:ashwing_v2`, `ext:ashwing_value`, `ext:ashwing_adaptive`, `ext:autodidact_fast` 500 each and the ten `bot:`
-  clones of the league 200 each. Per decision: the 56-feature observation as played (no prior); the same observation
-  from a second Tracker fed the same history but seeded at H0 = 40 with the opponent's row (`bot:` clones from
-  `rl/models/tracker_prior.npz` rescaled to H0 = 40, SDK bots from AD1's `rl/models/sdk_prior.npz`); the legal mask;
-  the teacher's action probabilities; opponent, hand index, match id. 10% of matches held out (by match id).
-* **Students (holdem-rl `tools/ad0_fit.py`, GPU):** the policy network fitted by masked cross-entropy to the teacher's
-  probabilities, from random init, seed 0, Adam 1e-3, batch 4,096, at most 30 epochs, stopping on held-out loss.
-  Each batch is 30% bp100 states, 15% `small_ball`, 55% the rest. W1: hidden 256, 256, unseeded input. W1s: 256, 256,
-  seeded input. W2: 512, 512, unseeded. W2s: 512, 512, seeded. A 512-wide student is read through a loader that
-  accepts the shapes of its arrays (test: the 256 student plays row for row as the same arrays through `RLBot`).
+  `ext:ashwing_v2`, `ext:ashwing_value`, `ext:ashwing_adaptive`, `ext:autodidact_fast` 1,000 each. The `bot:` clones
+  are dropped (they exist only as C-engine controllers, with no Python Tracker path). Per decision, logged by a hook
+  around the bot's `Policy` that computes, without drawing any random number: the raw `build` observation (no
+  teacher has a `keep` array, so none is applied); the label softmax(masked `Policy.logits(obs)` / 1.0), taken before
+  `AllInAnswer` and search; the same observation from a second Tracker fed the same history and seeded from
+  `ad0_prior.npz` (equal to the first for unseeded names); the legal mask; opponent, hand index, match id. 10% of
+  matches held out by match id.
 * **Read:**
   1. Offline, per student: held-out top-1 agreement and KL to the teacher by opponent; for bp100 also by hand index
      (1 to 5, 6 to 10, 11 to 20, 21 and later).
-  2. Play, seed 95 (holdem-x2r `rl.eval_arena`, 6 workers, cores 0-17 when no training runs, the seeded students with
-     AD1's `--profiles rl/models/sdk_prior.npz`), paired on (seed, hero seat) against the fb2-900 and B1 it001200 rows
-     on disk in `~/poker-ai-lab-x2r/logs/b1/confirm/`: bp100 the first 2,000 matches (k < 1,000, through the queue),
-     `small_ball` 2,000, `ext:ashwing` and `ext:ashwing_hive` 1,000 each.
+  2. Play, seed 95 (registered `95 AD0 read`; bp100 through the queue with `BPQ_SLICE=AD0 BPQ_SEED=95 BPQ_KIND=read
+     BPQ_CONTAINERS=1`), holdem-x2r `rl.eval_arena`, 6 workers, cores 0-17 when no training runs; seeded students
+     with `--profiles rl/models/ad0_prior.npz`. Paired on (seed, hero seat) against the fb2-900 and B1 it001200 rows on
+     disk in `~/poker-ai-lab-x2r/logs/b1/confirm/`: bp100 the first 2,000 matches (k < 1,000), `small_ball` 2,000,
+     `ext:ashwing` and `ext:ashwing_hive` 1,000 each.
   3. A student passes when its bp100 gain against fb2-900 is at least +10.0 with its 95% lower bound above +5.4, its
      `small_ball` gain at least +11.0 with its lower bound above +6.5, and the pooled gain of the two ext cells has its
      lower bound above -2.0.
@@ -742,31 +745,49 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   3. W2 passes: capacity. S7 at 512 wide, started from W2.
   4. W2s passes: both. S7 with seeding, from W2s.
   5. None passes and held-out bp100 agreement of every student is at least 0.90: the students drift to states the
-     teachers never visited. One relabel round (each student plays 500 matches per teacher opponent, its states are
-     labelled by the teachers, refit), then this rule once more; if still none passes, rule 7.
+     teachers never visited. One relabel round on seed 107 (registered `107 AD0 read`; bp100 through the queue with
+     `BPQ_SLICE=AD0 BPQ_SEED=107`): each student plays 500 matches against each of the seven data opponents, its
+     states are labelled by the teacher of that opponent, added to the data, all four students refit; then this
+     rule once more. If still none passes, rule 7.
   6. None passes, and the best student's held-out bp100 agreement is under 0.90 in hands 1 to 10 but at least 0.90
      from hand 11 on: identity timing, as rule 2 (AD1 from W1s).
   7. Otherwise: the 56 features cannot carry it; next is the opponent representation (G1's descriptor as input).
   D0's verdict is read beside it: NEW DATA with W1 passing puts the conflict in PPO's gradient on the mix.
-* **Tests (each failing on its plant; holdem-rl `tests/test_ad0.py`, plants in `tests/ad0_plants.py`):** the seeded
-  observation equals the unseeded one when the profile is empty and differs at hand 1 when it is not (plant: the
-  second Tracker never seeded); the hold-out is by match, never by decision (plant: split by row); the batch mix is
-  30 / 15 / 55 within 1% over 100 batches (plant: uniform); the mask zeroes illegal actions in the loss (plant: mask
-  dropped); the 256 student loaded through the new loader plays fb2-900's arrays row for row; the rule table maps as
-  written on synthetic results (plant: rule 3 before rule 2); literals (seeds 106 and 95, n, 0.90, +10.0, +5.4,
-  +11.0, +6.5, -2.0, the widths, 30/15/55).
+* **Tests (each failing on its plant; holdem-rl `tests/test_ad0.py`, plants in `tests/ad0_plants.py`):**
+  1. On 20 fb2-900 matches the logged label equals a fresh masked softmax of `Policy.logits` on the logged
+     observation, and the match outcomes equal an unlogged `RLBot` on the same seeds (plants: the post-wrapper action
+     logged one-hot; the hook draws a random number).
+  2. The seeded observation equals the unseeded one for an unseeded name and differs at hand 1 for bp100 (plant: the
+     second Tracker never seeded).
+  3. Every data opponent and every play cell resolves to the `ad0_prior` row or is unseeded exactly as listed above,
+     and data and play read the same file (plant: `ext:ashwing` given a row at play).
+  4. The hold-out is by match (plant: split by row); the batch mix is 30 / 15 / 55 within 1% over 100 batches
+     (plant: uniform); the loss ignores illegal actions (plant: mask dropped).
+  5. The 256 student loaded through the new loader plays fb2-900's arrays row for row as `RLBot`.
+  6. The rule table maps as written on synthetic results (plant: rule 3 before rule 2).
+  7. Literals: seeds 106, 95, 107; n per cell; 0.90; +10.0, +5.4, +11.0, +6.5, -2.0; widths 256 and 512; 30/15/55
+     (plant: one changed).
 * **Owners and base:** holdem-rl branch `ad0` from the AD1 builder's `ad1` tip (it carries the seeding code and
   `sdk_prior.npz`); holdem-x2r `ad1-x2r` tip for the eval flag. Non-goals: no change to the trainer, the deployed bot
   or the league; no candidate.
 * **Writes on gb10-d and rollback:** `~/ad0-run` (code archive, data, students, rows; rollback: delete it); the
-  registry line `106 AD0 read` (kept). Nothing in `~/poker-ai-lab-rl` or `~/poker-ai-lab-x2r`.
-* **Budget and order:** data about 30 minutes (bp100 through the queue, which D0 does not hold), fits minutes on the
-  GPU, play about 2 hours on cores 0-17 after D0's training ends (D0's reads first, no wall-clock bots among them).
+  registry lines `95 AD0 read`, `106 AD0 read`, `107 AD0 read` in `~/poker-ai-lab-rl/tools/seed_registry.txt` and
+  in the branch (kept). Nothing else in `~/poker-ai-lab-rl` or `~/poker-ai-lab-x2r`.
+* **Budget and order (rates from B1's seed-95 judge files: bp100 4,000 matches in 125 s, `small_ball` 2,000 in 17 s,
+  `ext:ashwing` 1,000 in 169 s at 6 workers):** data 10,000 matches, about 15 minutes plus logging; fits minutes on
+  the GPU; play 6,000 matches per student, about 7 minutes, 28 for four; relabel 3,500 per student, about 6 minutes,
+  25 for four, plus refits. All play after D0's training ends (D0's reads first). Stop and record if any phase takes
+  more than three times its estimate.
 * **Limits:** each teacher's data come from its own state distribution; one relabel round is the only correction; a
   pass shows the play is representable and strong, it is not a candidate.
 * **Judge literal for the next candidate slice (any):** it reports the solver class on bp100 and on the Blueprint
   clone side by side; a candidate that gains on one and loses on the other with both intervals excluding zero is
   flagged for Wayne, not passed on the headline.
+* **Review record:** plan review 1 REVISE (no Python path for the `bot:` clones and their seeded rows described a
+  different player; seeded students would meet seeded ext inputs at play never seen in data; the label at the
+  wrapper was undefined; seeds 95 and the relabel round unregistered and unbudgeted). Fixed above: clones dropped,
+  only bp100 and `small_ball` seeded at data and play, label and hook defined, every seed registered, budget from
+  measured rates. Tier 2 allows one review; execution follows with the outcome verifier on the read.
 
 ### AD1. Seeded identity: does one network keep the specialists' gains when told who it faces? (spec, 2026-11-25; tier 2)
 
