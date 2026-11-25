@@ -1907,3 +1907,44 @@ paired on (seed, hero seat) with the fb2-900 and B1 it001200 rows of 14.36 (`~/p
   it001100), eval tree (412 files of 8be6e38), pairing, every cell and pooled number, the B1 column and the rule
   CONFIRMED; REFUTED on one rounding (-0.8% for -0.7%), an understated fb2-900 timing, and a sentence that gave rule
   readings to single families. Corrected above.
+
+### 14.39 AD0: one network distilled from the three teachers keeps both specialists' gains; rule 1 (2026-11-26)
+
+Pre-registered in roadmap "AD0" (built and verified record research 7815d1b; amendment 2513a6f registered 21:58 UTC, before this read was
+opened). Code holdem-rl ad0 8b7ea8b in `~/ad0-run/code`, holdem-x2r ad0-x2r 541bf81 in `~/ad0-run/code-x2r`.
+* **Data** (seed 106, 20:15 to 21:52 UTC, cores 0-17, 6 workers): 9,000 teacher matches, 991,921 rows, 93,880 held
+  out by pair. Overran the three-times time line (97 minutes against about 15): the estimate took rl.eval_arena
+  rates, the logging path is Python `run_arena` with a hook and a second Tracker (7x to 30x slower). Recorded as a
+  deviation in the amendment; the rows are valid.
+* **Fit** (21:54 to 21:55, GPU): every student ran the 30-epoch cap with held-out loss still falling. The converged
+  refit of amendment A1 (cap 300, patience 10, holdem-rl ad0 5b09abe, 21:59 to 22:02) is not played: A2 lets a
+  30-epoch pass stand.
+
+  | student | width, input | epochs (A1) | held-out loss 30 / A1 | held-out bp100 agreement 30 / A1 | hands 1-10 / 11+ (30) |
+  |---|---|---|---|---|---|
+  | W1 | 256, raw | 201 | 0.570 / 0.543 | 0.891 / 0.914 | 0.821 / 0.912 |
+  | W1s | 256, seeded | 137 | 0.541 / 0.523 | 0.911 / 0.929 | 0.874 / 0.921 |
+  | W2 | 512, raw | 147 | 0.559 / 0.536 | 0.900 / 0.921 | 0.840 / 0.918 |
+  | W2s | 512, seeded | 159 | 0.531 / 0.514 | 0.918 / 0.941 | 0.888 / 0.927 |
+
+* **Play 1** (seed 95, 21:56 to 22:31, cores 0-17, 6 workers; rows `~/ad0-run/play/STUDENT/CELL.jsonl`), gain in
+  match-win points against fb2-900, paired on (seed, hero seat) with the 14.36 rows; ext = `ext:ashwing` and
+  `ext:ashwing_hive` pooled. Pass: bp100 at least +10.0 with lower bound above +5.4, `small_ball` at least +11.0
+  with lower bound above +6.5, ext lower bound above -2.0.
+
+  | student | bp100 (2,000) | small_ball (2,000) | ext (2,000) | vs B1 it001200: bp100, small_ball | pass |
+  |---|---|---|---|---|---|
+  | W1 | +19.4 [+16.9, +21.8] | +19.8 [+17.8, +21.7] | +1.1 [-0.7, +2.9] | +13.8, +13.3 | **PASS** |
+  | W1s | +19.6 [+17.0, +22.1] | +20.4 [+18.5, +22.4] | -0.9 [-2.8, +0.9] | +14.0, +14.0 | fail (ext) |
+  | W2 | +17.0 [+14.5, +19.4] | +19.4 [+17.5, +21.3] | -1.1 [-3.0, +0.7] | +11.3, +13.0 | fail (ext) |
+  | W2s | +19.7 [+17.1, +22.2] | +20.9 [+19.0, +22.9] | +0.1 [-1.7, +1.8] | +14.1, +14.5 | **PASS** |
+
+* **Rule 1:** W1 passes. Neither identity nor capacity limits; B1's shortfall is the training method. Next: a
+  candidate slice that distils the specialists into one network and fine-tunes it with PPO on P1 (full process).
+  AD1 and S7 drop. D0's verdict (INCONCLUSIVE) adds no reading. Play 2 does not run (A2).
+* **Described, not decided:** the plain 256-wide network, the deployed size, matches T1 on bp100 (+19.4 against
+  T1's +19.9 at n 4,000) and C1 on `small_ball` (+19.8 against C1's +21.9), with no measurable loss on the two
+  Ashwing cells. W1s and W2s sit within 0.3 of W1 on bp100 and W2 2.4 below it; no ext difference between
+  students is outside its noise. The pass is a representability result, not a
+  candidate: the students saw only four play cells, and the guard families beyond the two Ashwing cells are untested.
+* **Outcome verifier:** pending.
