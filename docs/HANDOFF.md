@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 12:13 UTC, box clock UTC+8)
+## Now (2026-11-25 13:31 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -18,10 +18,13 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * T1 (14.31, verifier CONFIRMED the numbers, one sentence corrected): bp100-trained 79.7% vs fb2-900 59.85%,
   +19.9 [+18.1, +21.6]. B1 takes branch A (P1, with bp100). B0 step 1 does not run (river call-offs 594 → 57).
 * C1 (14.30): `small_ball` 75.7% → 97.6%; `small_ball` is in B1's training.
-* **B1 TRAINING since 09:04 UTC** (`tools/b1_run.sh P1` in ~/poker-ai-lab-rl, cores 0-17, 10 bp100 containers
-  pinned CpusetCpus 0-17, bpopp lock held; ends about 15:05 UTC). Outputs ckpt/b1/ (train.jsonl, it*.npz every
-  100), logs/b1/ (done, failed, stopped with reason and last good checkpoint, rc), logs/b1_run.out. Guards: rate
-  stop at minute 15, entropy < 0.2 or non-finite loss checked every 60 s.
+* **B1 TRAINING STOPPED 13:27 UTC by the entropy guard** (minute 263 of 360, it 2290: entropy 0.465 → 0.195 and
+  policy loss 0.64 in one iteration; last good checkpoint it002200, latest.npz excluded). Read set therefore 300 to
+  2,100 (seven). Containers gone, lock free.
+  * **Screen running since 13:29 UTC:** arena cells from ~/poker-ai-lab-x2r (`b1_judge.sh screen
+    ~/poker-ai-lab-rl/ckpt/b1`, rows logs/b1/screen/, run log logs/b1/screen_run.out, rc ~/b1_screen.rc) and the
+    league part (`~/b1_league_screen.sh`, pairs 400-499 through candidates/b1-src = b1-rl a4d765d, outputs
+    out/b1/screen-itITER, summaries copied to x2r logs/b1/league/, rc ~/b1_league.rc). Then `b1_read.py screen`.
   * Code shipped: b1-rl a4d765d → ~/poker-ai-lab-rl, b1-league 857660c → ~/poker-ai-lab-league, b1-x2r 50b0a28 →
     ~/poker-ai-lab-x2r. Verifier 1 REFUTED (4 launch defects, fixed); verifier 2 REFUTED only on the judge's bp100
     cells not pinned (x2r's own bpopp lacked BP_CPUSET), training side all held. Fixed in b1-x2r 50b0a28 (test and
@@ -53,7 +56,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   postflop bucket definition (7.07 points, stable over three seeds), research 13712ca. Fable: no new G1 slice; the
   lookahead line stays parked until B1's read shows the adaptation headroom per class.
 
-**gb10-d:** bpopp queue and cores 0-17: B1 training until about 15:05 UTC. Cores 18-19: B1 judge work and fb2-900's seed-95 baselines. GPU: idle (Fable: nothing worth it). Fetcher pid
+**gb10-d:** bpopp queue and cores 0-17: B1 screen (arena and league). Cores 18-19: B1 judge work and fb2-900's seed-95 baselines. GPU: idle (Fable: nothing worth it). Fetcher pid
 1838186, the only one.
 
 **Branches not pushed (local only, by rule):** holdem-x2r (poker-ai-lab-x2r, 159e9ba), holdem-d2
