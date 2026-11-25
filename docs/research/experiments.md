@@ -1397,3 +1397,30 @@ per-decision log-likelihood (code and size) of the bot's actual action with the 
 * **What D does next.** For adaptive bots D leans on D3 (the parametric style population) and real-arena
   evaluation, as the rule says. For bots like Wolf and autodidact the neural method is usable from 1,000
   matches; 13 names in the archive have that many (19,488 files at 2026-11-25 03:50 UTC, fetch running).
+
+### 14.26 M3, first read: v4's live loss, and which of its two visible leaks is real
+
+Data: the archive on gb10-d (`~/chipzen-replays`, 19,488 files at 2026-11-25 03:50 UTC), D2a's fitting logs
+(fb2-900's policy, v4's network, against the real code of Ashwing, autodidact_fast and Wolf, about 2,500
+matches, true cards from `true_cards.jsonl`). Probes: `m3_leaks.py` and `flop_aggr.py` (gb10-d `~/m3/`; to move
+into a tools folder with the M3 slice). The probe reproduces the live match's three river all-ins.
+
+* **Live record of our bots in the archive: 7 matches, 6 won.** The loss: poker-ai-lab-v4 against house bot
+  MonteCarlo, 2026-11-24 18:30 UTC, unrated challenge (match 4b2a2beb), busted in 26 hands. No Season 16 league
+  match of v4 is in the public API yet.
+* **The live loss, by hand:** about 3,500 chips folded to flop and turn bets (hands 7, 9, 15, 21, 23, 25);
+  about 3,500 on river value raises into better hands (hands 4, 17); the bust in hand 26, a river all-in of
+  4,798 into a 300 pot (blinds 75/150) with a pair of jacks, called by two pair. v4 had shoved the river into
+  small pots twice before and got folds (hands 1 and 16).
+* **The river overbet all-in is not a measured leak against the real code.** fb2-900 shoves the river 4,075
+  times in those logs, almost all with made hands, median 9 to 22 times the pot; the bots call 42 to 53% and
+  every made-hand class nets +3,400 to +4,700 per shove (one pair +3,867). Hands below 0.6 strength: 134,
+  net +77,045. Against a bot that calls only with better hands it would lose; none of the three does.
+* **The flop fold is a measured leak.** Facing a flop bet of 0.4 to 0.8 pot, fb2-900 folds 60.7% (8,764
+  spots), where a bet with any two cards breaks even at 39.5% folds; 0.8 to 1.5 pot: 60.1% against 46.4%. The
+  turn is at the line (38.4% against 38.2%); the river is over it (49.1% against 36.9%). The old heuristic bot
+  shows the same shape. This matches the exploiter (14.8: fb2-900 folds after the flop too often).
+* **The field has the style that takes it.** Of 154 names with at least 200 unbet flop decisions, 22 bet 70% or
+  more of them (1,783 matches), among them two Season 16 entrants, HRT (0.97) and Shadow (0.77). slopBot (0.95)
+  beats Blueprint 125 of 199. MonteCarlo bets 0.30 of unbet flops across its 195 matches but bet most flops
+  against v4, a hint that it adapts (one match, not tested).
