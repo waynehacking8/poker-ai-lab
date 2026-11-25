@@ -88,7 +88,7 @@ exists), so nothing is rushed for 27 Nov.
     `small_ball` and `tight_sticky`, 2,000 matches each, seed 93: done, 75.7% and 94.3% (14.29). (b) best-response
     fine-tune from fb2-900 against `small_ball`, 60 minutes, then the same read on seed 93 paired against (a).
     Rule as T1's: gain lower bound ≥ +8 → `small_ball` joins B1's training; upper bound < +4 → it does not help.
-    Needs `make_opp` to accept a STYLES name, in a tree that holds `small_ball`.
+    Result (14.30): +21.9 [+19.9, +23.8] on `small_ball`, -4.0 on `tight_sticky`: fired, `small_ball` joins B1.
   * B1's population: fb2-900's league mix (E1 holds), bp100, and `small_ball` if C1 fires. `tight_sticky` and
     `sticky_overbettor` stay untrained as honest judges; `small_ball_b` (the mean vector of BonnieBlue,
     Chaos_Incarnate, Velvet_Shark) is added as a judge-only cell if `small_ball` is trained on.

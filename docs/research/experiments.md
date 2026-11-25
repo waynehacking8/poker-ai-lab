@@ -1535,3 +1535,23 @@ excess, swing, clusters, `small_ball` distance).
   matches each, no containers). Strength sanity: **bp100 beats `small_ball` 57.0% [52.1, 61.8]** (seed 90, 400
   matches), under the 60% line, so `small_ball` is labelled a strength cell, not a style-only cell. fb2-900 beats it
   by more (75.7%) than bp100 does.
+
+### 14.30 C1: the small-ball class is a population limit (+21.9), so `small_ball` joins B1's training
+
+Pre-registered in roadmap "After A0" (C1, tier 2, seed 93). Best-response fine-tune from fb2-900 against
+`small_ball` only (`rl.train` with `--sdk-opps small_ball`, 4 SDK workers, 60 minutes, 3,395 iterations, holdem-x2r
+159e9ba on gb10-d cores 0-5, `ckpt/br_small_ball/latest.npz`), read on the same seed-93 matches as fb2-900
+(2,000 per cell), paired on (opponent, seed, hero seat) with `tools/paired_stats.py`:
+
+| cell | fb2-900 | best response | paired diff | 95% interval |
+|---|---|---|---|---|
+| `small_ball` | 75.7% | 97.6% | +21.9 | [+19.9, +23.8] |
+| `tight_sticky` | 94.3% | 90.3% | -4.0 | [-5.5, -2.4] |
+
+* **Rule fires:** the gain's lower bound (+19.9) clears +8, so for this class the training population is the limit,
+  not the representation: the same network learns to beat a bet-fold aggressor almost always once it meets one.
+  `small_ball` joins B1's training population, and `small_ball_b` (the mean vector of BonnieBlue, Chaos_Incarnate,
+  Velvet_Shark) becomes the judge-only cell for the class.
+* **The cost is real:** a pure best response loses 4 points on `tight_sticky`; B1 trains on a mix so E1 and the
+  untrained judges hold.
+* Single run, one seed; the training-time win rate rose from about 0.82 to 0.97 within the hour.
