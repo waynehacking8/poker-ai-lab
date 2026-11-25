@@ -28,9 +28,13 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    [-4.02, -1.38] pooled on the four Ashwing and autodidact cells; rule INCONCLUSIVE (straddles -2.0), no lever
    decision. Three families sit within 0.2 of B1; hive alone shows a new-data effect. C0 (spec below) is running.
 
-Next: **AD0** (spec below, tier 2, built and verified) is running: data and fit done, play 1 on seed 95; amended
-before its read (converged refit, rules 5 and 6 reworded). Its rule picks distill-then-PPO, AD1 (built and verified, untrained), S7, or the opponent
-representation. bp100 is a coarse Blueprint stand-in (much more aggressive preflop, 14.37).
+7. **One network holds all three teachers** (14.39, AD0 rule 1): a plain 256-wide student distilled from T1, C1
+   and fb2-900 plays bp100 +19.4, `small_ball` +19.8 and the two Ashwing cells +1.1 [-0.7, +2.9] against fb2-900.
+   B1's shortfall is the training method (PPO on the mix), not identity or capacity. AD1 and S7 drop.
+
+Next: the distil-then-PPO candidate slice (AD0 rule 1, full process), spec with the roadmap agent. C0 is running on
+cores 18-19; with AD0 on rule 1, D-null runs unless C0 reads PEAK. bp100 is a coarse Blueprint stand-in (much more
+aggressive preflop, 14.37).
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 
