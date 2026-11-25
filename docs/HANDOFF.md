@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 22:41 UTC, box clock UTC+8)
+## Now (2026-11-25 22:44 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -33,7 +33,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   candidate slice (full process); AD1 and S7 drop. Data overran its time line (deviation recorded in the amendment,
   research 2513a6f). A1 converged refits (students_a1) exist, not played (A2). Outcome verifier CONFIRMED; Fable asked
   for the next slice's spec and whether D-null still runs. Students: ~/ad0-run/students/W1.npz etc.
-* **Next (Fable after 14.39), specs research 74f4098:** V5a plan review 1 REVISE (fixed: Ashwing cells in the fresh-seed check, lower bounds, replay stop, repair round removed, arena cells on 8be6e38), review 2 running. TT review 1 REVISE fixed (fresh seed 109 with fb2 arms, chipzen read, tree pinned); building in worktree poker-ai-lab-tt (holdem-rl `tt` from ad0 5b09abe). **V5a** (full process): judge
+* **Next (Fable after 14.39), specs research 74f4098:** V5a plan review 1 REVISE (fixed: Ashwing cells in the fresh-seed check, lower bounds, replay stop, repair round removed, arena cells on 8be6e38), review 2 REVISE (rollback list; cap reached, fixed first-hand, research 26041d5); building in worktrees poker-ai-lab-v5ax2r (`v5a` from 541bf81) and poker-ai-lab-v5a (`v5a-rl` from 5b09abe). TT review 1 REVISE fixed (fresh seed 109 with fb2 arms, chipzen read, tree pinned); building in worktree poker-ai-lab-tt (holdem-rl `tt` from ad0 5b09abe). **V5a** (full process): judge
   W1 (30 epochs, 9bc31660…) and its A1 refit (3c375498…) as the candidate with no PPO: B1's screen (seed 94, league
   400-499, filter 78.0%), B1's rule on seed 95, fresh-seed check seed 108 (bp100 lb > +5.4, small_ball lb > +6.5), E1
   gate, eval card with E3; **TT** (tier 2): T-a reads
