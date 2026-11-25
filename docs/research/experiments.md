@@ -1321,3 +1321,79 @@ live combos, collapsed to fold / call / raise; KL(true || X1) in nats. Table: ho
   The prior network is fitted to the pooled population, which bets about half the time.
 * So the first fix to test is the prior weight `k_im` (today 8), measured where it can hurt: on the real bots
   and held-out replays, which are noisier than the rule bots. Specified in roadmap X4.
+
+### 14.24 X4 step 2: a lighter in-match prior does not help on real bots; k_im stays 8
+
+Roadmap X4, step 2, pre-registered before the run. Code: holdem-x2r cb12f5f (`OppModel` and `tools/x3_range.py`
+take a `k_im` override; `tools/x4_sweep.py`, `tools/x4_sweep_run.sh`), gb10-d cores 0-3, 2026-11-24 10:40 to 11:17
+UTC. Every arm is X1 with that `k_im` end to end (its own pi0, its own scores); the simulated matches are played
+once and every arm scores the same match, so the arms are paired. Score: X3a's R4 (nats about the opponent's true
+combo, higher is better), seed 47, 200 matches per simulated cell, the 99 held-out replay matches. Difference
+against `k_im` = 8 with a paired bootstrap 95% interval (2,000 resamples). Output on gb10-d
+`~/poker-ai-lab-x4s/logs/x4s/report.txt`.
+
+| pool | k_im 8 | 4 minus 8 | 2 minus 8 | 1 minus 8 |
+|---|---|---|---|---|
+| **`ext:` + replays (deciding, six parts equal)** | +0.2530 | +0.0036 [-0.0001, +0.0073] | -0.0042 [-0.0096, +0.0013] | -0.0217 [-0.0290, -0.0149] |
+| `ext:` cells | +0.2304 | +0.0049 [+0.0007, +0.0090] | -0.0044 [-0.0107, +0.0021] | -0.0228 [-0.0308, -0.0152] |
+| held-out replays | +0.3660 | -0.0026 [-0.0117, +0.0040] | -0.0029 [-0.0113, +0.0039] | -0.0161 [-0.0324, -0.0032] |
+| rule cells (reported, do not choose) | +0.0863 | +0.0217 [+0.0163, +0.0269] | +0.0371 [+0.0292, +0.0453] | +0.0352 [+0.0239, +0.0464] |
+
+* **Verdict by the pre-registered rule: none.** The best arm on the deciding pool is `k_im` 4, and its lower
+  bound against 8 is -0.0001, not above zero. The half-and-half weighting (the `ext:` pool and the replays
+  each half) gives none as well. `k_im` stays 8; X4 moves to the per-name prior from D's archive.
+* **The size is the finding, not only the sign.** Even the best arm moves the real-bot score by 0.004 nats,
+  against the 1.09 nats the λ range gained in 14.20. The rule bots want less prior (deterministic play, +0.037
+  at `k_im` 2); the real bots do not (autodidact and Wolf lose 0.02 to 0.05 at `k_im` 1 and 2). A lighter prior
+  fixes "X1 predicts the middle" for a bot that always does the same thing and adds noise for a bot that
+  mixes, so a single weight cannot serve both.
+* **Power limit, measured before the read:** 90.1% of the held-out replay actions go through a named profile
+  (k = 20, w = 2), only 9.9% through `k_im`, so the replay part barely moves with `k_im` and the decision is
+  carried by the simulated `ext:` cells.
+* **Checks.** The `k_im` = 8 arm reproduces 14.20 exactly (max per-match difference 0) on the four rule cells,
+  `ext:wolf`, the held-out replays and pi0. The four Ashwing and autodidact cells differ because 14.20 ran those
+  bots unseeded (seeding came in holdem-x2r 30cfa1a): two runs of 14.20's code on the same seed differ from
+  each other, two runs of today's code are identical and equal the sweep's rows. The four pi0 tables are
+  identical across arms because every fitting-match action goes through a named profile, where `k_im` has no
+  effect. Tests: 43 pass (test_x4_sweep, test_oppmodel, test_x3). Fresh outcome verifier CONFIRMED (its own
+  recompute from the raw rows; the choice is none at five other bootstrap seeds, lower bound -0.00014 to
+  -0.00019).
+
+### 14.25 D2a stage 2: clones of the adaptive bots are easier than the real bots, and more data makes it worse
+
+Roadmap D2a, pre-registered. Code: holdem-d2 3f0d58d (21 tests; `tools/d2_mutate.py` kills 25 of 25 planted
+faults), gb10-d cores 4-19 plus GPU, 2026-11-24 09:32 to 12:28 UTC (about 2.9 box-hours against a computed 1.7
+and a stop at twice that; no control reran). Read 1: fb2-900 plays 3,000 matches per cell, seed 63, paired on
+(seed, hero seat); the difference is our win rate against the cell minus against the real bot, positive when
+the cell is easier; 90% interval (z 1.645); a cell passes when the interval lies inside ±5 points. Read 2:
+per-decision log-likelihood (code and size) of the bot's actual action with the true cards, held-out logs
+(seed 62). Output on gb10-d `~/poker-ai-lab-d2s2/logs/d2/<bot>/read1_63.json`, `read2_*.json`.
+
+| bot (our win rate against the real bot) | control | neural, 1,000 matches | neural, 5,000 | table, 5,000 |
+|---|---|---|---|---|
+| ext:ashwing (73.5) | +0.8 [-0.4, +2.1] pass | +3.3 [+1.8, +4.8] pass | **+6.8 [+5.3, +8.2] fail** | **+5.9 [+4.4, +7.4] fail** |
+| ext:autodidact_fast (77.3) | +0.4 [-0.9, +1.7] pass | +1.9 [+0.4, +3.3] pass | +3.3 [+1.9, +4.8] pass | **+4.1 [+2.7, +5.6] fail** |
+| ext:wolf (96.6) | 0 (deterministic) pass | -0.5 [-1.2, +0.2] pass | +0.6 [-0.1, +1.2] pass | -0.0 [-0.7, +0.7] pass |
+
+| read 2, log-likelihood per decision | neural 100 | neural 1,000 | neural 5,000 | table 100 | table 1,000 | table 5,000 |
+|---|---|---|---|---|---|---|
+| ext:ashwing | -0.334 | -0.322 | **-0.200** | -0.251 | -0.236 | -0.229 |
+| ext:autodidact_fast | -0.616 | -0.364 | **-0.205** | -0.482 | -0.446 | -0.438 |
+| ext:wolf | -0.564 | -0.492 | **-0.317** | -0.493 | -0.444 | -0.434 |
+
+* **Verdict per bot, by the pre-registered rule.** Wolf: the neural method is trusted from 1,000 matches (the
+  table clone passes too). autodidact_fast: trusted from 1,000 matches. Ashwing: the 5,000-match clone fails,
+  and the rule makes that the finding: replay clones are not trusted for bots like it, even though the
+  1,000-match clone passed.
+* **Closer actions, weaker clone.** With 5,000 matches the neural clone predicts the actual actions best of
+  every method on every bot (read 2), yet against Ashwing it is easier than the 1,000-match clone (+6.8 against
+  +3.3), and against autodidact as well (+3.3 against +1.9). Per-decision likelihood and strength against us
+  move apart. A likely reason, not tested here: likelihood is dominated by the many cheap decisions, while
+  the match is decided by the few big pots, where the clone's errors cost the most.
+* **Every clone of the two adaptive bots is easier than the real bot** (all six lower bounds above zero), the
+  same direction as 14.3's 84 to 89% against clones and 49 to 64% against the code, now 2 to 7 points instead of
+  20 to 35. Even a passing clone is biased by about +2 to +3 points, the size of the effects we read (R1's
+  lookahead gain is +2.8). So clones do not judge candidates; only the real code and the real arena do.
+* **What D does next.** For adaptive bots D leans on D3 (the parametric style population) and real-arena
+  evaluation, as the rule says. For bots like Wolf and autodidact the neural method is usable from 1,000
+  matches; 13 names in the archive have that many (19,488 files at 2026-11-25 03:50 UTC, fetch running).
