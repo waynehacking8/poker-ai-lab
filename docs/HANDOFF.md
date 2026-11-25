@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-26 21:57 UTC, box clock UTC+8)
+## Now (2026-11-26 21:59 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -33,7 +33,10 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * **AD0 data done** 20:15 to 21:52 UTC, rc 0: 991,921 rows from 9,000 matches, 93,880 held out
   (~/ad0-run/data.npz, 510 MB). Overran the spec's 3x stop line (97 min vs about 15): the logging path
   (Python run_arena, hook, second Tracker) runs 7x to 30x slower than the eval_arena rates the estimate used; missed
-  before the fit; sent to Fable with the recommendation to finish play 1. Fit 21:54 to 21:55: all four students hit
+  before the fit. Fable: a deviation, not a void; **amendment registered 21:58 before play 1's read** (research
+  2513a6f): A1 converged refit (cap 300, patience 10), A2 play 2 only if no 30-epoch student passes, A3 rules 5 and 6
+  reworded, A4 relabel cut. **A1 refit running** (holdem-rl ad0 5b09abe adds `--patience`; ~/ad0-run/code-a1,
+  `a1fit.sh`, cores 18-19, students_a1, offline_a1.json, marker logs/fit_a1.rc). Fit 21:54 to 21:55: all four students hit
   the 30-epoch cap with held-out loss still falling; held-out bp100 agreement W1 0.891, W1s 0.911, W2 0.900, W2s
   0.918 (offline.json). **AD0 play 1 running** since 21:56 on cores 0-17 (`~/ad0-run/playrun.sh`, detached: play 1
   then read 1; markers logs/play1.rc, read1.rc, read in logs/read1.txt).
