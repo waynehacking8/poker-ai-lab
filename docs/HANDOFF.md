@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 08:53 UTC, box clock UTC+8)
+## Now (2026-11-25 08:56 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -34,8 +34,10 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * **14.33:** T1's shoves are chip-positive on every street (P0 retired as a decision statistic; B1's read adds the
   shove class table). Pure bp100 specialization costs -13.4 [-14.9, -11.8] on other styles (seed 98), so B1's
   guards are the risk; fallback P1b (bp100 2 of 12, seeds 99/100, league pairs 500-599) pre-registered.
-* **G1 step 2a** (tier 2, spec in roadmap): plan review running; then executor in a holdem-d2 worktree; GPU and
-  cores 18-19.
+* **G1 step 2a** (tier 2, research 71db986): plan review REVISE fixed (one review allowed). **Executor building and
+  running since 08:56 UTC** in poker-ai-lab-g12a (branch g1-2a from holdem-d2 3e988c8), box copy ~/g12a-build,
+  outputs ~/poker-ai-lab-d2s2/data/g1_2a and logs/g1_2a; GPU and cores 18-19 only. Base fits: fold 2 W for
+  Ashwing_v3 and AutodidactInnovations. Then outcome verifier on the read.
 
 **gb10-d:** bpopp queue and cores 0-17: B1 training once launched. Cores 18-19 and the GPU: G1 step 2a after its plan review. Fetcher pid
 1838186, the only one.
