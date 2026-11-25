@@ -1703,3 +1703,29 @@ held-out matches, 2,000, seed 47.
   (c) fine-tunes with the unweighted likelihood (D2a's) from a W-trained base; arm (b) is scored through G1's scorer
   with zero weights on the profile columns; arm (a) lets only shown hands into the per-match state. GPU about 0.06
   hours; the whole run 0.41 hours.
+
+### 14.35 B1's training stop at it 2290 was a guard false alarm (a logging artifact); the read is unaffected
+
+B1 (roadmap B1, P1) was stopped at minute 262.7 of 360 by the entropy guard: logged row it 2290 had entropy 0.195
+(guard 0.2) and policy loss 0.641. The policy had not collapsed:
+* **Weights:** step sizes around the stop equal the steps before it. Policy weight distance it002000→it002100 1.662
+  (relative 0.0279), it002100→it002200 1.673 (0.0280), it002200→latest (90 iterations) 1.611 (0.0269). Mean total
+  variation of action probabilities on 18,365 fixed states (`data/maniac_labels.npz`): 0.0041, 0.0050, 0.0044.
+  Entropy on that set: it002200 0.027, latest 0.027; all weights finite. Reproduced first-hand on gb10-d.
+* **Cause:** `rl/train.py` (holdem-rl 114a136, lines 457-481) logs the pl, vl and entropy of the *last minibatch of
+  the last epoch*, and keeps the tail minibatch. Iterations collect 16,122 to 16,690 samples against four full
+  minibatches of 16,384, so whenever n is above 16,384 the logged row is a minibatch of 1 to 306 samples. That
+  explains all fourteen |pl| > 0.15 spikes (random sign, gone the next row) and why the lowest logged entropies sit
+  on spike rows. Those tiny tail minibatches also take a gradient step (bounded by clip 0.5 and lr 1.5e-4; no damage
+  in the weight distances). The exact n at it 2290 is not logged.
+* **Read unaffected:** the chosen checkpoint is it001200, written 1,090 iterations before the stop; the screen is
+  flat from 300 to 2,100 (68.8 to 70.5) and the policy moved 0.005 mean TV between 1,200 and 2,200, so 2,400 and
+  2,700 would not have changed selection. The stop record's "latest.npz is not good" is wrong; latest is a normal
+  continuation (the file is left as is).
+* **Population held:** SDK match shares bp100 0.333, heuristic 0.167, small_ball 0.167, each ext name 0.083 over
+  241,027 matches; decision shares bp100 0.317, heuristic 0.141, small_ball 0.099. Pool on every row: a_ablA,
+  b_distill1.
+* **Next run (B1r or P1b), from Fable's review:** log batch means over the last epoch plus approx_kl and n; fold a
+  tail minibatch under 2,048 samples; guard on batch-mean entropy under 0.2 for 3 consecutive rows (non-finite stays
+  immediate). No change to clip, learning rate or KL stop. Budget 180 minutes with read set 300 to 1,500 plus
+  latest (B1 gains nothing after 300); both need a dated amendment before launch.
