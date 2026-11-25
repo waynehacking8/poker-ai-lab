@@ -28,9 +28,9 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
     sticky_overbettor 78.6, small_ball_b 80.4; never_fold_pre 93.8, loose_passive 90.6; league lowest 83.5). All
     seven pass the 78% league filter; scores 68.8 to 70.5. Rows x2r logs/b1/screen/, league out/b1/screen-itITER.
   * **Confirmation running since 13:50 UTC** (`b1_judge.sh confirm .../it001200.npz`, log logs/b1/confirm_run.out,
-    rc ~/b1_confirm.rc). The cores 18-19 baseline job (ext:autodidact, then ext:wolf) still runs; confirm skips
-    finished fb2 cells. **After both end:** move logs/b1/confirm/fb2/ext:wolf.* to confirm/fb2_1819/, rerun the same
-    confirm (only wolf's fb2 arm runs), then `b1_read.py confirm` with --gate after the E1 gate.
+    rc ~/b1_confirm.rc). Baseline job done (rc 0, fb2 autodidact 76.8%); wolf's 18-19 rows moved to
+    confirm/fb2_1819/ at 14:13 (95.2%, reported only) before confirm's fb2 arm started, so confirm reruns wolf's
+    fb2 arm itself with the candidate's placement. Then the gate, then `b1_read.py confirm` with --gate.
   * Code shipped: b1-rl a4d765d → ~/poker-ai-lab-rl, b1-league 857660c → ~/poker-ai-lab-league, b1-x2r 50b0a28 →
     ~/poker-ai-lab-x2r. Verifier 1 REFUTED (4 launch defects, fixed); verifier 2 REFUTED only on the judge's bp100
     cells not pinned (x2r's own bpopp lacked BP_CPUSET), training side all held. Fixed in b1-x2r 50b0a28 (test and
