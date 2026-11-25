@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 15:27 UTC, box clock UTC+8)
+## Now (2026-11-25 15:31 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -32,7 +32,10 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   * **14.36 (research ef9dbc3): B1 RULE FAIL.** Headline +3.94 [+2.79, +5.10], bp100 +5.4, E1 holds (23/23, lowest
     83.8%), but ext:ashwing -3.4, ashwing_hive -4.6, ashwing_search -3.7, autodidact -3.4 (guards under -2.0);
     league real-bot clones down (Blueprint -4.0), heuristic h2h -8.5 vs fb2-900. Headroom bp100 +14.5, small_ball
-    +15.4. No v5; v4 stays; P1b retired, B1r parked. Outcome verifier on the read.
+    +15.4. No v5; v4 stays. **Verifier: numbers CONFIRMED, reading REFUTED and corrected (research 512ea65):** the
+    failing families are P1's own (autodidact = autodidact_fast; Ashwing = ashwing_v2/value/adaptive's package) at
+    half fb2's SDK share (4/6 to 4/12; chipzen 2/6 to 2/12, h2h -8.5). Dilution and interference both fit. Asked
+    Fable whether AD1 (on P1's diluted shares) still goes first; no AD1 training until it answers.
 * **Next: AD1** (research 0eb29f1, tier 2, Fable): seed the opponent counts per opponent (H0 40, share 0.75) so one
   network knows who it faces; 240 min on B1's command; rule decides X2b vs representation vs capacity. Plan review
   1 REVISE, fixed in research 50a48d0 (tier 2: execution follows). Builder on worktrees poker-ai-lab-ad1 (branch
