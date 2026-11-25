@@ -42,6 +42,31 @@ Deployed: `poker-ai-lab-v4` stays entered; nothing from X or D reaches the deplo
 passes the gate (80% against every league opponent, a head-to-head win over the old heuristic bot, a fresh
 verifier, and Wayne's yes).
 
+## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
+
+A fresh first-principles pass over the whole plan (a Fable 5.2 agent, read-only, 2026-11-25; its facts
+re-checked first-hand where a decision hangs on them) found the judge pointed at the wrong opponents: the
+`ext:` pool is mostly one family (R1's +2.8 is Ashwing +3.0 to +6.0, autodidact +2.3, Wolf -2.0), the
+archive's top is a solver-like family (Blueprint, NashForge, fermat6, MonteCarlo) plus small-ball aggressors
+(slopBot), and v4's only live loss, its Season 16 round 1 fixture (handoff log: R1 vs MonteCarlo 24 Nov 18:30
+UTC), was to the solver family. Our one proxy of that family, bp100, is real code and plays 400 matches in
+about 70 s, yet every read of it used n = 400 (59.0 [54.1, 63.7], 14.9). The full revision is written after
+the first reads below.
+
+### S2r and P0 data: fb2-900 and S2 it1800 against bp100 at n = 4,000 (pre-registered 2026-11-25, before the run)
+
+* **Why:** the two policies were never compared against the strongest family at a size that can tell them
+  apart (S2 it1800 read 57.0 against 59.0 at n = 400). The same run is the baseline for the best-response
+  ceiling test (T1) and the data of the big-pot audit (P0).
+* **Run:** holdem-rl tree on gb10-d (`~/poker-ai-lab-rl`), `rl.eval_arena --opp bp100 --matches 4000 --seed 81
+  --rows`, hero `rl/models/fb2_it000900.npz` (v4's network with the all-in answer) and `ckpt/s2/it001800.npz`;
+  bpopp:v011 with the eval card's settings; then `tools/chipflow.py` on fb2-900 with the same seed and size.
+  Seed 81 is fresh. bpopp:v011 and `model:` heroes are seeded per match, so rows pair on (seed, hero seat).
+* **Read:** each policy's win rate with a Wilson 95% interval; it1800 minus fb2-900 paired, normal 95%
+  interval (`tools/paired_stats.py` on holdem-x2r). **Rule:** reported only. If it1800 leads with its lower bound
+  above zero, that goes to Wayne next to the E1 league gate that rejected it; nothing is deployed.
+* **Cost:** about 30 box-minutes on cores 8-15.
+
 ## Revision 2 (2026-11-23): the problem from first principles
 
 Wayne: "The biggest fault that you made is thinking too narrowly." S0, S2 and the diversity slice I had
