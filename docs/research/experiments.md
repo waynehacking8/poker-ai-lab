@@ -1954,3 +1954,30 @@ opened). Code holdem-rl ad0 8b7ea8b in `~/ad0-run/code`, holdem-x2r ad0-x2r 541b
   student re-run match the recorded rows 40 of 40 with the recorded profile setting and 1 to 9 of 40 with the other,
   so the rows come from these student files, seeded students with the pinned prior and unseeded without it. It
   caught one date slip (these entries said 2026-11-26; the UTC date is 2026-11-25), corrected.
+
+### 14.40 C0: fb2-900 is a peak on the Ashwing families; rule PEAK (2026-11-25)
+
+Pre-registered in roadmap "C0" (research a5fd3ed; amendment e57f2d0 before the read: D-null does not run under any
+outcome). Arms from fb2's own run (`~/poker-ai-lab-rl/ckpt/fb2/`), 1,000 matches per cell on seed 95 from
+`~/d0-run/x2r` (holdem-x2r 8be6e38), 2 workers on cores 18-19, 20:23 to 22:49 UTC; paired on (seed, hero seat) with
+the fb2-900 rows of 14.36; reader holdem-rl d0 6c3f594 `tools/c0_read.py`. Gain in match-win points against fb2-900.
+
+| arm | ext:ashwing | ext:ashwing_hive | ext:ashwing_search | pooled | 95% interval |
+|---|---|---|---|---|---|
+| fb2 it000700 | -1.4 | -4.8 | -2.5 | **-2.90** | [-4.43, -1.37] |
+| fb2 it000800 | -2.9 | -2.2 | -3.4 | **-2.83** | [-4.35, -1.31] |
+| fb2 latest (it 965) | +0.6 | -3.3 | -0.2 | -0.97 | [-2.48, +0.54] |
+| D0 it000300 (reported) | -4.9 | -3.9 | -5.1 | -4.63 | [-6.21, -3.05] |
+| D0 it001600 (reported) | -1.2 | -1.8 | -2.2 | -1.73 | [-3.25, -0.22] |
+
+Cell standard errors 1.16 to 1.45.
+* **Rule: PEAK** (two of the three fb2 pooled points under -2.0 with upper bounds under zero). fb2-900 is a local
+  high on these families: its own neighbours 100 and 200 iterations earlier lose about 2.9 points, as B1 (-3.4 to
+  -4.6 per family) and D0 (-2.70 pooled on four cells) did. Their guard losses are recorded as within the run's own
+  checkpoint spread. P1b and any "restore the shares" slice close; D-null does not run (amendment). Every future
+  PPO screen includes the three Ashwing cells and `ext:autodidact_fast` at 500 each, and selection is among
+  checkpoints that hold them.
+* **Described, not decided:** the -2.0 guard against fb2-900 on these cells measures distance from a peak, not from
+  a typical checkpoint. AD0's students (14.39), fitted to fb2-900's labels on Ashwing-family data, hold that peak
+  (W1 +1.1 [-0.7, +2.9] on two of these cells), which supports distillation over PPO for keeping it.
+* **Outcome verifier:** pending.
