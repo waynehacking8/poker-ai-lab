@@ -1877,7 +1877,7 @@ with the candidate's placement. Gate: league_fresh pairs 200-399 plus the heuris
 * **Limits:** profiles are fb2-900's view of each bot, archive profiles the whole field's; k-40 cells with n under 30
   are noisy; wolf is wall-clock (run at 4 workers with nothing else running); early-k accuracy depends on the metric.
 
-### 14.38 D0: without bp100 and `small_ball` data the real-bot loss mostly stays; rule INCONCLUSIVE (2026-11-26)
+### 14.38 D0: without bp100 and `small_ball` data the real-bot loss mostly stays; rule INCONCLUSIVE (2026-11-25)
 
 Pre-registered in roadmap "D0" (research b640cfe). Training holdem-rl d0 60ff10d in `~/d0-run`, 15:53 to 19:03 UTC
 (time stop at it 1,730), B1's command minus the bp100 and `small_ball` SDK entries, `--heur-batch 5750`. Void check
@@ -1908,7 +1908,7 @@ paired on (seed, hero seat) with the fb2-900 and B1 it001200 rows of 14.36 (`~/p
   CONFIRMED; REFUTED on one rounding (-0.8% for -0.7%), an understated fb2-900 timing, and a sentence that gave rule
   readings to single families. Corrected above.
 
-### 14.39 AD0: one network distilled from the three teachers keeps both specialists' gains; rule 1 (2026-11-26)
+### 14.39 AD0: one network distilled from the three teachers keeps both specialists' gains; rule 1 (2026-11-25)
 
 Pre-registered in roadmap "AD0" (built and verified record research 7815d1b; amendment 2513a6f registered 21:58 UTC, before this read was
 opened). Code holdem-rl ad0 8b7ea8b in `~/ad0-run/code`, holdem-x2r ad0-x2r 541bf81 in `~/ad0-run/code-x2r`.
@@ -1947,4 +1947,10 @@ opened). Code holdem-rl ad0 8b7ea8b in `~/ad0-run/code`, holdem-x2r ad0-x2r 541b
   Ashwing cells. W1s and W2s sit within 0.3 of W1 on bp100 and W2 2.4 below it; no ext difference between
   students is outside its noise. The pass is a representability result, not a
   candidate: the students saw only four play cells, and the guard families beyond the two Ashwing cells are untested.
-* **Outcome verifier:** pending.
+* **Outcome verifier: CONFIRMED.** An independent recompute (no import of the reader) reproduces every gain,
+  interval and verdict: row counts, unique (seed, hero seat) keys, seed ranges, bp100 paired on k < 1,000, the ext
+  pooling. W1's ext cells alone: `ext:ashwing` +2.2, `ext:ashwing_hive` 0.0. Seed-clustered errors give the same
+  verdicts (ext lower bounds W1 -0.72, W2s -1.75, W1s -2.84, W2 -3.04). Provenance: 40 `small_ball` matches per
+  student re-run match the recorded rows 40 of 40 with the recorded profile setting and 1 to 9 of 40 with the other,
+  so the rows come from these student files, seeded students with the pinned prior and unseeded without it. It
+  caught one date slip (these entries said 2026-11-26; the UTC date is 2026-11-25), corrected.

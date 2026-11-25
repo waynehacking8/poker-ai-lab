@@ -700,7 +700,7 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   intervals). Fixed above with B1's logged decisions, a smoke rate, literal read commands and an INCONCLUSIVE row.
   Tier 2 allows one review; execution follows with the outcome verifier on the read.
 
-### C0. Is fb2-900 a peak on the Ashwing families? (spec, 2026-11-26; tier 1, the roadmap agent's recommendation after 14.38)
+### C0. Is fb2-900 a peak on the Ashwing families? (spec, 2026-11-25; tier 1, the roadmap agent's recommendation after 14.38)
 
 * **Question:** do fb2's own neighbouring checkpoints lose to the Ashwing families as B1 and D0 did? If so, fb2-900 is
   a local high and the -2.0 guard sits inside one run's checkpoint spread; if not, D-null separates the old-data
@@ -808,7 +808,7 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   the GPU; play 6,000 matches per student, about 7 minutes, 28 for four; relabel 3,500 per student, about 6 minutes,
   25 for four, plus refits. All play after D0's training ends (D0's reads first). Stop and record if any phase takes
   more than three times its estimate.
-* **Amendment (registered 2026-11-26 21:58 UTC, before play 1's read was opened; the roadmap agent's call):**
+* **Amendment (registered 2026-11-25 21:58 UTC, before play 1's read was opened; the roadmap agent's call):**
   * **Deviation recorded:** the data phase ran 97 minutes (20:15 to 21:52) against "about 15 minutes plus logging",
     past the three-times stop line; fit and play 1 were launched past it unnoticed. The estimate took rl.eval_arena
     rates, but the data path is `holdem.arena.run_arena` in Python with the logging hook and a second Tracker per
@@ -844,7 +844,7 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Judge literal for the next candidate slice (any):** it reports the solver class on bp100 and on the Blueprint
   clone side by side; a candidate that gains on one and loses on the other with both intervals excluding zero is
   flagged for Wayne, not passed on the headline.
-* **Built (2026-11-26, local only):** holdem-rl `ad0` 98058f7, f770230, 8b7ea8b (on 0482bff): `rl/models/ad0_prior.npz`
+* **Built (2026-11-25, local only):** holdem-rl `ad0` 98058f7, f770230, 8b7ea8b (on 0482bff): `rl/models/ad0_prior.npz`
   (sha256 `2ea5aef1…6368`, the bp100 and `small_ball` rows of `sdk_prior.npz`), `tools/ad0_log.py`, `tools/ad0_fit.py`,
   `tools/ad0_run.sh check|data|fit|relabel|refit`, `rl/ad0_student.py`, registry 95/106/107. holdem-x2r `ad0-x2r`
   50b4d7e, 5209b6a, 541bf81 (on eb5d747): `rl.eval_arena --student`, `tools/ad0_play.sh play N|read N`,
@@ -1006,7 +1006,7 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
      fb2-900: identity removed the loss.
   4. GAINS ONLY no longer means "population too narrow" on its own; it takes D0's verdict as in item 3.
   5. Order: AD1 trains after D0's training ends; it does not wait for D0's read.
-* **Built (2026-11-26, local only, AD1 training gated by AD0):** holdem-rl `ad1` a115c0c, 0482bff (on 126c673);
+* **Built (2026-11-25, local only, AD1 training gated by AD0):** holdem-rl `ad1` a115c0c, 0482bff (on 126c673);
   holdem-x2r `ad1-x2r` 5d7fcce, 809c438, eb5d747 (on 8be6e38). `rl/models/sdk_prior.npz` sha256 `c77f058e7e45…a612b0`
   (full hash in `ad1_run.sh` and `ad1_judge.sh`; pin the committed file, the zip timestamp makes a rebuild differ),
   14 rows, each `st[10] = 40`, from 500 fb2-900 matches per name on seed 101 (7,005 to 24,424 hands per row). Tests:
