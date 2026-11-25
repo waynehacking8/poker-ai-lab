@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-25 22:54 UTC, box clock UTC+8)
+## Now (2026-11-25 23:00 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -27,14 +27,14 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
 * **C0 (14.40, research 6e11f07): PEAK.** fb2 it700 -2.90 [-4.43, -1.37], it800 -2.83 [-4.35, -1.31], it965 -0.97
   pooled on the three Ashwing cells vs fb2-900. fb2-900 is a local high; B1/D0 guard losses are within the run's
   checkpoint spread. D-null, P1b, restore-the-shares closed; future PPO screens add the Ashwing cells and
-  autodidact_fast at 500 each. Outcome verifier running.
+  autodidact_fast at 500 each. Outcome verifier CONFIRMED (research 87a09ff).
 * **AD0 (14.39, research eb2281c): RULE 1, W1 passes.** Play 1 (seed 95, 21:56 to 22:31): W1 (256 raw, 30
   epochs) bp100 +19.4 [+16.9, +21.8], `small_ball` +19.8 [+17.8, +21.7], ext +1.1 [-0.7, +2.9] vs fb2-900; W2s also
   passes, W1s and W2 fail on the ext lower bound. B1's shortfall is the training method; next is a distil-then-PPO
   candidate slice (full process); AD1 and S7 drop. Data overran its time line (deviation recorded in the amendment,
   research 2513a6f). A1 converged refits (students_a1) exist, not played (A2). Outcome verifier CONFIRMED; Fable asked
   for the next slice's spec and whether D-null still runs. Students: ~/ad0-run/students/W1.npz etc.
-* **Next (Fable after 14.39), specs research 74f4098:** V5a plan review 1 REVISE (fixed: Ashwing cells in the fresh-seed check, lower bounds, replay stop, repair round removed, arena cells on 8be6e38), review 2 REVISE (rollback list; cap reached, fixed first-hand, research 26041d5); building in worktrees poker-ai-lab-v5ax2r (`v5a` from 541bf81) and poker-ai-lab-v5a (`v5a-rl` from 5b09abe). TT review 1 REVISE fixed (fresh seed 109 with fb2 arms, chipzen read, tree pinned); building in worktree poker-ai-lab-tt (holdem-rl `tt` from ad0 5b09abe). **V5a** (full process): judge
+* **Next (Fable after 14.39), specs research 74f4098:** V5a plan review 1 REVISE (fixed: Ashwing cells in the fresh-seed check, lower bounds, replay stop, repair round removed, arena cells on 8be6e38), review 2 REVISE (rollback list; cap reached, fixed first-hand, research 26041d5); building in worktrees poker-ai-lab-v5ax2r (`v5a` from 541bf81) and poker-ai-lab-v5a (`v5a-rl` from 5b09abe). Fit-seed spread (reported only, after V5a's cells): W1 refits seeds 2 and 3 done (~/ad0-run/students_seed{2,3}, holdem-rl ad0 9b2a1c7 `--seed`), play pending. TT built (holdem-rl `tt` a07ce77, 17 passed 1 skipped, plants 17/17), outcome verifier running; then ship and run T-a (cores 18-19) and T-b training (cores 0-15) while V5a builds. TT review 1 REVISE fixed (fresh seed 109 with fb2 arms, chipzen read, tree pinned); building in worktree poker-ai-lab-tt (holdem-rl `tt` from ad0 5b09abe). **V5a** (full process): judge
   W1 (30 epochs, 9bc31660…) and its A1 refit (3c375498…) as the candidate with no PPO: B1's screen (seed 94, league
   400-499, filter 78.0%), B1's rule on seed 95, fresh-seed check seed 108 (bp100 lb > +5.4, small_ball lb > +6.5), E1
   gate, eval card with E3; **TT** (tier 2): T-a reads
