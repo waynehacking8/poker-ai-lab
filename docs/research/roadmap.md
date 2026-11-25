@@ -724,6 +724,11 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   * **NOT PEAK:** all three pooled points within [-2.0, +2.0] with intervals that include zero. D-null runs as
     specified (D0's command at `--heur-batch 10000`) once AD0's play frees cores 0-17.
   * **MIXED:** anything else. D-null runs only if AD0 lands on its rule 1 (distil, then PPO fine-tune).
+  * **Amendment (2026-11-25 22:35 UTC, before C0's read was opened; the roadmap agent's call after 14.39):** D-null does not
+    run under any outcome. It separated the old-data ratio from continued PPO, and after AD0's rule 1 neither is on
+    the path (the next slice judges the distilled student with no PPO). C0 finishes and is recorded as the
+    checkpoint-spread measurement; PEAK's screen line (the three Ashwing cells and `ext:autodidact_fast` at 500 each)
+    still applies to future PPO screens if it reads PEAK.
 * **Writes:** `~/d0-run/logs/c0/` and `~/d0-run/tools/c0_read.py` (rollback: delete). Nothing else.
 
 ### AD0. Can one network hold both specialists and fb2-900, and what does it need? (spec, 2026-11-25; tier 2)
