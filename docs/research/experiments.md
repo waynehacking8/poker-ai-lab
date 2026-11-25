@@ -1802,3 +1802,60 @@ with the candidate's placement. Gate: league_fresh pairs 200-399 plus the heuris
 * **Outcome verifier:** every number, the pairing, arm comparability (fb2 at 6 workers and the candidate at 2
   reproduced the stored rows exactly for Ashwing and autodidact), checkpoint identity, gate, screen and chipflow
   CONFIRMED; the first reading REFUTED (the failing families are P1's own, at half fb2's share); corrected above.
+
+### 14.37 AD1's tier-1 reads: the counts name the opponent slowly; bp100 is a coarse Blueprint stand-in (2026-11-25)
+
+* **Setup:** fb2-900 (`rl/models/fb2_it000900.npz`) against 14 opponents, 200 matches each (100 pairs, both seats),
+  seed 102 (registered `102 AD1 read`), 2,800 matches; bp100 through the bpopp queue (rc 0). Per match the hero's own
+  live Tracker counts (no prior) after every finished hand, and the opponent's 8-axis style counters. Code: holdem-rl
+  b1-rl `tools/ad1r_read.py` (4074c7f, b7fafeb, renamed db446d7; `distance` copied from holdem-x2r's
+  `style_bots_check.py`). `small_ball_b` and `loose_passive` ran with holdem-x2r's `holdem/opponents.py` copied in
+  (additions only). Rows: `~/poker-ai-lab-rl/logs/ad1r/` on gb10-d (`play/*.jsonl`, `report.txt`).
+* **R1, identification curve:** features f46 to f51, f54, f55 (the eight opponent rates; f44, f45, f53 describe the
+  hero's own decision and f52 is the hand count). Profile = pooled final counts of the other pairs (held out by
+  pair); nearest by raw Euclid; n = matches that reached k hands. Chance at k = 0 is 1/14 = 0.071.
+
+  | opponent | k 5 | k 10 | k 20 | k 40 (n) |
+  |---|---|---|---|---|
+  | bp100 | .56 | .69 | .73 | .83 (98) |
+  | chipzen | .36 | .52 | .69 | .79 (77) |
+  | `small_ball` | .28 | .33 | .52 | .84 (49) |
+  | `small_ball_b` | .50 | .65 | .72 | .96 (28) |
+  | `tight_sticky` | .35 | .58 | .76 | .92 (61) |
+  | `sticky_overbettor` | .09 | .21 | .49 | .68 (19) |
+  | `loose_passive` | .21 | .30 | .38 | .73 (22) |
+  | `never_fold_pre` | .01 | .05 | .16 | .46 (13) |
+  | `raise_station` | .52 | .87 | 1.00 | 1.00 (12) |
+  | `ext:ashwing` | .00 | .06 | .17 | .28 (85) |
+  | `ext:ashwing_hive` | .27 | .52 | .78 | .93 (116) |
+  | `ext:ashwing_search` | .29 | .39 | .53 | .52 (92) |
+  | `ext:autodidact` | .47 | .50 | .59 | .64 (92) |
+  | `ext:wolf` | .42 | .50 | .63 | .83 (40) |
+  | macro mean | .31 | .44 | .58 | .74 |
+
+  Standardized Euclid gives .08, .18, .39, .61 (near-constant features blow up at small k). Median match lengths:
+  `raise_station` 10 hands, `never_fold_pre` 13, `sticky_overbettor` 15, bp100 39, `ashwing_hive` 47; only 49% of
+  bp100 matches and 39% of chipzen's reach 40 hands.
+* **Confusions:** `ext:ashwing` and `ext:ashwing_search` share a profile (distance 0.018; two-class accuracy 0.46 to
+  0.50 at every k: never separable by counts). `small_ball` and `small_ball_b` 0.224 (two-class 0.62 at k 5, 0.95 at
+  k 40). bp100 and chipzen 0.247 (fifth closest pair; two-class 0.62, 0.70, 0.77, 0.89 at k 5, 10, 20, 40).
+* **R2, bp100 beside the archive (A0 metric, 8 style axes, bound 0.25, 256 names; bp100 pooled 8,535 hands):**
+  Blueprint 0.250, fermat6 0.255, NashForge 0.232, hoops 0.237, AutodidactInnovations 0.416, Ashwing_v3 0.601.
+  Blueprint is not among bp100's ten nearest (lil-b3f 0.128 first). The gap is preflop: bp100 minus Blueprint pfr
+  +0.22, fold to a preflop raise -0.08, the rest within 0.05. In tracker space (51 archive profiles at 20 hands)
+  Blueprint 0.236 (rank 9), hoops 0.224, while Blueprint's own nearest names sit at 0.135 to 0.171. Among the 14
+  simulated opponents `ext:autodidact` (0.227) is nearer Blueprint than bp100; chipzen is 0.411.
+* **Reading:**
+  1. The in-match counts name the opponent slowly: 31% at hand 5, 44% at hand 10, against matches of 10 to 47
+     hands. Most decisions are made before the counts say who is across the table, so identity from hand 1 has room
+     to act; fail branch 4 (capacity) is not the prior. AD1 launches as specified (the R1 condition in its spec, two
+     opponents with different best responses on one profile, is not met: bp100 and chipzen have distinct profiles,
+     and the one shared profile is two Ashwing judge cells of one family).
+  2. A seed cannot tell `ext:ashwing` from `ext:ashwing_search`; if their best responses differ, AD1's seeded cells on
+     them carry one shared response.
+  3. bp100 is in the solver cluster but at its edge, and much more aggressive preflop than the archive's Blueprint.
+     That fits B1's +5.4 on bp100 against -4.0 on the Blueprint clone (an exploit of preflop aggression bp100 has and
+     Blueprint lacks) without proving it. The 0.70 judge weight on bp100 stands for AD1 (its rule is unchanged); a
+     candidate slice after AD1 should weigh the solver class with a proxy nearer Blueprint or several solver proxies.
+* **Limits:** profiles are fb2-900's view of each bot, archive profiles the whole field's; k-40 cells with n under 30
+  are noisy; wolf is wall-clock (run at 4 workers with nothing else running); early-k accuracy depends on the metric.

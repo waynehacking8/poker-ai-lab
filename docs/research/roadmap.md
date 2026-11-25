@@ -27,7 +27,7 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
 Next: **D0** (spec below, tier 2) trains first: B1 without the bp100 and `small_ball` data, to say whether B1's
 real-bot loss is the new data or the mix. Then **AD1** (spec below, tier 2): seed the opponent counts with each opponent's profile so one network knows who
 it faces from hand 1; its rule decides between X2b (a candidate with seeded identity), an opponent-representation
-slice, or capacity. First two tier-1 reads (R1 identification curve, R2 bp100 against arena Blueprint) are running.
+slice, or capacity. The tier-1 reads are in (14.37): the counts name the opponent slowly (31% at hand 5), so AD1 launches as specified; bp100 is a coarse Blueprint stand-in (much more aggressive preflop).
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 
