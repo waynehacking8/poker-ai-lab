@@ -2159,3 +2159,52 @@ on gb10-d, 2026-11-26 02:10 to 06:39 UTC, every step rc 0: vectors 50 min, draw 
   real-bot cell to within about 3 points of level, none clearly up; the one clear loss is the held-out rule bot
   sticky_overbettor. small_ball gains +7.3, under its price line.
 * **Outcome verifier CONFIRMED:** own pairing script, no repo reader. Same gains, headline and single guard failure, and complete pairing on seeds 95 and 108. The box code equals v5b bedc22e. The e256 and e512 pins match. A 40-match replay reproduces the confirm and fresh rows from e256 (40 of 40; e512 15 and 11 of 40). The data's 90 opponent names hold no D4 cell, and the chipzen rows are all new (src 2).
+
+### 14.47 G0: GUARD FAIL on sticky_overbettor; the gate lifts small_ball to +16.1 but misreads an unseen bot (2026-11-26)
+
+Pre-registered in roadmap "### G0" (3fd709c, post-G0 note f6227ed). Driver `tools/g0_drive.sh` (holdem-x2r `g0` 44759f4,
+holdem-rl `g0-rl` bad56dd, root `g0-root` 0e3b521) on gb10-d, 2026-11-26 08:32 to 10:51 UTC, every step rc 0: rows 14
+min, classifier 2, chipzen line 6, screens 8, confirm 82, departure 26. Seeds 94, 95, 112 and 113 registered G0 read.
+
+* **Classifier:** 141 epochs, held-out loss 0.2890, held-out accuracy 89.4% (206,403 rows held out by pair). By hand
+  bucket: 1-10 80.6% (bp100 43.7%, small_ball 60.0%, chipzen 18.6%), 11-20 88.7%, 21-40 94.1%, 40+ 97.7% (chipzen
+  85.3%). Calibration error per class 0.003 to 0.006.
+* **Misfire table (14.37 logs, seed 102):** share of hands off the default. G80: bp100 56.4%, small_ball 35.0%,
+  chipzen 25.6%, sticky_overbettor 4.1%, every other bot 3.6% or less. G50: bp100 71.4%, small_ball 56.3%, chipzen
+  49.2%, sticky_overbettor 24.4% (22.2% to the small_ball expert), small_ball_b 14.3%, the rest 6.5% or less.
+* **Chipzen line (2b):** `br_chipzen` against the seeded `chipzen`, 2,000 on seed 95: +10.2 [+7.9, +12.5]; line +5.10.
+* **Choice:** screen scores G80 0.7326, G50 0.7597, both through the 78.0% filter (lowest arch:5 83.0% and 81.5%, 23 of
+  23 at 80%): **G50**. The screen already showed the cost: sticky_overbettor G80 80.8%, G50 75.4%.
+* **Read, G50, seed 95, paired against fb2-900 on (seed, hero seat):**
+
+| cell | weight | n | gain | 95% interval |
+|---|---|---|---|---|
+| bp100 | 0.70 | 4000 | +15.2 | [+13.7, +16.8] |
+| tight_sticky (D4) | 0.10 | 2000 | -0.1 | [-0.4, +0.1] |
+| sticky_overbettor (D4) | 0.09 | 2000 | **-5.9** | **[-7.2, -4.6]** |
+| small_ball_b (D4) | 0.08 | 2000 | +1.4 | [+0.1, +2.7] |
+| ext:autodidact (D4) | 0.03 | 1000 | +0.2 | [-0.9, +1.3] |
+| small_ball | 0 | 2000 | **+16.1** | [+14.2, +17.9] |
+| chipzen | 0 | 2000 | +2.6 | [+0.6, +4.7] |
+| never_fold_pre (D4) | 0 | 2000 | -0.1 | [-0.7, +0.4] |
+| raise_station (D4) | 0 | 2000 | -0.2 | [-0.5, +0.1] |
+| loose_passive (D4) | 0 | 2000 | -0.2 | [-0.6, +0.2] |
+| ext:ashwing (D4) | 0 | 1000 | -0.6 | [-2.0, +0.8] |
+| ext:ashwing_search (D4) | 0 | 1000 | -1.0 | [-2.4, +0.4] |
+| ext:ashwing_hive (D4) | 0 | 1000 | -0.4 | [-1.0, +0.2] |
+| ext:wolf (D4) | 0 | 1000 | +0.0 | [-0.5, +0.5] |
+
+* Headline +10.23 [+9.13, +11.33]. Guard: one failure, sticky_overbettor. Fresh seed 113, sticky_overbettor 2,000:
+  -6.4 [-7.8, -5.0] (G50 74.4% wins, fb2-900 80.8%), so the fresh check fails too. **Verdict: branch 2, GUARD FAIL**;
+  the misfire rate on that bot is 24.4% (over 10%), so the rule names the classifier. Also short: chipzen +2.6 under
+  its +5.10 line. bp100 and small_ball clear theirs (+13.7 over +10.0, +14.2 over +11.0).
+* **Departure by hand bucket (200 matches each, G50):** sticky_overbettor leaves the default on 5.6% of decisions in
+  hands 1-10, 32.0% in 11-20, 61.6% in 21-40 and 92.4% past 40 (79.1% to the small_ball expert there): the classifier
+  grows more certain of the wrong class as the match goes on. small_ball 10.9%, 53.6%, 92.0%, 98.9%; bp100 16.7%, 72.4%,
+  90.8%, 99.1%; chipzen 12.6%, 50.9%, 77.6%, 91.3% with 9.9% of all decisions to the bp100 expert.
+* **Decision time:** G50 mean 0.029 ms, p95 0.033 ms, max 0.158 ms per move; fb2-900 0.013 ms.
+* **Described, not decided:** on the opponents it was trained to name, the gate does what pooling could not: small_ball
+  +16.1 against V5b's +7.3 (14.46) and bp100 level with V5b, and every other held-out cell sits within 1 point of level,
+  closer than V5b's. The failure is open-set: sticky_overbettor is in no class's rows, its features sit nearest
+  small_ball's, and a closed four-way softmax has no way to say "none of these", so the posterior climbs with evidence
+  toward the wrong expert. The arm with the higher threshold left that bot alone (4.1%) but lost on the screen score.

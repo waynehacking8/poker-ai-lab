@@ -4,7 +4,7 @@ Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The 
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
-## Where we are (2026-11-26 06:47 UTC)
+## Where we are (2026-11-26 10:56 UTC)
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
 win probability against it, and a safety blend. Revision 2's lookahead work (14.17 to 14.24) showed the
@@ -43,9 +43,12 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    pooled cross-entropy student plays the row-weighted average of its teachers before it knows the opponent.
    Ensembling three fits adds nothing. T-a (14.45): `br_ashwing` +16.0 and +15.4, `br_autofast` +13.4, kept for later.
 
-Next: **G0** (spec below): fb2-900 as the explicit default, a classifier posterior on the Tracker counts, and a move
-to that opponent's teacher only when the posterior is high; a measurement of the design's ceiling before any
-distillation.
+10. **G0, the gated mixture, GUARD FAIL** (14.47): chosen G50; small_ball +16.1 (V5b +7.3), bp100 +15.2, every other
+   held-out cell within 1 point of level, but `sticky_overbettor` -5.9 [-7.2, -4.6] (fresh -6.4) and `chipzen` +2.6
+   under its +5.10 line. The gate works on the opponents it names; it fails open-set: a closed four-way softmax routes
+   an unseen bot to the expert it looks like, with rising confidence (92% off the default past hand 40).
+
+Next: Fable writes the slice after G0 (outcome verifier running).
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 
