@@ -2226,7 +2226,7 @@ recompute of the raw rows (paired on (seed, hero seat), n-1 variance, the 14.47 
 | chipzen | 2000 | +1.4 | [-0.1, +2.8] |
 | sticky_overbettor (D4) | 2000 | -0.4 | [-1.0, +0.2] |
 | small_ball_b (D4) | 2000 | +0.1 | [-0.8, +0.9] |
-| other D4 cells | 1000-2000 | -0.7 to +0.1 | lowest lower bound -1.5 (ext:ashwing_search) |
+| other D4 cells | 1000-2000 | -0.7 to +0.1 | lowest lower bound -1.5 (ext:ashwing) |
 | fresh sticky_overbettor, seed 113 | 2000 | -1.4 | [-2.0, -0.8] |
 
 * Headline +7.93 [+6.91, +8.96]. No D4 guard failure; the fresh lower bound -1.985 is just above -2.0. Under G0's
