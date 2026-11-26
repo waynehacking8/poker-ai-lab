@@ -2263,14 +2263,19 @@ GS80, line at least 0.8 of G80's share): bp100 93.2 to 97.3% (G80 37.0 to 93.4%)
 27.6 to 92.9%). The closest cell is `small_ball`, G50 actor, over 40: GS80 91.9% against a need of 74.3%.
 
 * **What carries it:** the six size terms. Without them the gate sends `sticky_overbettor` and `small_ball_b` to the
-  `small_ball` expert on up to 49% and 35% of hands (as G0 did, 14.47); with them both are at most 4.9% under GS50
-  and 0% under GS80. The support test changes almost nothing at these thresholds (every `nosupport` column within
-  0.5 points of the full gate): it is inert here, not harmful.
+  `small_ball` expert on up to 49.4% and 33.8% of hands (as G0 did, 14.47); with them both are routed anywhere on at
+  most 4.9% of hands under GS50 and 0% under GS80. The support test changes almost nothing at these thresholds (every `nosupport` column within
+  0.53 points of the full gate): it is inert here, not harmful.
 * **Item 15 (reported, no stop):** four misses, all GS50 in hands 1 to 10, all to the bp100 expert:
   `ext:ashwing_hive` 17.7% (fb2 actor) and 19.0% (G50), `ext:autodidact` 12.4% and 12.3%. GS80 routes them 3.4%
   and 2.9%. Every other D4 cell is at most 8.4% under GS50 and 0.7% under GS80. Named again in step 20's read.
 * **Own-play drift check:** the two actors agree within a few points in every GS cell (e.g. `sticky_overbettor` GS50
   4.7% and 4.8% in 1-10), unlike G80, whose G50-actor rows reach 65% past hand 40 against 32% on fb2-900's.
   Step 20 measures drift in each arm's own play.
-* **Described, not decided:** GS80 routes known opponents better than G80 and leaves the unknown ones alone, offline.
+* **Described, not decided:** offline, GS80 routes bp100 and `small_ball` better than G80 in all but one S2 cell
+  (`small_ball`, G50 actor, over 40: 91.9% against 92.9%; `chipzen` is not in S2) and leaves the unknown ones alone.
   Whether that turns into match wins without a guard failure is step D's question (launched 14:38 UTC).
+* **Outcome verifier: CONFIRMED** (2026-11-26): an independent recompute from the raw match files (own split hash,
+  size parser, Beta-binomial, support test and weights; the refit equals gate.npz exactly) reproduces every figure,
+  S1 and S2; the counts, labels and seeds match the spec; the two resumes left every cell whole and on additive-only
+  code changes. Four wording fixes applied (33.8%, 0.53, the S2 exception, item 11's actor).

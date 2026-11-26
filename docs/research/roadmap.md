@@ -48,7 +48,7 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    under its +5.10 line. The gate works on the opponents it names; it fails open-set: a closed four-way softmax routes
    an unseen bot to the expert it looks like, with rising confidence (92% off the default past hand 40).
 11. **G0b steps A to C: S1 and S2 PASS** (14.49): with the six bet-size terms the gate routes `sticky_overbettor`
-   at most 4.8% (GS50) and 0% (GS80), against G80's 65% past hand 40, and GS80 routes 91 to 100% of true bp100 and
+   at most 4.8% (GS50, G50-actor rows; 4.9% on fb2-900's) and 0% (GS80), against G80's 65% past hand 40, and GS80 routes 91 to 100% of true bp100 and
    `small_ball` hands from hand 11. Step D (play, read) launched 14:38 UTC.
 
 Next: **G0b** (spec below): opponent bet sizes, a population class and a support test, so the gate can stay on fb2-900 for an opponent it was not built for; G80 read post hoc as the reference arm.
