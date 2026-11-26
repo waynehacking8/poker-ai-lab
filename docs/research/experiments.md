@@ -2279,3 +2279,42 @@ GS80, line at least 0.8 of G80's share): bp100 93.2 to 97.3% (G80 37.0 to 93.4%)
   size parser, Beta-binomial, support test and weights; the refit equals gate.npz exactly) reproduces every figure,
   S1 and S2; the counts, labels and seeds match the spec; the two resumes left every cell whole and on additive-only
   code changes. Four wording fixes applied (33.8%, 0.53, the S2 exception, item 11's actor).
+
+### 14.50 G0b step D: GS50 chosen, VERDICT PASS (2026-11-26)
+
+Run on gb10-d 14:38 to 16:44 UTC from holdem-x2r `g0b` aaa17ad (`~/g0b-run/x2r`, `tools/g0b_drive.sh`) and
+`g0b-root` 27773b0 (`~/d0-run/x2r-g0b`); registry 115 to 117 G0B read; rows `~/poker-ai-lab-x2r/logs/g0b/{screen,valid,read}`,
+`chosen.json`, `g0b_result.json`; read `~/g0b-run/logs/drive_read.out`. Twenty new styles `~/g0b-run/styles_g0b.json`
+(seed 115). Outcome verifier: pending.
+
+**Screen and choice (item 19):**
+
+| arm | B1 screen score | league lowest (200 per opponent) | pooled validation gain [lower] | worst validation style | eligible |
+|---|---|---|---|---|---|
+| GS80 | 78.55 | 83.5%, 23 of 23 at 80% | +0.1 [-0.0] | +0.0 | yes |
+| G80 | 73.26 | 83.0%, 23 of 23 | +0.1 [-0.2] | -0.5 | yes |
+| GS50 | 79.36 | 84.0%, 23 of 23 | -0.3 [-0.8] | -3.0 | yes |
+
+GS50 is 0.81 above GS80, outside the 0.005 tie band: chosen GS50.
+
+**Read (item 20), GS50 against fb2-900, paired gain in points:**
+
+| cell | n | gain [95%] |
+|---|---|---|
+| bp100 | 4000 | +18.4 [+16.7, +20.1] |
+| `small_ball` | 2000 | +18.8 [+16.9, +20.7] |
+| `chipzen` | 2000 | +7.0 [+4.7, +9.2] (line +5.10, reported) |
+| `sticky_overbettor` seed 113 | 2000 | -0.2 [-0.7, +0.3] |
+| `sticky_overbettor` seed 95 | 2000 | +0.4 [+0.0, +0.9] |
+| other D4 and B1 cells | 1000 to 2000 | -0.4 to +0.7, every interval spans or sits above zero |
+| test styles `gen2:10` to `gen2:19`, pooled | 3000 | -0.1 [-0.5, +0.3]; worst `gen2:10` -1.0 [-2.5, +0.5] |
+
+* **Rule 21:** no guard fails, both gain lines clear (bp100 lower +16.7 against +10.0, `small_ball` +16.9 against +11.0):
+  **PASS**. G0's +15.2 and +16.1 are kept and beaten, and G0's `sticky_overbettor` loss (-5.9) is gone.
+* **Own-play departure** (share of decisions with any expert weight): `sticky_overbettor` 4.0%, 3.7%, 0.0%, 0.0% by
+  bucket against 4.8%, 3.7%, 0.1%, 0.0% offline (no drift flag); bp100 75 to 96%, `small_ball` 61 to 96%, `chipzen`
+  35 to 88%. Item 15's misses show in play too: `ext:ashwing_hive` 18.2% and `ext:autodidact` 11.1% in hands 1 to 10,
+  at no measurable cost (+0.1 [-1.5, +1.7], -0.4 [-2.1, +1.3]).
+* **What it is not:** a candidate. 200 matches per league opponent is the screen; the upload gate needs 400 per
+  opponent and a head-to-head win over the heuristic bot, and the bot as entered also carries the all-in answer.
+  Next is the candidate slice (spec item 3), written by the roadmap agent.
