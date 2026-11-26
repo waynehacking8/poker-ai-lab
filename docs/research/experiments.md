@@ -2006,4 +2006,13 @@ fb2-900, paired on (seed, hero seat), in match-win points.
 * **Described, not decided:** `chipzen` ran 400 iterations in the hour against about 2,200 to 2,750 for the others
   (its opponent is slower per hand), so its teacher is the least trained and still the largest gain: fb2-900 is
   furthest from its ceiling there (67.5%).
+* **The `chipzen` cell does not repeat run to run:** `rl/eval_arena.py` `make_chipzen()` builds `HoldemBot(seed=None)`
+  with no `set_seed`, so the opponent's own randomness is unseeded (two fresh 20-match fb2 runs agreed on 4 rows). Its
+  rows pair on cards and hero seed only; the paired se stays valid but looser, and even the unpaired lower bound
+  (+9.03) clears +8.0. Any later judge that reads `chipzen` exactly needs that opponent seeded first.
+* **Outcome verifier: CONFIRMED.** Independent recompute (no reader import), paired on (seed, hero seat) with n-1
+  variance: every gain, se and interval matches; 8 files of 2,000 rows, seeds 10900000 to 10900999, key sets equal
+  between arms; read commands, checkpoint sha256 prefixes, iteration counts, training init, cores and times match
+  the logs; the box runner and reader equal tt 3682d23 byte for byte; a 20-match rerun of the sticky_overbettor
+  teacher matched all 20 rows.
 * T-a (the M1 specialists on the Ashwing cells and `ext:autodidact`, seed 95) is still reading on cores 18-19.
