@@ -99,10 +99,10 @@ an exploiter trained 2 minutes against fb2-900 beats it 96.5% (fb2-900 folds aft
 exploitability (E3) is a primary metric next to the league and the real bots.
 
 ## Season 16 entry (swapped 2026-11-22 18:45 UTC, Wayne approved)
-- **Live (read 2026-11-25 14:05 UTC, chipzen.ai/season/16 in ego-browser):** 44 bots; round robin Tue 24 to Fri 27
-  Nov, playoffs Sat 28 to Sun 29 Nov; prize $120/$60/$10/$10. v4 is 15th, 1-1: lost to MonteCarlo (R1, 24 Nov
-  18:30), beat fermat-mini (R2, 22:50). Next: stebin-bot-here 25 Nov 18:10 UTC (R3), ALEXANDRA 22:30 (R4). Season
-  replays carry `match_type: "challenge"`.
+- **Live (read 2026-11-26 01:25 UTC, chipzen.ai/season/16 in ego-browser):** 44 bots; round robin Tue 24 to Fri 27
+  Nov, playoffs Sat 28 to Sun 29 Nov; prize $120/$60/$10/$10. v4 is **5th, 3-1**: lost to MonteCarlo (R1), beat
+  fermat-mini (R2), stebin-bot-here (R3, 25 Nov 18:10), ALEXANDRA (R4, 22:30). Leaders typeshii, MonteCarlo, Yezi1
+  at 4-0. Next: Velvet_Shark 26 Nov 18:10 UTC (R5); 8 rounds in all. Season replays carry `match_type: "challenge"`.
 - Entered: Chipzen bot `poker-ai-lab-v4` (id dbdfde29-f098-4a79-9249-a4bdbe3157f3) = rl-fb2-900-allin, image
   `.cache/images/holdem-rl-fb2-900-allin.tar.gz` sha256 0291ee39ca557a2fb60bfb397184328eff767c6ac324c42e141704c32ea44f53.
   Review about 1 minute. Season page reads "poker-ai-lab-v4 is entered" after reload.
