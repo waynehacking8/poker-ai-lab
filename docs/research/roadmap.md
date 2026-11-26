@@ -853,7 +853,8 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
     to one to holdem-rl BASELINES (`base:station` station, `base:maniac` maniac, `base:nit` nit, `base:random` random,
     `base:reference` reference, `base:lag` lag, `base:station_raiser` station_raiser). `arch:0` to `arch:5` and the
     ten `bot:` names are the league's `CloneBot` (`league/clone.py`, model `league/data/clones.npz`): an adapter
-    `league:<spec>` builds that class from the league checkout (pinned commit and model sha256), with a parity test
+    `league:<spec>` builds that class from `~/poker-ai-lab-league` (not a git checkout on gb10-d: `league/clone.py` and the
+    model pinned by sha256), with a parity test
     that for recorded states it returns the same action and size as the league's own build at the same seed.
   * D2 default coverage: 60 generated StyleBots (`holdem/opponents.py` `StyleBot` class attributes `open_p`, `play_p`,
     `face_p`, `pre_size`, `bet`, `street_bet`, `bet_size`, `rr`, `cont`) drawn from a seeded range (seed 110,
