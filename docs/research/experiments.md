@@ -2042,4 +2042,11 @@ base:lag 94.3, base:maniac 87.3, arch:2 87.0, base:random 86.3, arch:5 84.8.
   hyper-aggressive heuristic (`lag`, `maniac`) and no `arch:` opponent. Against base:lag W1 drops 30 points from
   its teacher. The converged refit (A1) recovers 10 of them, so part is fit quality and part is coverage. Not
   tested: whether adding those opponents to the data closes the gap.
-* Fit-seed spread (reported only) launched after the screen on cores 0-17, 00:26 UTC.
+* Fit-seed spread (reported only) launched after the screen on cores 0-17, 00:25 UTC.
+* **Outcome verifier: CONFIRMED.** Screen cells and scores recomputed from the rows with B1's weights (77.33, 77.09);
+  league rates recomputed from `results.jsonl` (23 opponents, 4,600 unique rows, pairs 400-499) match the summaries;
+  confirm died with exit 5 before any cell (no `confirm/` rows); candidate and fb2 sha256 match the pins; the box
+  runner equals de7c4f7; 40 matches per candidate on two cells replayed byte-identical from `~/d0-run/x2r`; B1's
+  lowest rates 81.0 to 85.5 and fb2-900's comparison rates confirmed; `~/ad0-run/data.npz` holds exactly the seven
+  opponents named above.
+* **Next (roadmap agent):** V5b, specialists plus fb2-900 coverage data with held-out cells (roadmap "V5b").
