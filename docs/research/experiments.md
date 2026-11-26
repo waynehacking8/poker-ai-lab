@@ -2071,3 +2071,23 @@ are seed 1's keys).
   a draw, not the method's value; how V5b chooses among students is for the roadmap agent.
 * Check: the same reader on seed 1's rows reproduces 14.39's verified numbers exactly (bp100 +19.4 [+16.9, +21.8],
   pooled +1.1 [-0.7, +2.9]); every arm pairs on all its keys (no missing pair).
+
+### 14.44 Averaging the three W1 fits lands at their mean, not above it (2026-11-26; V5b amendment 1 item 8, reported only)
+
+The three AD0 W1 fits of 14.43 (fit seeds 1, 2, 3) averaged as one policy (mean of the members' masked action
+probabilities, one draw by `Policy.act`'s rule; file `w1_ens.npz` bf9d8d42…, member hashes pinned), played seed 95
+from `~/d0-run/x2r-v5b` (holdem-x2r v5b-root e4808d6; runner v5b 952d9cd `ad0-ens-build`, `ad0-ens-play`), cores
+0-17, 01:10 to 01:19 UTC, registered `95 V5A read`; paired against B1's fb2-900 rows on disk.
+
+| cell | ensemble | members (fit seeds 1, 2, 3) |
+|---|---|---|
+| bp100 (2,000) | +17.8 [+15.3, +20.3] | +19.4, +18.2, +16.3 (mean +18.0) |
+| ext:ashwing (1,000) | -0.6 [-3.3, +2.1] | +2.2, -0.7, -2.3 |
+| ext:ashwing_hive (1,000) | -1.7 [-4.2, +0.8] | +0.0, -0.4, -3.6 |
+| Ashwing pooled | -1.2 [-3.0, +0.7] | +1.1, -0.6, -3.0 (mean -0.8) |
+
+* **Reading (pre-registered in item 8):** neither cell is clearly under the members' mean (upper bounds above it),
+  so nothing returns to the roadmap agent and V5b's fit proceeds as amended. Averaging gives one policy at about the
+  members' mean: it removes the luck of a single draw, it does not add strength.
+* Check: an independent reader (my own pairing script, no import of `v5b_read.py`) gives the same three gains and
+  intervals; every row pairs (no missing key).
