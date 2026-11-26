@@ -1026,8 +1026,9 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 * **Classifier (holdem-rl branch `g0-rl` from v5b-rl 377ec9f, `tools/g0_clf.py`):**
   1. Input: the nine observation features `[46, 47, 48, 49, 50, 51, 54, 55, 52]` of `rl/features.py` `build` (the
      eight Tracker rates and the hand count `f52`), from the unseeded Tracker; nothing else.
-  2. Model: one hidden layer of 32 tanh units, softmax over the four classes (bp100, `small_ball`, `chipzen`,
-     other). Chosen over a linear model because the posterior must sharpen with the hand count, an interaction a
+  2. Model: inputs standardised by the mean and standard deviation of the fit rows (train side only; a standard
+     deviation under 1e-6 is set to 1.0), one hidden layer of 32 tanh units, softmax over the four classes in the
+     order bp100, `small_ball`, `chipzen`, other; computed in float64. Chosen over a linear model because the posterior must sharpen with the hand count, an interaction a
      linear model cannot express. Fit with Adam (learning rate 1e-3, batch 4,096), cross-entropy, fit seed 1, at
      most 200 epochs, patience 10 on the held-out loss, best epoch kept; class shares as they fall in the rows (no
      reweighting: the large "other" share makes the classifier conservative, which is the side a misfire costs).
@@ -1049,13 +1050,24 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   policy is sum_c w_c * teacher_c's masked probabilities + (1 - sum_c w_c) * fb2-900's masked probabilities (each
   softmax of that network's masked logits at temperature 1.0), and the action is one draw from it by the bot's
   existing rule (`Policy.act`, one `rng.choice`), with the all-in answer and everything else in `RLBot` unchanged.
-  Two arms, fixed now: G80 (t = 0.80) and G50 (t = 0.50), each one file holding the four teachers' arrays, the
-  classifier and t, with every component's sha256 and the file's pinned in the runner.
+  Two arms, fixed now: G80 (t = 0.80) and G50 (t = 0.50), each one npz with every component's sha256 and the
+  file's pinned in the runner. File layout (literal): `g0_t` (t), `g0_ramp` (0.15), `g0_feat` (the nine indices),
+  `g0_classes` (the four names), `clf_mean` and `clf_std` (9 each), `clf_w1` (9 x 32), `clf_b1` (32), `clf_w2`
+  (32 x 4), `clf_b2` (4), all float64; then each teacher's arrays copied verbatim under `m0_` (T1), `m1_` (C1),
+  `m2_` (`br_chipzen`), `m3_` (fb2-900) prefixes, including a `keep` array where the teacher has one, applied as
+  the single-network path applies it (the ensemble loader's refusal of `keep` does not apply to G0 files).
   Tests first: (a) on 200 fixed states the G0 probabilities equal the formula computed from the five networks
-  separately within 1e-9 (plants: weights not renormalised, ramp 0.10, threshold applied to the wrong class); (b)
+  separately within 1e-9 (plants: weights not renormalised, ramp 0.10, threshold applied to the wrong class); (a2)
+  cross-tree parity: on the first 200 held-out rows of `~/v5b-run/data.npz`, `tools/g0_clf.py`'s posterior (the one
+  the calibration report and misfire table use) and the `g0-root` runtime's posterior from the same G0 file agree
+  within 1e-9 (plants: tanh replaced by ReLU in the runtime, the input scaling dropped, float32 in the runtime); a
+  G0 file built with a synthetic teacher that carries a `keep` array gives that teacher's single-network
+  probabilities when its weight is forced to 1 (plant: `keep` dropped); (b)
   neutrality: a G0 file whose classifier is forced to "other" plays 50 matches each of `small_ball`,
   `ext:ashwing` and `tight_sticky` byte-identical to fb2-900's rows from `~/d0-run/x2r` on the same seed (plant: a
-  constant 1e-6 added to a specialist weight); (c) the literals 0.80, 0.50, 0.15 and the feature list.
+  constant 1e-6 added to a specialist weight); and 50 matches of that file against `chipzen` from `~/d0-run/x2r-g0`
+  byte-identical to fb2-900's from `~/d0-run/x2r-v5b` on the same seed (plant: `chipzen` seeding removed in
+  `g0-root`); (c) the literals 0.80, 0.50, 0.15, the feature list and the file layout.
 * **Misfire table (reported before play, never used to tune or choose):** on 14.37's logs
   (`~/poker-ai-lab-rl/logs/ad1r/play/*.jsonl`, fb2-900 against 14 opponents, 200 matches each, seed 102, raw
   Tracker counts after every finished hand), the features of hand k come from the counts after hand k-1 (zero
@@ -1071,8 +1083,12 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
      less (a fraction, as V5b); if only one passes, that one. Test: passing scores 0.006 apart in G50's favour choose
      G50, 0.004 apart G80 (plant: margin moved).
   2. Read, chosen arm only, seed 95: every B1 confirmation cell and all eleven D4 cells at V5b's counts, paired
-     against fb2-900's arms on disk (V5b's `confirm/fb2_wolf` for `ext:wolf`); `chipzen` 1,000 from `~/d0-run/x2r-g0`
-     against V5b's fb2-900 `chipzen` rows on seed 95 (`~/poker-ai-lab-x2r/logs/v5b/chipzen/fb2/chipzen.jsonl`, played from `~/d0-run/x2r-v5b`, the same seeded opponent code).
+     against fb2-900's arms on disk (V5b's `confirm/fb2_wolf` for `ext:wolf`); `chipzen` 2,000 from `~/d0-run/x2r-g0`.
+  2b. The `chipzen` line, measured before the read and independent of G0: `br_chipzen` and a new fb2-900 arm, each
+     2,000 matches against the seeded `chipzen` from `~/d0-run/x2r-v5b` on seed 95 (V5b's 1,000-match rows are
+     not reused). The line is half of `br_chipzen`'s paired point gain there (the +11.8 of 14.41 was against the
+     unseeded opponent and is not used). G0's `chipzen` cell pairs against this new fb2-900 arm; test (b) makes the
+     two roots comparable on `chipzen`.
   3. Fresh: `sticky_overbettor` 2,000 on seed 113, the chosen arm and a new fb2-900 arm from `~/d0-run/x2r`.
   4. Reported only: decision time per move; the departure share by hand bucket against each cell on 200 logged
      matches of the chosen arm (seed 95, the first 200); every D4 cell's gain (J3 flag under -5.0 kept).
@@ -1084,8 +1100,8 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
      next step); if 10% or less, the loss comes from play after a correct identification of a near neighbour and
      returns to the roadmap agent.
   3. RULE FAIL: the rest of B1's rule on seed 95 fails (headline lower bound not above zero, or a non-D4 guard).
-  4. GAINS SHORT: guards hold but a lower bound misses bp100 +10.0, `small_ball` +11.0 or `chipzen` +5.9 (half of
-     each teacher's gain). Report that cell's departure share by hand bucket and its paired gain split by match
+  4. GAINS SHORT: guards hold but a lower bound misses bp100 +10.0, `small_ball` +11.0 or `chipzen`'s line from 2b
+     (half of each teacher's gain; `chipzen` at 2,000 matches so its interval is near `small_ball`'s). Report that cell's departure share by hand bucket and its paired gain split by match
      length (under 20 hands, 20 or more); the next step is earlier identification (AD1's name seeding is ready),
      not more teachers.
   5. PASS: all of the above hold. Fresh outcome verifier, then the roadmap agent writes the distillation slice.
@@ -1101,8 +1117,8 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   classifier, G0 files, logs), `~/d0-run/x2r-g0/`, `~/poker-ai-lab-x2r/logs/g0/`, `~/poker-ai-lab-league/candidates/g0-src`
   and `out/g0/` (delete); registry lines `94`, `95`, `112`, `113 G0 read` (restore the copy). `~/bpq.lock`: leave.
 * **Budget (each phase stops and is recorded at twice its number):** new rows about 15 minutes (replaced by a
-  20-match smoke on the logging path), classifier about 5 minutes, misfire table about 1, screens about 25 for both
-  arms, read about 90, fresh about 10. About 2.5 box-hours on cores 0-17.
+  20-match smoke on the logging path), classifier about 5 minutes, misfire table about 1, the `chipzen` line about 15
+  (4,000 matches), screens about 25 for both arms, read about 100, fresh about 10. About 2.5 box-hours on cores 0-17.
 * **Held-out design (the roadmap agent, recorded before G0's read):** D4 stays exactly as V5b's for G0. When
   `br_ashwing` and `br_autofast` later join, `ext:ashwing`, `ext:ashwing_search` and `ext:autodidact` become fitted
   cells; `ext:ashwing_hive` and `ext:wolf` stay held out as the real-code cells, with all six style cells. The guard
@@ -1111,6 +1127,12 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   comparison arms, not in the trunks' models. To the trunks: the `ad0_log` extensions, generated styles with
   per-match seeding, `chipzen` seeding and hold-out by pair (v5b-rl squashed first); the ensemble loader is not
   merged (14.46: ensembling adds nothing; dropped from future specs). T-a and T-b teachers stay on disk with hashes.
+* **Review record:** plan review 1 REVISE: (1) the classifier is fitted in holdem-rl and evaluated again in
+  `g0-root` with no parity test and no fixed file layout; (2) the `chipzen` line of +5.9 sat on the lower bound of a
+  1,000-match cell, came from the unseeded opponent, and paired across two roots untested. Revised above: the file
+  layout, scaling, activation and precision are literal with a cross-tree parity test and `keep` test (test a2);
+  `chipzen` is read at 2,000 against a new fb2-900 arm, with its line measured on the seeded opponent (2b), and test
+  (b) covers `chipzen` across the roots.
 
 ### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
 
