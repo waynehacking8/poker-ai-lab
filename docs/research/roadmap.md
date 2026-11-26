@@ -1368,6 +1368,11 @@ reader and driver)**
   and `loose_passive` (the smoke ran one D4 rule bot). Ported verbatim from holdem-x2r (b9031b1) with a test that
   every cell builds and that both play byte-identical to x2r's G0 tree; 63 tests, 118 of 118 plants. Resumed 13:18 UTC
   (`tools/g0b_resume.sh`, finished cells skipped, the data stop line restarted from the resume).
+  The resumed run stopped at 13:49 UTC on G50's first league cell: the league cells pin holdem-rl's
+  `holdem/opponents.py` by sha256 (v5b_opps.LOADED_PINS) and the port had changed it. Repinned (e87a5f5) with a test
+  that the file without the ported block is byte for byte the old pinned file (no league or V5b opponent changed); 64
+  tests, 119 of 119 plants; every cell type smoked under both actors from that tree (bp100 runs only through its
+  queue and had finished for both). Resumed 13:59 UTC. Lesson: a resume after a code change smokes every cell type.
 * **Build record (step D, `g0b-root` and `g0b`):** built cb2643e and 2da6f7f. Outcome verifier 1 REFUTED: nine
   result-changing mutations untested (expert-to-network mapping and weight in the GS mixture, SizeRecord pot and call
   bookkeeping, the draw stream after either redraw, eligibility on per-style gain, the flag's bucket map); fixed
