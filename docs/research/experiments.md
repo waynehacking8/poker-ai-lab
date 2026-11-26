@@ -2116,3 +2116,5 @@ matches per cell on seed 95 from `~/d0-run/x2r`, 2 workers on cores 18-19, 2026-
   from 23:01. Bash had parsed the whole `case` before running it, so all four cells ran the original code to the
   full count (1,000 rows each); reading the changed file after `esac` gave a syntax error and `a.rc` 2. The read
   (`read_a.rc` 0) is unaffected. Lesson: never replace a script a running bash is executing.
+* Check: an independent pairing script (no reader import) gives the same four gains and intervals; every file has
+  1,000 rows on seed 95, all paired with the baseline; the run log names each teacher's `latest.npz`.
