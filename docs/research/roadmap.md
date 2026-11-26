@@ -1364,6 +1364,19 @@ reader and driver)**
   `gates_from` and `report_of`, carry what `main` did), 60 tests, 115 of 115 plants caught on gb10-d, and every
   applicable mutation of verifier 2's script caught (the three that no longer apply are covered by plants of the
   same change). Logging run launched 12:48 UTC from that commit (`~/g0b-run/code`).
+* **Run fix (steps A to C):** the evaluation phase crashed at 13:13 UTC: holdem-rl lacked the D4 bots `small_ball_b`
+  and `loose_passive` (the smoke ran one D4 rule bot). Ported verbatim from holdem-x2r (b9031b1) with a test that
+  every cell builds and that both play byte-identical to x2r's G0 tree; 63 tests, 118 of 118 plants. Resumed 13:18 UTC
+  (`tools/g0b_resume.sh`, finished cells skipped, the data stop line restarted from the resume).
+* **Build record (step D, `g0b-root` and `g0b`):** built cb2643e and 2da6f7f. Outcome verifier 1 REFUTED: nine
+  result-changing mutations untested (expert-to-network mapping and weight in the GS mixture, SizeRecord pot and call
+  bookkeeping, the draw stream after either redraw, eligibility on per-style gain, the flag's bucket map); fixed
+  27773b0 and 9521562 (20 tests, 58 plants; 47 tests, 160 plants). Outcome verifier 2 REFUTED on one: eligibility
+  reading the pooled gain in place of its lower bound passed every test. Cap reached; fixed first-hand (g0b aaa17ad):
+  a case with pooled gain -1.5 and lower bound -5.8, every style at -1.5; 48 tests, 161 of 161 plants on gb10-d.
+  Its other 39 mutations were caught; three survivors judged equivalent (a tail of exactly 0.01; an exact float
+  collision with a V5b style, which the real-file L8 step would catch; a default path equal to the explicit one).
+  Step D launches from g0b-root 27773b0 and g0b aaa17ad.
 
 ### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
 
