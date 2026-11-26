@@ -964,6 +964,28 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   waits for step 0.
 * **Not done:** PPO repair on the league (C0, D0 priced it; the fault is missing labels); judge style cells as data
   (it would hide the 289-name question); T-a teachers (above).
+* **Amendment 1 (roadmap agent after 14.43, 2026-11-26 00:45 UTC, before any V5b data, fit or read):** a single fit is a draw
+  (14.43: the fit seed alone moves pooled Ashwing by 4 points), so each candidate is the average of three fits.
+  1. Fits: for each width (256, 512) fit seeds 1, 2 and 3, everything else as F1 to F3 (six fits).
+  2. Students E256 and E512: at each decision the policy is the mean of the three members' masked action
+     probabilities (softmax of each member's masked logits at temperature 1.0), and the action is drawn from that
+     mean by the bot's existing rule, unchanged: `rl/runtime.py` `Policy.act`, one `rng.choice` draw from the
+     probabilities at temperature 1.0 (argmax only at temperature 0).
+  3. Artifact: one file per ensemble holding the three members' policy arrays, with each member's sha256 and the
+     file's sha256 pinned in the runner. Test first: on 200 fixed states the ensemble's probabilities equal the mean
+     of the three members computed separately within 1e-9 (plant: averaging logits instead of probabilities).
+  4. Screen: E256 and E512 only (the six members are not screened); choice unchanged (E256 unless E512 exceeds it
+     by more than 0.005).
+  5. Confirmation, fresh-seed check and gate: the chosen ensemble only, text unchanged.
+  6. Reported after the rule is read, never used to choose: the chosen ensemble's three members on seed 95, bp100
+     2,000 and the pooled Ashwing cells (`ext:ashwing`, `ext:ashwing_hive` 1,000 each), beside the ensemble; and the
+     ensemble's decision time per move. Dropped first if box time is tight.
+  7. Budget: fit about 40 minutes for six fits (was 20); item 6 about 30 minutes.
+  8. A tier-1 read before V5b's fit, reported only and changing nothing in V5b: the three AD0 W1 fits of 14.43
+     (fit seeds 1, 2, 3) averaged as in item 2, played on seed 95 (bp100 2,000, `ext:ashwing` and
+     `ext:ashwing_hive` 1,000 each) against the arms on disk, registered under `95 V5A read`. If it lands clearly
+     under the members' mean (about +18 on bp100, about -0.8 pooled Ashwing) on either, it returns to the roadmap
+     agent before V5b's fit.
 * **Review record:** plan review 1 REVISE (T-a teachers against held-out cells; StyleBot ranges, measurement and
   exclusion left to the builder; rule branches and J3's screen baseline missing; seeds, seeding table and fitter
   not named; the adapter's pins and per-match seeding; no tests, owners, writes or budget). Revised above
