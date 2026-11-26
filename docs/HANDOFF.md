@@ -4,7 +4,7 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-26 06:41 UTC, box clock UTC+8)
+## Now (2026-11-26 06:47 UTC, box clock UTC+8)
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
@@ -34,7 +34,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   candidate slice (full process); AD1 and S7 drop. Data overran its time line (deviation recorded in the amendment,
   research 2513a6f). A1 converged refits (students_a1) exist, not played (A2). Outcome verifier CONFIRMED; Fable asked
   for the next slice's spec and whether D-null still runs. Students: ~/ad0-run/students/W1.npz etc.
-* **Next:** **V5b read: DEFAULT FAIL** (experiments 14.46, research 9fb5115; driver 02:10 to 06:39 UTC, all steps rc 0): chosen e256; headline +10.57 [+9.33, +11.81], bp100 +15.5, small_ball +7.3, every held-out real-bot cell within about 3 points of level; D4 guard fails on sticky_overbettor -4.2 [-6.1, -2.4]; fresh seed 108 would also fail (small_ball). E1 gate not run. Outcome verifier running; then the verdict goes to Fable for the next slice. Earlier records: V5a chosen none (14.42), TT T-b (14.41), fit-seed spread (14.43), AD0 ensemble (14.44), T-a (14.45), all verified. Worktrees: poker-ai-lab-v5broot (`v5b-root` a4ec310), poker-ai-lab-v5bx2r (`v5b` bedc22e), poker-ai-lab-v5brl (`v5b-rl` 377ec9f, WIP commits to squash before any push); all local. Box: ~/v5b-run (data.npz, students/, styles.json, logs/), registry backup ~/v5b-run/seed_registry.pre-v5b; rows ~/poker-ai-lab-x2r/logs/v5b. ~/b1-build can go once V5b is closed.
+* **Next:** **V5b read: DEFAULT FAIL** (experiments 14.46, research 9fb5115; driver 02:10 to 06:39 UTC, all steps rc 0): chosen e256; headline +10.57 [+9.33, +11.81], bp100 +15.5, small_ball +7.3, every held-out real-bot cell within about 3 points of level; D4 guard fails on sticky_overbettor -4.2 [-6.1, -2.4]; fresh seed 108 would also fail (small_ball). E1 gate not run. Outcome verifier CONFIRMED (research 8c309d8). Fable: next slice **G0**, the gated mixture (fb2-900 default, a classifier posterior on the Tracker counts, a move to the teacher at threshold 0.80 or 0.50; a measurement, not a candidate); spec research a5ed21e; plan review 1 running. Earlier records: V5a chosen none (14.42), TT T-b (14.41), fit-seed spread (14.43), AD0 ensemble (14.44), T-a (14.45), all verified. Worktrees: poker-ai-lab-v5broot (`v5b-root` a4ec310), poker-ai-lab-v5bx2r (`v5b` bedc22e), poker-ai-lab-v5brl (`v5b-rl` 377ec9f, WIP commits to squash before any push); all local. Box: ~/v5b-run (data.npz, students/, styles.json, logs/), registry backup ~/v5b-run/seed_registry.pre-v5b; rows ~/poker-ai-lab-x2r/logs/v5b. ~/b1-build can go once V5b is closed.
   W1 (30 epochs, 9bc31660…) and its A1 refit (3c375498…) as the candidate with no PPO: B1's screen (seed 94, league
   400-499, filter 78.0%), B1's rule on seed 95, fresh-seed check seed 108 (bp100 lb > +5.4, small_ball lb > +6.5), E1
   gate, eval card with E3; **TT** (tier 2): T-a reads
