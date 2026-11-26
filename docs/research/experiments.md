@@ -2285,7 +2285,8 @@ GS80, line at least 0.8 of G80's share): bp100 93.2 to 97.3% (G80 37.0 to 93.4%)
 Run on gb10-d 14:38 to 16:44 UTC from holdem-x2r `g0b` aaa17ad (`~/g0b-run/x2r`, `tools/g0b_drive.sh`) and
 `g0b-root` 27773b0 (`~/d0-run/x2r-g0b`); registry 115 to 117 G0B read; rows `~/poker-ai-lab-x2r/logs/g0b/{screen,valid,read}`,
 `chosen.json`, `g0b_result.json`; read `~/g0b-run/logs/drive_read.out`. Twenty new styles `~/g0b-run/styles_g0b.json`
-(seed 115). Outcome verifier: pending.
+(seed 115). Outcome verifier CONFIRMED (16:55 UTC; own script on the raw rows: counts, seeds, pairing, every
+gain, the choice and the arm file's `gs_t` 0.50 recomputed).
 
 **Screen and choice (item 19):**
 
@@ -2303,7 +2304,7 @@ GS50 is 0.81 above GS80, outside the 0.005 tie band: chosen GS50.
 |---|---|---|
 | bp100 | 4000 | +18.4 [+16.7, +20.1] |
 | `small_ball` | 2000 | +18.8 [+16.9, +20.7] |
-| `chipzen` | 2000 | +7.0 [+4.7, +9.2] (line +5.10, reported) |
+| `chipzen` | 2000 | +7.0 [+4.7, +9.2] (lower bound under its +5.10 line; reported, does not decide) |
 | `sticky_overbettor` seed 113 | 2000 | -0.2 [-0.7, +0.3] |
 | `sticky_overbettor` seed 95 | 2000 | +0.4 [+0.0, +0.9] |
 | other D4 and B1 cells | 1000 to 2000 | -0.4 to +0.7, every interval spans or sits above zero |

@@ -1389,6 +1389,96 @@ reader and driver)**
   collision with a V5b style, which the real-file L8 step would catch; a default path equal to the explicit one).
   Step D launches from g0b-root 27773b0 and g0b aaa17ad.
 
+### C1v5. Candidate slice: GS50 as the entered bot (spec, 2026-11-26; tier 1, a candidate; the roadmap agent's decision after 14.50)
+
+* **Question:** does v5 = GS50 (the gate file `~/g0b-run/students/gs50.npz`, sha256 f7d22324..., experts T1, C1,
+  br_chipzen, default fb2-900) plus the unchanged all-in answer, packaged as it would be uploaded, keep G0b's read on
+  seeds nothing has touched and pass the upload gate?
+* **Decision it feeds:** all lines pass, a fresh outcome verifier confirms the whole record, then Wayne is asked for
+  his own yes to upload and swap (v4 stays entered until then; reversible while the season allows); after his yes and
+  the upload, the HF release (private during Season 16). Any failed line stops the slice and returns to the roadmap
+  agent; nothing is rerun on a new seed to rescue a line.
+* **Design calls (roadmap agent):** ship the gate arm itself, no distillation (the gate reads bet sizes that are not
+  among the 56 features; GS50 costs 0.03 ms a move); fresh seeds on every cell that carries the claim (seed 95 has
+  informed four designs); one candidate, no backup arm.
+
+**Step 1: deployment check (before any judged match; any failure stops, fix under a new commit, repeat step 1)**
+
+1. Limits (source: the Season 16 registration notes in memory `chipzen-poker-bot`, hosted 0.5 vCPU, 256 MB, 5 s per
+   decision, image under 200 MB, non-root): the amd64 image from `deploy/build_on_box.sh gs50.npz v5` under 200 MB;
+   peak resident memory under 256 MB in a full match. No new request to chipzen.ai.
+2. Runtime purity: the image's site-packages hold no scipy; the gate's Beta-binomial uses `math.lgamma` only. Test:
+   import scan of the staged context (`rl/`, `nlhe/`, `bot.py`) lists only the standard library, numpy and chipzen.
+3. Parity: the staged context (the exact files the image copies, hashes asserted equal to the image's) plays 200
+   seeded matches (40 each of bp100, `small_ball`, `sticky_overbettor`, `chipzen`, `ext:ashwing`) with actions
+   identical to `g0b-root` 27773b0 with the GS50 file on the same seeds.
+4. Size-record guard (new, in the runtime): `SizeRecord.update` first checks chip conservation for the finished hand:
+   per seat, start stack minus end stack (`round_result` `stacks`) plus payout equals the chips the action history
+   puts in under the protocol's semantics (a `raise` amount is the street total, a `call` amount the chips added,
+   blinds the chips posted; `chipzen_bot/nlhe/history.py`); start stacks from the previous `round_result`, the first
+   hand from `match_start`'s starting stack. A hand that fails is not counted in the six size terms and increments
+   `size_skips`. Tests: (a) 0 skips over 2,000 engine matches of mixed cells; (b) the 412 cached Chipzen replays
+   (`.cache/chipzen-replays`), converted hand by hand to protocol-form histories, give 0 skips and size counts equal
+   to the same hands driven through `holdem/engine.py` by `tools/replay_conformance.py`'s driver (plant: the pot
+   without the blinds, caught by the bucket comparison); (c) the same replays converted with raise amounts as chips
+   added skip every hand where the two forms differ and count no size from them (plant: the guard removed). The
+   guarded runtime keeps 14.50's read only if (a) and parity item 3 hold.
+5. Fault path: any exception in the gate plays fb2-900's probabilities for that decision and increments
+   `gate_faults`; a fault-injection test shows it. Every judged match records `gate_faults` and `size_skips`; a
+   nonzero total in steps 2 and 3 voids the run.
+6. Latency: the staged context in an arm64 container at `--cpus 0.5 --memory 256m` over at least 10,000 decisions:
+   mean and maximum per decision, maximum under 100 ms; and three full matches of the amd64 image through
+   `deploy/run_local_match.sh` (protocol smoke, QEMU timings reported, not judged).
+
+**Step 2: fresh confirmation (holdem-x2r, the judged runtime is step 1's commit)**
+
+7. Seed 118 (`118 C1V5 read`), v5 against a new fb2-900 arm on the same seeds, paired on (seed, hero seat): bp100
+   4,000 (queue, `BPQ_SLICE=C1V5`); `small_ball`, `small_ball_b`, `tight_sticky`, `sticky_overbettor`,
+   `never_fold_pre`, `raise_station`, `loose_passive` 2,000 each; `chipzen` 2,000 seeded per match as V5b's D3;
+   `ext:ashwing`, `ext:ashwing_search`, `ext:ashwing_hive`, `ext:autodidact`, `ext:wolf` 1,000 each.
+8. Twenty new styles, a third draw by `tools/v5b_styles.py draw --seed 120 --n 20` (`120 C1V5 read`), V5b's sampler,
+   exclusion set and bound, redrawn if equal in every attribute to any style of `~/v5b-run/styles.json` or
+   `~/g0b-run/styles_g0b.json`; file `~/c1v5-run/styles_c1v5.json` (sha256 recorded), cells `gen3:<k>`, k 0 to 19.
+   Play seed 119 (`119 C1V5 read`), 200 matches each, against a new fb2-900 arm.
+9. Lines: B1's rule on seed 118 (headline = B1's judge weights times the paired gains, 95% lower bound above zero; no
+   cell under -2.0 with its upper bound under zero); bp100 lower bound above +10.0 and `small_ball` above +11.0; the
+   pooled twenty styles lower bound above -2.0 and no style under -5.0 with its upper bound under zero. `chipzen` is
+   reported against +5.10 and does not decide.
+
+**Step 3: the upload gate (holdem-league, `tools/league_fresh.py`, the B1 gate path)**
+
+10. E1: v5 against the 23 opponents of `league/data/clones.npz` on pairs 200 to 399 (400 matches each): all 23 at 80%
+    or more (Wilson lower bounds reported); the paired difference against fb2-900 from its verify rows reported.
+11. Head to head: `--h2h chipzen-102b05e` on the same pairs: Wilson 95% lower bound above 50%.
+
+**Step 4: reported on the card, not gating**
+
+12. bp100 beside the Blueprint clone; opposite signs with both intervals excluding zero is flagged in words.
+13. Expected arena effect: the gate run as an observer over the 412 cached replays, per entrant-faced name
+    (Blueprint, fermat6, NashForge, hoops, mr_hide, r0ckGarden, PluriBot, slopBot), the share of hands routed to each
+    expert by hand bucket. If the support test keeps most real names on the default, the card says in those words
+    that v5 plays as v4 against most of the live field and gains where an opponent matches an expert.
+14. E3 exploit probes as the eval card, the shove table against bp100, decision time, the departure table.
+15. The design in plain words for the card.
+
+* **Rule order:** step 1, then item 9, then item 10, then item 11, then a fresh outcome verifier on the whole record,
+  then Wayne's yes. No upload, swap or registration by the slice.
+* **Seeds:** 118 (confirmation), 119 (style play), 120 (style draw), registered `C1V5 read` after a copy of the
+  registry to `~/c1v5-run/seed_registry.pre-c1v5`. League pairs 200 to 399 are the E1 range (never used in
+  selection).
+* **Owners:** holdem-x2r `c1v5-root` from `g0b-root` 27773b0 (guard, fault counter, staging and image scripts),
+  `c1v5` from `g0b` aaa17ad (draw, judge, reader, driver, arena-effect tool); holdem-league for E1 through the
+  existing `tools/league_export.sh` and `league_fresh.py`.
+* **Tests (each failing on its plant; plant runner committed with them):** items 2 to 5 as stated; the rule table
+  gives exactly one verdict per combination (plants: each line dropped); literals: seeds, counts, lines, file paths,
+  the GS50 sha256.
+* **Writes, each with its rollback:** commits on two local branches (revert); gb10-d `~/c1v5-run/`,
+  `~/poker-ai-lab-x2r/logs/c1v5/`, `~/poker-ai-lab-league/candidates/c1v5-src`, `out/c1v5/` (delete); registry lines
+  118 to 120 (restore the copy); a local image tag `holdem-v5:c1v5` on gb10-d (remove).
+* **Budget (each phase stops at twice its number):** step 1 about 40 minutes, step 2 about 150 (bp100 queue the long
+  pole), step 3 about 10, step 4 about 20. Cores 0-17.
+* **Non-goals:** no new expert, no retrain, no change to v4 or the deployed bot, no fetch from chipzen.ai, no upload.
+
 ### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
 
 * **Question:** which further opponents does a specialist beat by a wide margin over fb2-900, so that its play is
