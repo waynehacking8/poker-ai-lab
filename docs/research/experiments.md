@@ -1984,3 +1984,26 @@ Cell standard errors 1.16 to 1.45.
   identical to the baseline, 1,000 rows each, seed-clustered errors within 0.06 of the reader's; checkpoint sha256
   prefixes match the spec and the driver's paths; the run tree's code equals the baseline tree; 20 matches each of
   two C0 arms and of the fb2-900 baseline re-run byte-identical.
+
+### 14.41 TT, T-b: a 60-minute teacher clears +8.0 only against `chipzen` (2026-11-26)
+
+Pre-registered in roadmap "TT" (T-b part; line +8.0 on the 95% lower bound). Four `tools/rl_br.sh` runs of 60 minutes
+from fb2-900 with its value head (`ckpt/fb2/it000900.npz`), 3 SDK workers and 4 cores each, 23:03 to 00:03 UTC
+(2026-11-25 to 26; the first start at 23:01 failed on the policy-only init, KeyError 'vw0', and was moved aside before
+any training). Reads 00:03 to 00:11 UTC, seed 109 (fresh), 2,000 matches per arm and cell, from `~/d0-run/x2r` (holdem-x2r 8be6e38) on
+cores 0-17; runner and reader holdem-rl tt 3682d23 `tools/tt_run.sh`, `tools/tt_read.py`. Gain = teacher minus
+fb2-900, paired on (seed, hero seat), in match-win points.
+
+| teacher (sha256 prefix, last it) | cell | fb2-900 | teacher | gain | 95% interval | verdict |
+|---|---|---|---|---|---|---|
+| br_sticky_overbettor (2a4fe259a591, 2205) | sticky_overbettor | 84.3% | 88.8% | +4.5 | [+2.7, +6.3] | no |
+| br_loose_passive (ac2389b0e073, 2755) | loose_passive | 92.0% | 96.6% | +4.6 | [+3.3, +5.9] | no |
+| br_never_fold_pre (1f4d70e65b49, 2515) | never_fold_pre | 94.05% | 98.65% | +4.6 | [+3.5, +5.7] | no |
+| br_chipzen (666a436345eb, 400) | chipzen | 67.5% | 79.25% | **+11.8** | [+9.4, +14.1] | **joins V5b** |
+
+* **Rule:** `br_chipzen` joins V5b's teacher set; the other three do not. Each of the three gains about 4.6 points
+  where fb2-900 already wins 84 to 94%, so their room is under 16 points and an hour buys about a third of it.
+* **Described, not decided:** `chipzen` ran 400 iterations in the hour against about 2,200 to 2,750 for the others
+  (its opponent is slower per hand), so its teacher is the least trained and still the largest gain: fb2-900 is
+  furthest from its ceiling there (67.5%).
+* T-a (the M1 specialists on the Ashwing cells and `ext:autodidact`, seed 95) is still reading on cores 18-19.
