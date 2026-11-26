@@ -857,7 +857,8 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   league opponent given a row at play).
 * **Data (AD0's rows stay, pinned by sha256; AD0's fb2-900 `chipzen` rows are dropped; new rows logged by holdem-rl
   `tools/ad0_log.py` the AD0 way: hero's raw observation, label softmax(masked logits) before `AllInAnswer` and
-  search, the legal mask, 10% held out by match id; data seed 111):**
+  search, the legal mask, 10% held out by pair (both seats together) through AD0's `heldout(tag, pair_id)`, as
+  the kept rows are; data seed 111):**
   * D1 league coverage: fb2-900 against all 23 league opponents, 300 matches each (6,900), labels fb2-900. The seven
     `base:` names map to holdem-rl BASELINES (`station`, `maniac`, `nit`, `random`, `reference`, `lag`,
     `station_raiser`). `arch:0` to `arch:5` and the ten `bot:` names (Blueprint, Kimiko, AutodidactInnovations,
@@ -869,7 +870,16 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
     `set_seed(s)`. Parity test, all 23 opponents: on 200 recorded states each, the adapter (and holdem-rl's
     BASELINES class for `base:`) returns the same action and size as the league's own build (`league/run.py`
     `build`, `make_baseline`) at the same seed value (plant: the adapter ignores the seed).
-  * D2 default coverage: 60 generated StyleBots, 100 matches each (6,000), labels fb2-900. Draws from
+  * D2 default coverage: 60 generated StyleBots, 100 matches each (6,000), labels fb2-900. One tree measures every
+    vector (exclusion and generated): holdem-x2r branch `v5b` (it holds `small_ball_b`, `loose_passive` and
+    `style_bots_check.distance`), which owns the `make_opp` changes in `tools/style_map.py`: a `gen:<k>` name built
+    from entry k of `styles.json`, and a `bp100` branch. A generated style is a `StyleBot` subclass with the drawn
+    attributes, built per match as `make_baseline` builds a style, `StyleBot(seed)` from the per-match value
+    (`seed * 13 + seat` in `style_map.sim_one`, `pair_seed * 13 + hero_seat` through `set_seed` in the arena), and it
+    has `set_seed(s)` resetting its RNG so the logging arena reseeds it every match. holdem-rl `v5b-rl` carries the
+    same `gen:<k>` class for logging; a parity test builds one `styles.json` entry in both trees and gets identical
+    actions on 200 recorded states, and two 20-match data runs of a generated style on one seed give identical rows
+    (plant: the per-match seed dropped). Draws from
     `random.Random(110)`, uniform on: `open_p` [0.05, 0.95], `play_p` [0.0, `open_p`], `face_p` [0.0, 0.95],
     `pre_size` [2.0, 6.0], each `bet[i]` [0.0, 1.0] then sorted ascending, `street_bet` each [0.5, 1.5],
     `bet_size` [0.25, 1.5], each `rr[i]` [0.0, 0.6] sorted ascending, each `cont[i]` [0.0, 1.0] sorted ascending
@@ -879,7 +889,9 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
     through the queue, `BPQ_SLICE=V5B BPQ_SEED=3`) and every D4 cell. A drawn style is redrawn while its vector is
     within 0.25 (`style_bots_check.distance`) of any exclusion vector; the 60 accepted styles and their vectors are
     written to `styles.json` (sha256 in the record).
-  * D3 `br_chipzen` against `chipzen`, 1,000 matches, labels `br_chipzen` (seeded `chipzen` from step 0's root).
+  * D3 `br_chipzen` against `chipzen`, 1,000 matches, labels `br_chipzen`. `chipzen` is seeded at data time too:
+    holdem-rl `v5b-rl` adds the same per-match `set_seed` to `tools/ad0_log.py`'s `make_chipzen`; two 20-match D3
+    runs on one seed give identical rows (plant: the seeding removed).
   * D4 held out, never a data opponent of any teacher: `tight_sticky`, `sticky_overbettor`, `small_ball_b`,
     `never_fold_pre`, `raise_station`, `loose_passive`, `ext:ashwing`, `ext:ashwing_hive`, `ext:ashwing_search`,
     `ext:autodidact`, `ext:wolf`. A test fails if any D4 name appears in the data's opponent field.
@@ -897,7 +909,8 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   registered to keep it unused elsewhere).
 * **Judge:** J1 screen exactly B1's (seed 94, its six cells and counts, league pairs 400-499, 78.0% filter), both
   students. Choice: among students that pass the filter, the 256 student unless the 512 student's screen score
-  exceeds it by more than 0.5; if only one passes, that one. J2 confirmation, fresh-seed check and gate exactly
+  exceeds it by more than 0.005 in `b1_read.screen_score`'s unit (a fraction; 0.5 points); if only one passes, that
+  one. Test: passing scores 0.006 apart choose the 512 student, 0.004 apart the 256 student (plant: margin moved). J2 confirmation, fresh-seed check and gate exactly
   V5a's text (seed 95 on every B1 cell against the arms on disk; seed 108 for bp100, `small_ball`, `ext:ashwing` and
   `ext:ashwing_hive` with V5a's bounds; E1 on pairs 200-399; heuristic head to head). League opponents are now
   fitted, so E1 is a fit check and D4 carries the generalisation claim. J3 at confirmation (seed 95; every D4 cell
@@ -923,7 +936,7 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   (plant above); the adapter's parity and pins (plants: seed ignored, a pinned file changed); D2's ranges and the
   0.25 exclusion literal, a planted style placed within 0.25 of `loose_passive` is redrawn (plant: the D4 exclusion
   dropped); no D4 name in the data (plant: `tight_sticky` added to D2's list); F2 shares within 1%; hold-out by
-  match id (plant: by row); the choice rule; the rule table above; every seed, registry line, count, epoch and
+  pair (every pair has both seats on one side; plants: held out by match id, by row); the choice rule; the rule table above; every seed, registry line, count, epoch and
   patience value, the four ext names and the teacher sha256 values literal.
 * **Owners and base:** holdem-rl branch `v5b-rl` from ad0 9b2a1c7 (adapter, generator, logging and fit changes,
   registry lines; `rl/models/v5b.npz` and `rl/bot_v5b.py` only after PASS); holdem-x2r branch `v5b-root` from
@@ -953,7 +966,11 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   (it would hide the 289-name question); T-a teachers (above).
 * **Review record:** plan review 1 REVISE (T-a teachers against held-out cells; StyleBot ranges, measurement and
   exclusion left to the builder; rule branches and J3's screen baseline missing; seeds, seeding table and fitter
-  not named; the adapter's pins and per-match seeding; no tests, owners, writes or budget). Revised above.
+  not named; the adapter's pins and per-match seeding; no tests, owners, writes or budget). Revised above
+  (revision 2). Plan review 2 REVISE (the choice margin's unit; one tree for the style vectors and a per-match seed
+  and parity for generated styles; D3's `chipzen` seeding at data time; hold-out by pair as AD0's kept rows). The
+  review cap of two is reached; each blocker was mechanical with a stated minimum revision, applied first-hand at
+  2026-11-26 00:36 UTC as above and recorded here.
 
 ### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
 
@@ -999,7 +1016,8 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
      `small_ball`, `ext:ashwing` and `tight_sticky` rows (50 matches each) are byte-identical to the 8be6e38 root.
   3. Non-`chipzen` cells keep their 8be6e38 rows; only the `chipzen` cell gets new arms from the new root (fb2-900,
      the V5a student if one is chosen, `br_chipzen`) on V5b's confirmation seed.
-  4. Eval path only: teacher data (`ad0_log` through `holdem.arena.run_arena`) needs no `chipzen` seeding.
+  4. Eval path only: teacher data (`ad0_log` through `holdem.arena.run_arena`) needs no `chipzen` seeding (V5b seeds
+     it at data time anyway, D3, for repeatable rows).
   5. The gate's heuristic head to head is already seeded per match (checked 2026-11-26: `league/run.py` builds each
      candidate and opponent with `pair_seed * 7` or `* 13`, and `league/bot_host.py` constructs the bot with
      `cls(seed=...)` on every new match), so the gate needs no change.
