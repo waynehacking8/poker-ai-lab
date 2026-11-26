@@ -56,7 +56,7 @@ research ("Where we are" at the top). Times here come from `ssh gb10-d 'date -u 
   rl/models/b1.npz (kept at b1-rl 59b1ad3). holdem-league 57a63b8 commits the leaderboard with cand:rl-b1 (rank 4,
   PASS 23/23). Delete ~/b1-build after the AD builds no longer need it (AD0 and AD1 tests link it).
 
-**gb10-d:** cores 0-17 V5b driver; cores 18-19 T-a (ext:autodidact cell). bpopp queue free. GPU idle. Fetcher pid 1838186, the only one.
+**gb10-d:** cores 0-17 V5b driver; cores 18-19 free. **T-a done** (14.45, research cc3e662): br_ashwing +16.0 ashwing, +15.4 search, +8.2 hive; br_autofast +13.4 autodidact; not used by V5b (held-out cells), kept for a later slice. bpopp queue free. GPU idle. Fetcher pid 1838186, the only one.
 
 **Branches not pushed (local only, by rule):** holdem-rl, holdem-x2r, holdem-league, holdem-d2 (`python
 tools/d2_mutate.py --jobs 4` must catch every plant after a change), b1-rl, b1-x2r, b1-league, d0, ad1, ad1-x2r,
