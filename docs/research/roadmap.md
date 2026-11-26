@@ -1354,6 +1354,16 @@ reader and driver)**
   the stated minimum revisions were applied first-hand at 2026-11-26 11:12 UTC: a fixed order GS80, G80, GS50 with
   ties judged against the top score and a four-case test, the G80 branch's inputs by path, a G80 reference column in
   step C, and literal inputs with asserted preconditions for L1(a), L5 and L6.
+* **Build record (steps A to C, `g0b-rl`):** built 72714fd (47 tests, 87 plants). Outcome verifier 1 REFUTED: step C's
+  hand buckets and row wiring (S2 label, hand k-1 for the gate and G80) were unpinned; fixed c3a1ee3 (51 tests, 94
+  plants). Outcome verifier 2 REFUTED: 16 of its 21 mutations of step B and C wiring (S2's threshold, support and
+  expert; the fit's label, actor and class selection; the temperature rows and weights; the any share; the arm
+  thresholds and the size ablation's gate and temperature; G80's features; the support test at exactly 3 trials)
+  passed every test. The implementation was correct at HEAD on each point; the tests did not pin it. Cap reached;
+  fixed first-hand at 2026-11-26 12:48 UTC (4a4a5f1): value tests for each point (two small functions,
+  `gates_from` and `report_of`, carry what `main` did), 60 tests, 115 of 115 plants caught on gb10-d, and every
+  applicable mutation of verifier 2's script caught (the three that no longer apply are covered by plants of the
+  same change). Logging run launched 12:48 UTC from that commit (`~/g0b-run/code`).
 
 ### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
 
