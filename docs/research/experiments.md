@@ -2050,3 +2050,22 @@ base:lag 94.3, base:maniac 87.3, arch:2 87.0, base:random 86.3, arch:5 84.8.
   lowest rates 81.0 to 85.5 and fb2-900's comparison rates confirmed; `~/ad0-run/data.npz` holds exactly the seven
   opponents named above.
 * **Next (roadmap agent):** V5b, specialists plus fb2-900 coverage data with held-out cells (roadmap "V5b").
+
+### 14.43 V5a fit-seed spread: the fit seed alone moves the pooled Ashwing gain by 4 points (2026-11-26; reported only)
+
+Pre-registered in roadmap "V5a" (reported only; `95 V5A read`). W1's 30-epoch fit on AD0's data with fit seeds 2
+(289f6d47…) and 3 (f64f8ce0…) besides seed 1 (14.39's W1, 9bc31660…); each played seed 95 from `~/d0-run/x2r`
+(holdem-x2r v5a fee9b27 `tools/v5a_spread.sh`; bp100 through the queue), cores 0-17, 00:25 to 00:43 UTC. Paired on
+(seed, hero seat) against B1's fb2-900 rows on disk (`logs/b1/confirm/fb2`; bp100 on its first 2,000 keys, which
+are seed 1's keys).
+
+| fit seed | bp100 (2,000) | ext:ashwing (1,000) | ext:ashwing_hive (1,000) | Ashwing pooled |
+|---|---|---|---|---|
+| 1 (14.39) | +19.4 [+16.9, +21.8] | +2.2 [-0.6, +5.0] | +0.0 [-2.3, +2.3] | +1.1 [-0.7, +2.9] |
+| 2 | +18.2 [+15.7, +20.7] | -0.7 [-3.4, +2.0] | -0.4 [-2.8, +2.0] | -0.6 [-2.4, +1.3] |
+| 3 | +16.3 [+13.8, +18.8] | -2.3 [-5.1, +0.5] | -3.6 [-6.2, -1.0] | **-3.0 [-4.9, -1.0]** |
+
+* **Reported, not decided:** the same data, network and epochs give pooled Ashwing gains from +1.1 to -3.0 by fit
+  seed alone; seed 3 would fail V5a's pooled Ashwing bound (-2.0 with the upper bound under zero). bp100 holds
+  (+16.3 to +19.4). A student's Ashwing number is about as much fit noise as the guard's width, so a single fit is
+  a draw, not the method's value; how V5b chooses among students is for the roadmap agent.
