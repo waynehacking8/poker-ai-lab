@@ -1231,7 +1231,9 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
 
 12. Table: per opponent, actor, threshold and hand bucket (1 to 10, 11 to 20, 21 to 40, over 40), the share of hands
    routed to each expert (w_k > 0) and to any. Ablations in the same table, no line attached: without the six size
-   terms; without the support test.
+   terms; without the support test. Reference column in the same table: G80's offline routing (G0's classifier and
+   weights from `~/g0-run/students/g80.npz`, features from the logged `st` after hand k-1, as in S2) on every
+   evaluation cell under both actors.
 13. Line S1: `sticky_overbettor`, G50-actor rows: routed to any expert on at most 10% of hands in every bucket, at
    both thresholds.
 14. Line S2: true bp100 and `small_ball`, test pairs, hands 11 and later, each actor, per bucket (11 to 20, 21 to 40,
@@ -1267,13 +1269,21 @@ reader and driver)**
 19. Screen, per arm (G80, GS50, GS80): B1's screen (seed 94, six cells, league pairs 400 to 499, 78.0% filter) plus
    the ten validation styles, 200 matches each on seed 116, paired against a new fb2-900 arm on the same seed.
    Eligible: passes the filter, pooled validation gain lower bound above -2.0, no validation style gain under -5.0.
-   Chosen: highest B1 screen score among the eligible; ties within 0.005 go to the higher threshold. None eligible:
-   stop, return.
-20. Read, chosen arm: seed 95 on every B1 and D4 cell at V5b's counts against fb2-900's arms on disk, as G0 (if G80
-   is chosen, its post hoc read is the read); the ten test styles, 300 matches each on seed 117, against a new
-   fb2-900 arm; `sticky_overbettor` 2,000 on seed 113 against G0's fresh fb2-900 arm; `chipzen` 2,000 against G0's
-   chipzen-line fb2-900 arm; departure by hand bucket from the arm's own play on every cell (200 matches, seed 95).
-   Flag: the own-play departure on `sticky_overbettor` rising more than 10 points over step C's figure in any bucket.
+   Chosen: let S be the highest B1 screen score among the eligible; the tie set is every eligible arm with score at
+   least S - 0.005 (ties are judged against the top score only, never pairwise); the chosen arm is the first of the
+   tie set in the fixed order GS80, G80, GS50. None eligible: stop, return. Test: synthetic scores give exactly one
+   arm for G80 and GS80 0.003 apart (GS80), GS50 0.004 above GS80 which is 0.004 above G80 (tie set GS50 and GS80:
+   GS80), all three equal (GS80), GS50 0.006 above both others (GS50) (plants: the order removed, ties resolved
+   pairwise).
+20. Read, chosen arm: seed 95 on every B1 and D4 cell at V5b's counts against fb2-900's arms on disk, as G0; the ten
+   test styles, 300 matches each on seed 117, against a new fb2-900 arm; `sticky_overbettor` 2,000 on seed 113
+   against G0's fresh fb2-900 arm; `chipzen` 2,000 against G0's chipzen-line fb2-900 arm; departure by hand bucket
+   from the arm's own play on every cell (200 matches, seed 95). If G80 is chosen, P0 supplies the seed 95 cells,
+   `chipzen` and seed 113 (`~/poker-ai-lab-x2r/logs/g0/posthoc_g80/{confirm,fresh}`) and departure on
+   `sticky_overbettor`, `small_ball`, `chipzen` and `small_ball_b` (`posthoc_g80/depart`); step 20 still runs the
+   ten test styles with their fb2-900 arm and departure on the other ten cells (`~/poker-ai-lab-x2r/logs/g0b/read/g80`).
+   Flag: the arm's own-play departure on `sticky_overbettor` rising more than 10 points in any bucket over its own
+   step C figure on G50-actor rows (GS50 or GS80: GS routing at its threshold; G80: the reference column).
 21. Rule, first match in order:
    1. GUARD FAIL: a D4 cell under -2.0 with upper bound under zero; or the pooled test styles under -2.0 with upper
       bound under zero; or a test style under -5.0 with upper bound under zero; or `sticky_overbettor` on seed 113
@@ -1283,9 +1293,9 @@ reader and driver)**
    3. PASS. Fresh outcome verifier, then the roadmap agent writes the candidate slice.
    `chipzen` is reported against its +5.10 line and does not decide.
 
-* **Tests (each failing on its plant; plant runner committed with them):** L1 logger parity: (a) on 200 logged decision states the logger's
-  G50 action probabilities equal `g0-root` `Policy.probs` from the same file within 1e-12 (plant: posterior in
-  float32); (b) the G50 actor plays 50 matches of `small_ball` byte-identical in match results to
+* **Tests (each failing on its plant; plant runner committed with them):** L1 logger parity: (a) on 200 logged decision states, chosen to
+  include at least 20 with some 0 < w_k < 1 under G50 (the test asserts this precondition), the logger's G50 action
+  probabilities equal `g0-root` `Policy.probs` from the same file within 1e-12 (plant: posterior in float32); (b) the G50 actor plays 50 matches of `small_ball` byte-identical in match results to
   `rl.eval_arena --model g50.npz` from `~/d0-run/x2r-g0` on the same seed, and fb2-900 likewise against
   `~/d0-run/x2r` (plant: a logging hook that consumes a random draw). L2 replay, on a 20-match smoke: every logged
   hand's list starts with `post_small_blind` and `post_big_blind`, and `Tracker.update` over the list reproduces the
@@ -1295,11 +1305,18 @@ reader and driver)**
   a raise over a bet, an all-in, a check-call street), the fraction and bucket match (plants: pot without the
   current street, level not subtracted, all-in not sized). L4 the fitter refuses D4 names (plant: `tight_sticky`
   among the fitting cells). L5 the Beta-binomial log-likelihood and tail against direct summation on small n
-  (plants: tail one-sided, min trials 1, alpha 0.05). L6 cross-tree parity: the step A per-hand log of 20 matches
-  is replayed message by message (`on_match_start`, `on_round_start`, `on_round_result`, and a decision state at each
-  logged decision) into a `g0b-root` `RLBot` with a GS file; at every decision its GS weights equal the fitter's,
-  computed from the same log, within 1e-9 (plants: the size record updated in `decide` from the current hand, the
-  support test skipped in the runtime). L7 neutrality: a GS file forced to population
+  (plant: tail one-sided, caught on a case whose two tails differ); and the support test on literal cases: a term
+  at 2 trials whose tail is under 0.01 does not reject (plant: min trials 1); a term at 10 trials whose tail lies
+  between 0.01 and 0.05 does not reject (plant: alpha 0.05); a term at 10 trials with tail under 0.01 rejects. The
+  test asserts each case's tail lies in its stated range before asserting the decision. L6 cross-tree parity: the step A per-hand logs of 20 G50-actor
+  matches each of `sticky_overbettor` and `small_ball` are replayed message by message (`on_match_start`,
+  `on_round_start`, `on_round_result`, and a decision state at each logged decision) into a `g0b-root` `RLBot` with
+  the GS50 file; at every decision its six size counts, summed log-likelihood per class, posterior and GS weights
+  equal the fitter's, computed from the same log, within 1e-9 (plants: the size record updated in `decide` from the
+  current hand, caught by the size counts; the support test skipped in the runtime, caught by the weights). The test
+  asserts at least one decision with posterior_k > t and a support rejection; if the GS50 file gives none on these
+  logs, the same replay runs with a test-fixture GS file at `gs_alpha` 0.5 (never a play arm), and the precondition
+  is asserted there. L7 neutrality: a GS file forced to population
   gives, on 200 logged decision states, action probabilities equal to fb2-900's exactly (plant: 1e-6 on an expert
   weight), and plays 50 matches of `small_ball`, `ext:ashwing` and `tight_sticky` byte-identical to fb2-900 from
   `~/d0-run/x2r` (plant: the gate consumes a random draw). L8 the style draw: reads `~/g0b-run/styles_g0b.json` and `excl.json`; twenty styles,
@@ -1331,6 +1348,12 @@ reader and driver)**
   literal exclusion set; (6) the GS runtime interface was undefined. Revised: P0 names the script, cells and writes;
   S2 reads G80's classifier offline on the same hands; the plants pair with exact-probability, blind-start and
   last-action assertions; the split, the styles file, `gen2:` and `excl.json`, and `RLBot`'s gate call are literal.
+  Plan review 2 REVISE: (1) the choice could return two arms (G80 and GS80 share t = 0.80) and the G80 branch of the
+  read and its flag had undefined inputs; (2) four plants (float32 posterior, support skipped, size update in
+  `decide`, min trials and alpha) were not guaranteed to fire on the stated inputs. The review cap of two is reached;
+  the stated minimum revisions were applied first-hand at 2026-11-26 11:12 UTC: a fixed order GS80, G80, GS50 with
+  ties judged against the top score and a four-case test, the G80 branch's inputs by path, a G80 reference column in
+  step C, and literal inputs with asserted preconditions for L1(a), L5 and L6.
 
 ### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
 
