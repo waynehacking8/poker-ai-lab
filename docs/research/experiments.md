@@ -2016,3 +2016,30 @@ fb2-900, paired on (seed, hero seat), in match-win points.
   the logs; the box runner and reader equal tt 3682d23 byte for byte; a 20-match rerun of the sticky_overbettor
   teacher matched all 20 rows.
 * T-a (the M1 specialists on the Ashwing cells and `ext:autodidact`, seed 95) is still reading on cores 18-19.
+
+### 14.42 V5a: both distilled students fail the league screen on the aggressive heuristics; chosen none (2026-11-26)
+
+Pre-registered in roadmap "V5a" (judge W1 with no PPO; B1's screen and 78.0% league filter). Runner holdem-x2r `v5a`
+de7c4f7 `tools/v5a_judge.sh` from `~/v5a-run/code`, arena cells from `~/d0-run/x2r` on cores 0-17, 00:12 to 00:19 UTC.
+Candidates `w1` (30 epochs, 9bc31660…) and `w1_a1` (converged refit, 3c375498…), both sha256-checked. Screen seed 94;
+league `league_fresh.py` pairs 400-499 (4,600 matches each, 0 illegal, 0 exceptions).
+
+| candidate | screen score | bp100 | tight_sticky | sticky_overbettor | small_ball_b | never_fold_pre | loose_passive | league lowest |
+|---|---|---|---|---|---|---|---|---|
+| w1 | 77.33 | 77.8 | 92.0 | 56.2 | 78.6 | 93.8 | 92.4 | **64.5** (base:lag) |
+| w1_a1 | 77.09 | 76.7 | 91.2 | 60.4 | 81.6 | 91.6 | 92.4 | **74.5** (base:lag) |
+
+League opponents under 80%: w1 base:lag 64.5, base:maniac 70.0, arch:2 76.0, base:random 78.5, arch:5 79.0 (18 of 23
+at 80% or more); w1_a1 base:lag 74.5, base:maniac 77.5 (21 of 23). For comparison, B1's seven PPO checkpoints on the
+same pairs all held 81% or more (lowest 81.0 to 85.5), and fb2-900 on pairs 200-399 (`out/verify-fb2-900`) plays
+base:lag 94.3, base:maniac 87.3, arch:2 87.0, base:random 86.3, arch:5 84.8.
+
+* **Rule:** neither candidate passes the 78.0% filter, so `choose` writes chosen none and V5a ends with this
+  finding (confirm exited 5 before any cell; nothing was confirmed, gated or carded). The fail goes to the roadmap
+  agent.
+* **Described, not decided:** the students lose most where fb2-900 is strongest and where AD0's data never went.
+  AD0's data (roadmap AD0) played only bp100, `small_ball`, `chipzen`, three Ashwing-family bots and `ext:autodidact_fast`; it holds no
+  hyper-aggressive heuristic (`lag`, `maniac`) and no `arch:` opponent. Against base:lag W1 drops 30 points from
+  its teacher. The converged refit (A1) recovers 10 of them, so part is fit quality and part is coverage. Not
+  tested: whether adding those opponents to the data closes the gap.
+* Fit-seed spread (reported only) launched after the screen on cores 0-17, 00:26 UTC.
