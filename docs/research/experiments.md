@@ -2148,7 +2148,8 @@ on gb10-d, 2026-11-26 02:10 to 06:39 UTC, every step rc 0: vectors 50 min, draw 
 * Headline +10.57 [+9.33, +11.81]. Guard: one failure, the D4 cell sticky_overbettor (gain under -2.0 with the
   upper bound under 0). **Verdict: branch 2, DEFAULT FAIL.** The E1 gate was not run (not needed past branch 2).
 * **Fresh seed 108 (reported, past the deciding branch):** bp100 +13.8 [+11.4, +16.2] holds, pooled Ashwing holds
-  (ashwing +0.6, hive +0.8), small_ball +7.4 [+5.5, +9.4] does not hold, so branch 4 would also have failed.
+  (ashwing +0.6, hive +0.8), small_ball +7.4 [+5.5, +9.4] does not hold (lower bound under +6.5), so branch 4
+  would also have failed.
 * **J3:** no D4 cell under -5.0 (lowest sticky_overbettor -4.2). **Price of coverage:** bp100 lower bound +13.7
   over its +10.0 line; small_ball +5.3 under its +11.0 line (recorded).
 * **Members (item 6, seed 95):** ensemble bp100 +16.4, pooled Ashwing -1.5; members +16.8/+16.6/+16.9 and
@@ -2157,3 +2158,4 @@ on gb10-d, 2026-11-26 02:10 to 06:39 UTC, every step rc 0: vectors 50 min, draw 
 * **Described, not decided:** coverage kept bp100 near AD0's level (+15.5 vs the AD0 ensemble's +17.8, 14.44) and moved every held-out
   real-bot cell to within about 3 points of level, none clearly up; the one clear loss is the held-out rule bot
   sticky_overbettor. small_ball gains +7.3, under its price line.
+* **Outcome verifier CONFIRMED:** own pairing script, no repo reader. Same gains, headline and single guard failure, and complete pairing on seeds 95 and 108. The box code equals v5b bedc22e. The e256 and e512 pins match. A 40-match replay reproduces the confirm and fresh rows from e256 (40 of 40; e512 15 and 11 of 40). The data's 90 opponent names hold no D4 cell, and the chipzen rows are all new (src 2).
