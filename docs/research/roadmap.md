@@ -4,7 +4,7 @@ Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The 
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
-## Where we are (2026-11-26 00:14 UTC)
+## Where we are (2026-11-26 06:47 UTC)
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
 win probability against it, and a safety blend. Revision 2's lookahead work (14.17 to 14.24) showed the
@@ -38,9 +38,14 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    wins 67.5%) and joins V5b; teachers for `sticky_overbettor`, `loose_passive` and `never_fold_pre` gain about 4.6
    where fb2-900 already wins 84 to 94% and do not.
 
-Next: **V5b** (spec below): specialists plus fb2-900 coverage data, held-out cells for the default. **V5a** ended
-chosen none (14.42). **TT** T-a reads still running; then V5b's teacher set is fb2-900, T1, C1 plus `br_chipzen` and any T-a
-teacher over +8.0.
+9. **V5b, specialists plus coverage in one student, DEFAULT FAIL** (14.46): headline +10.57, bp100 +15.5, ten of
+   eleven held-out cells inside the guard, but `sticky_overbettor` -4.2 [-6.1, -2.4] and `small_ball` only +7.3. A
+   pooled cross-entropy student plays the row-weighted average of its teachers before it knows the opponent.
+   Ensembling three fits adds nothing. T-a (14.45): `br_ashwing` +16.0 and +15.4, `br_autofast` +13.4, kept for later.
+
+Next: **G0** (spec below): fb2-900 as the explicit default, a classifier posterior on the Tracker counts, and a move
+to that opponent's teacher only when the posterior is high; a measurement of the design's ceiling before any
+distillation.
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 
@@ -999,6 +1004,113 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   and parity for generated styles; D3's `chipzen` seeding at data time; hold-out by pair as AD0's kept rows). The
   review cap of two is reached; each blocker was mechanical with a stated minimum revision, applied first-hand at
   2026-11-26 00:36 UTC as above and recorded here.
+
+### G0. The gated mixture: fb2-900 until the counts say who this is, then that opponent's teacher (spec, 2026-11-26; tier 2, a measurement; the roadmap agent's decision after 14.46)
+
+* **Question:** with an explicit posterior over four opponent classes and fb2-900 as the default, does play keep the
+  specialists' gains without V5b's misfire (`sticky_overbettor` -4.2 [-6.1, -2.4], 14.46)?
+* **Why:** a student fitted by cross-entropy on pooled rows plays, before it knows the opponent, the row-weighted
+  average of its teachers; an average of best responses is not an answer to an unknown opponent, and coverage rows
+  that pull it back toward fb2-900 cost the specialists (V5b: `small_ball` +7.3 against AD0's +19.8). fb2-900 is
+  PPO's answer to an unknown opponent, so the rule is stated explicitly: default fb2-900, move to a teacher only when
+  the posterior is high. G0 has no fit loss beyond a small classifier, so it gives this design's ceiling and
+  separates "wrong rule" from "the student could not learn it", which V5b could not.
+* **Nature (state it on any card Wayne later sees):** G0 switches between fixed networks on a classifier's posterior.
+  It is a measurement, not a bot candidate: no E1 gate, no head to head, nothing reaches the deployed bot. If it
+  passes, the next slice distils G0 into one network from G0's own play (spec written from G0's numbers).
+* **Classes and teachers (literal; sha256 pinned in full in the runner, as V5b):** bp100 -> T1
+  `ckpt/br_bp100/latest.npz` (5eb525fb...), `small_ball` -> C1 `~/poker-ai-lab-x2r/ckpt/br_small_ball/latest.npz`
+  (97f051f3...), `chipzen` -> `br_chipzen` `ckpt/br_chipzen/latest.npz` (666a436345eb...), other -> fb2-900
+  `rl/models/fb2_it000900.npz` (f7a29a39...). T-a's teachers (`br_ashwing`, `br_autofast`) are not used; their cells
+  stay held out.
+* **Classifier (holdem-rl branch `g0-rl` from v5b-rl 377ec9f, `tools/g0_clf.py`):**
+  1. Input: the nine observation features `[46, 47, 48, 49, 50, 51, 54, 55, 52]` of `rl/features.py` `build` (the
+     eight Tracker rates and the hand count `f52`), from the unseeded Tracker; nothing else.
+  2. Model: one hidden layer of 32 tanh units, softmax over the four classes (bp100, `small_ball`, `chipzen`,
+     other). Chosen over a linear model because the posterior must sharpen with the hand count, an interaction a
+     linear model cannot express. Fit with Adam (learning rate 1e-3, batch 4,096), cross-entropy, fit seed 1, at
+     most 200 epochs, patience 10 on the held-out loss, best epoch kept; class shares as they fall in the rows (no
+     reweighting: the large "other" share makes the classifier conservative, which is the side a misfire costs).
+  3. Rows: every row of V5b's `~/v5b-run/data.npz` (sha256 18f88b37..., pinned in full; its opponent field gives
+     the class: bp100, `small_ball`, `chipzen`; every league, generated and AD0 ext name is other) plus new rows
+     with fb2-900 as actor against bp100, `small_ball` and `chipzen`, 1,000 matches each, through holdem-rl
+     `tools/ad0_log.py`'s logging path (unseeded opponents; `chipzen` reseeded per match as V5b's D3; bp100 through
+     the queue, `BPQ_SLICE=G0`), data seed 112. Reason for the new rows: counts depend on the hero's play, so each
+     specialist class must be seen under both its teacher and the default as actor, or the classifier can learn "the
+     hero is T1" instead of "the opponent is bp100". `chipzen` is added to the roadmap agent's two cells by the same
+     reason (V5b dropped AD0's fb2-900 `chipzen` rows).
+  4. Hold-out by pair, as V5b: V5b's `held` flag for its rows, `heldout(tag, pair_id)` for the new ones.
+  5. Reported before play: held-out accuracy by hand-index bucket (1 to 10, 11 to 20, 21 to 40, over 40) and
+     calibration (10 equal-width confidence bins, expected calibration error) per class.
+  6. A test fails if any D4 name is in the classifier's rows (plant: `tight_sticky` rows added as other).
+* **Policy (holdem-x2r branch `g0-root` from v5b-root a4ec310, `rl/runtime.py` `Policy` learns a G0 file, as it learned
+  the ensemble file):** at each decision, p = the classifier's posterior on the current observation. For each
+  specialist class c, w_c = clip((p_c - t) / 0.15, 0, 1); if the w_c sum above 1 they are scaled to sum to 1. The
+  policy is sum_c w_c * teacher_c's masked probabilities + (1 - sum_c w_c) * fb2-900's masked probabilities (each
+  softmax of that network's masked logits at temperature 1.0), and the action is one draw from it by the bot's
+  existing rule (`Policy.act`, one `rng.choice`), with the all-in answer and everything else in `RLBot` unchanged.
+  Two arms, fixed now: G80 (t = 0.80) and G50 (t = 0.50), each one file holding the four teachers' arrays, the
+  classifier and t, with every component's sha256 and the file's pinned in the runner.
+  Tests first: (a) on 200 fixed states the G0 probabilities equal the formula computed from the five networks
+  separately within 1e-9 (plants: weights not renormalised, ramp 0.10, threshold applied to the wrong class); (b)
+  neutrality: a G0 file whose classifier is forced to "other" plays 50 matches each of `small_ball`,
+  `ext:ashwing` and `tight_sticky` byte-identical to fb2-900's rows from `~/d0-run/x2r` on the same seed (plant: a
+  constant 1e-6 added to a specialist weight); (c) the literals 0.80, 0.50, 0.15 and the feature list.
+* **Misfire table (reported before play, never used to tune or choose):** on 14.37's logs
+  (`~/poker-ai-lab-rl/logs/ad1r/play/*.jsonl`, fb2-900 against 14 opponents, 200 matches each, seed 102, raw
+  Tracker counts after every finished hand), the features of hand k come from the counts after hand k-1 (zero
+  counts at hand 1) through `build`'s formulas; for each arm and opponent, the share of hands on which the arm leaves
+  the default (sum_c w_c > 0), and the share on which it moves to each specialist. For the D4 cells this is the
+  direct measure of misfire; for bp100, `small_ball` and `chipzen` it is identification by hand bucket.
+* **Seeds (registered as `N G0 read`; the runner copies the registry to `~/g0-run/seed_registry.pre-g0` first):** 94
+  (screen), 95 (read), 112 (classifier rows), 113 (fresh `sticky_overbettor`).
+* **Judge (holdem-x2r branch `g0` from v5b bedc22e; V5b's judge and reader adapted; every G0 cell runs from
+  `~/d0-run/x2r-g0`, an archive of `g0-root`; the league screen from `~/poker-ai-lab-league/candidates/g0-src`):**
+  1. Screen: B1's screen (seed 94, its six cells and counts, league pairs 400 to 499, 78.0% filter), both arms.
+     Chosen: the higher `b1_read.screen_score` among arms that pass the filter; G80 when the difference is 0.005 or
+     less (a fraction, as V5b); if only one passes, that one. Test: passing scores 0.006 apart in G50's favour choose
+     G50, 0.004 apart G80 (plant: margin moved).
+  2. Read, chosen arm only, seed 95: every B1 confirmation cell and all eleven D4 cells at V5b's counts, paired
+     against fb2-900's arms on disk (V5b's `confirm/fb2_wolf` for `ext:wolf`); `chipzen` 1,000 from `~/d0-run/x2r-g0`
+     against V5b's fb2-900 `chipzen` rows on seed 95 (`~/poker-ai-lab-x2r/logs/v5b/chipzen/fb2/chipzen.jsonl`, played from `~/d0-run/x2r-v5b`, the same seeded opponent code).
+  3. Fresh: `sticky_overbettor` 2,000 on seed 113, the chosen arm and a new fb2-900 arm from `~/d0-run/x2r`.
+  4. Reported only: decision time per move; the departure share by hand bucket against each cell on 200 logged
+     matches of the chosen arm (seed 95, the first 200); every D4 cell's gain (J3 flag under -5.0 kept).
+* **Rule (first match, in order; each branch stops the slice and writes its verdict):**
+  1. FILTER FAIL: no arm passes the 78.0% filter.
+  2. GUARD FAIL: a D4 cell fails B1's guard on seed 95 (gain under -2.0 with upper bound under zero), or the fresh
+     `sticky_overbettor` gain has its lower bound at or under -2.0. Read the misfire table for that cell: if the arm
+     leaves the default on more than 10% of its hands, the classifier is the fault (its inputs or negatives are the
+     next step); if 10% or less, the loss comes from play after a correct identification of a near neighbour and
+     returns to the roadmap agent.
+  3. RULE FAIL: the rest of B1's rule on seed 95 fails (headline lower bound not above zero, or a non-D4 guard).
+  4. GAINS SHORT: guards hold but a lower bound misses bp100 +10.0, `small_ball` +11.0 or `chipzen` +5.9 (half of
+     each teacher's gain). Report that cell's departure share by hand bucket and its paired gain split by match
+     length (under 20 hands, 20 or more); the next step is earlier identification (AD1's name seeding is ready),
+     not more teachers.
+  5. PASS: all of the above hold. Fresh outcome verifier, then the roadmap agent writes the distillation slice.
+  A reader test on synthetic results gives exactly one verdict for every combination; plants dropping the D4 guard,
+  the fresh check or one of the three bounds each turn a pass into a fail.
+* **Tests (each failing on its plant; plant runner committed with them):** the classifier's input list, no D4 rows,
+  hold-out by pair; the policy tests (a) to (c); teacher and data pins (plant: one byte changed); the choice rule;
+  the rule table; every seed, registry line, count and literal above.
+* **Owners and base:** holdem-rl `g0-rl` from v5b-rl 377ec9f (new rows, classifier, misfire table); holdem-x2r
+  `g0-root` from v5b-root a4ec310 (G0 file and loader) and `g0` from v5b bedc22e (judge, reader, driver). Non-goals:
+  no network trained beyond the classifier, no PPO, no change to the deployed bot, no upload, no E1.
+* **Writes, each with its rollback:** commits on the three local branches (revert); gb10-d `~/g0-run/` (rows,
+  classifier, G0 files, logs), `~/d0-run/x2r-g0/`, `~/poker-ai-lab-x2r/logs/g0/`, `~/poker-ai-lab-league/candidates/g0-src`
+  and `out/g0/` (delete); registry lines `94`, `95`, `112`, `113 G0 read` (restore the copy). `~/bpq.lock`: leave.
+* **Budget (each phase stops and is recorded at twice its number):** new rows about 15 minutes (replaced by a
+  20-match smoke on the logging path), classifier about 5 minutes, misfire table about 1, screens about 25 for both
+  arms, read about 90, fresh about 10. About 2.5 box-hours on cores 0-17.
+* **Held-out design (the roadmap agent, recorded before G0's read):** D4 stays exactly as V5b's for G0. When
+  `br_ashwing` and `br_autofast` later join, `ext:ashwing`, `ext:ashwing_search` and `ext:autodidact` become fitted
+  cells; `ext:ashwing_hive` and `ext:wolf` stay held out as the real-code cells, with all six style cells. The guard
+  line stays at -2.0 and the -5.0 flag stays reported.
+* **Housekeeping (not gating G0):** V5b's registry lines, data, e256 and e512 (with hashes) stay on gb10-d as
+  comparison arms, not in the trunks' models. To the trunks: the `ad0_log` extensions, generated styles with
+  per-match seeding, `chipzen` seeding and hold-out by pair (v5b-rl squashed first); the ensemble loader is not
+  merged (14.46: ensembling adds nothing; dropped from future specs). T-a and T-b teachers stay on disk with hashes.
 
 ### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
 
