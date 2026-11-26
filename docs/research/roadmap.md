@@ -4,7 +4,7 @@ Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The 
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
-## Where we are (2026-11-26 10:56 UTC)
+## Where we are (2026-11-26 14:40 UTC)
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
 win probability against it, and a safety blend. Revision 2's lookahead work (14.17 to 14.24) showed the
@@ -47,6 +47,9 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    held-out cell within 1 point of level, but `sticky_overbettor` -5.9 [-7.2, -4.6] (fresh -6.4) and `chipzen` +2.6
    under its +5.10 line. The gate works on the opponents it names; it fails open-set: a closed four-way softmax routes
    an unseen bot to the expert it looks like, with rising confidence (92% off the default past hand 40).
+11. **G0b steps A to C: S1 and S2 PASS** (14.49): with the six bet-size terms the gate routes `sticky_overbettor`
+   at most 4.8% (GS50) and 0% (GS80), against G80's 65% past hand 40, and GS80 routes 91 to 100% of true bp100 and
+   `small_ball` hands from hand 11. Step D (play, read) launched 14:38 UTC.
 
 Next: **G0b** (spec below): opponent bet sizes, a population class and a support test, so the gate can stay on fb2-900 for an opponent it was not built for; G80 read post hoc as the reference arm.
 

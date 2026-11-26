@@ -2240,3 +2240,37 @@ recompute of the raw rows (paired on (seed, hero seat), n-1 variance, the 14.47 
   points on bp100 and `small_ball` against G50 (14.47) and holds the guard. The drift of 14.47 is present at t = 0.80
   as well (4% offline, 44% past hand 40 in its own play): the gate's own expert moves the counts it reads. G0b reads
   every gate figure on rows from both actors for this reason. G80 is the reference arm of G0b's steps 19 and 20.
+
+### 14.49 G0b steps A to C: the size terms separate the open set; S1 and S2 PASS (2026-11-26)
+
+Run on gb10-d 12:48 to 14:36 UTC from holdem-rl `g0b-rl` (4a4a5f1, stopped twice and resumed at b9031b1 and e87a5f5;
+roadmap G0b build record), `~/g0b-run`: 13,600 fitting matches (6,824 fit, 3,352 cal, 3,424 test by match label) and
+2,200 evaluation matches per actor (fb2-900 and G50), seed 114. Gate GS fitted on the fit pairs: T 0.5, the size
+ablation's T 0.6. Output `~/g0b-run/stepc.json`, table `~/g0b-run/logs/stepc.out`. Offline only: nothing here plays.
+
+**S1 PASS** (`sticky_overbettor`, G50-actor rows, share of hands routed to any expert by hand bucket 1-10, 11-20,
+21-40, over 40; line at most 10% in every bucket):
+
+| arm | 1-10 | 11-20 | 21-40 | over 40 |
+|---|---|---|---|---|
+| GS50 | 4.8% | 3.7% | 0.1% | 0.0% |
+| GS80 | 0.0% | 0.0% | 0.0% | 0.0% |
+| GS50 without the size terms | 11.4% | 41.7% | 34.9% | 10.2% |
+| G80 (reference, same rows) | 0.2% | 4.7% | 26.7% | 65.3% |
+
+**S2 PASS** (true bp100 and `small_ball`, test pairs, hands 11 and later, share routed to the cell's own expert by
+GS80, line at least 0.8 of G80's share): bp100 93.2 to 97.3% (G80 37.0 to 93.4%); `small_ball` 91.2 to 100% (G80
+27.6 to 92.9%). The closest cell is `small_ball`, G50 actor, over 40: GS80 91.9% against a need of 74.3%.
+
+* **What carries it:** the six size terms. Without them the gate sends `sticky_overbettor` and `small_ball_b` to the
+  `small_ball` expert on up to 49% and 35% of hands (as G0 did, 14.47); with them both are at most 4.9% under GS50
+  and 0% under GS80. The support test changes almost nothing at these thresholds (every `nosupport` column within
+  0.5 points of the full gate): it is inert here, not harmful.
+* **Item 15 (reported, no stop):** four misses, all GS50 in hands 1 to 10, all to the bp100 expert:
+  `ext:ashwing_hive` 17.7% (fb2 actor) and 19.0% (G50), `ext:autodidact` 12.4% and 12.3%. GS80 routes them 3.4%
+  and 2.9%. Every other D4 cell is at most 8.4% under GS50 and 0.7% under GS80. Named again in step 20's read.
+* **Own-play drift check:** the two actors agree within a few points in every GS cell (e.g. `sticky_overbettor` GS50
+  4.7% and 4.8% in 1-10), unlike G80, whose G50-actor rows reach 65% past hand 40 against 32% on fb2-900's.
+  Step 20 measures drift in each arm's own play.
+* **Described, not decided:** GS80 routes known opponents better than G80 and leaves the unknown ones alone, offline.
+  Whether that turns into match wins without a guard failure is step D's question (launched 14:38 UTC).
