@@ -866,6 +866,23 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   `logs/`, `~/poker-ai-lab-x2r/logs/tt/`, registry lines `95 TT read` (T-a, named baseline B1's fb2-900 rows) and
   `109 TT read` (T-b, both arms fresh); delete to roll back.
 
+* **T-b read (14.41, verifier CONFIRMED):** `br_chipzen` joins V5b (+11.8 [+9.4, +14.1]; the unpaired lower bound
+  +9.03 is the recorded basis, T-b is not rerun); the other three do not.
+* **V5b inputs (roadmap agent after 14.41):** the `chipzen` opponent in `rl/eval_arena.py` is unseeded
+  (`HoldemBot(seed=None)`, no `set_seed`), so its rows do not repeat. V5b's spec seeds it before V5b is built:
+  1. `make_chipzen()` gets a `set_seed` that reseeds from the match seed, through the derivation the other seeded
+     opponents use (`holdem/arena.py`: `opp.set_seed(pair_seed * 13 + hero_seat)`).
+  2. Tests first: two 50-match `chipzen` runs on one seed give identical rows; removing the seeding fails that test;
+     `small_ball`, `ext:ashwing` and `tight_sticky` rows (50 matches each) are byte-identical to the 8be6e38 root.
+  3. Non-`chipzen` cells keep their 8be6e38 rows; only the `chipzen` cell gets new arms from the new root (fb2-900,
+     the V5a student if one is chosen, `br_chipzen`) on V5b's confirmation seed.
+  4. Eval path only: teacher data (`ad0_log` through `holdem.arena.run_arena`) needs no `chipzen` seeding.
+  5. The gate's heuristic head to head is already seeded per match (checked 2026-11-26: `league/run.py` builds each
+     candidate and opponent with `pair_seed * 7` or `* 13`, and `league/bot_host.py` constructs the bot with
+     `cls(seed=...)` on every new match), so the gate needs no change.
+  6. `br_chipzen` reached +11.8 in 400 iterations; it is not extended now. A longer run follows only if V5b's student
+     keeps most of the gain.
+
 ### C0. Is fb2-900 a peak on the Ashwing families? (spec, 2026-11-25; tier 1, the roadmap agent's recommendation after 14.38)
 
 * **Question:** do fb2's own neighbouring checkpoints lose to the Ashwing families as B1 and D0 did? If so, fb2-900 is
