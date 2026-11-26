@@ -2091,3 +2091,28 @@ from `~/d0-run/x2r-v5b` (holdem-x2r v5b-root e4808d6; runner v5b 952d9cd `ad0-en
   members' mean: it removes the luck of a single draw, it does not add strength.
 * Check: an independent reader (my own pairing script, no import of `v5b_read.py`) gives the same three gains and
   intervals; every row pairs (no missing key).
+
+### 14.45 TT, T-a: the M1 specialists clear +8.0 on three of four cells; not used by V5b (2026-11-26)
+
+Pre-registered in roadmap "TT" (T-a part, line +8.0 on the 95% lower bound). The M1 specialists of 14.12 on disk,
+`~/poker-ai-lab-rl/ckpt/br_ashwing/latest.npz` (b247feb2e7c1…) and `br_autofast/latest.npz` (08575045b559…), 1,000
+matches per cell on seed 95 from `~/d0-run/x2r`, 2 workers on cores 18-19, 2026-11-25 23:01 to 2026-11-26 02:39 UTC
+(`ext:autodidact` alone 10,977 s); paired on (seed, hero seat) with B1's fb2-900 rows on disk; reader holdem-rl tt
+3682d23 `tools/tt_read.py --part a` (rc 0).
+
+| teacher | cell | gain | 95% interval | verdict |
+|---|---|---|---|---|
+| br_ashwing | ext:ashwing | +16.0 | [+13.1, +18.9] | over the line |
+| br_ashwing | ext:ashwing_search | +15.4 | [+12.6, +18.2] | over the line |
+| br_ashwing | ext:ashwing_hive | +8.2 | [+5.7, +10.7] | no |
+| br_autofast | ext:autodidact | +13.4 | [+10.7, +16.1] | over the line |
+
+* **Rule as amended by V5b:** the line is met on three cells, but V5b does not use T-a's teachers: every T-a cell is
+  one of V5b's held-out D4 cells (roadmap V5b, Teachers; decided before this read). The teachers stay on disk for a
+  later slice; that choice is the roadmap agent's.
+* **Described, not decided:** the Ashwing specialist gains about 16 points on two Ashwing profiles where fb2-900
+  holds roughly level (14.40), so the room on those families is large; on `ext:ashwing_hive` it gains half that.
+* **Run note:** `tools/tt_run.sh` was replaced on the box at 23:03 (the 3682d23 training fix) while mode `a` ran
+  from 23:01. Bash had parsed the whole `case` before running it, so all four cells ran the original code to the
+  full count (1,000 rows each); reading the changed file after `esac` gave a syntax error and `a.rc` 2. The read
+  (`read_a.rc` 0) is unaffected. Lesson: never replace a script a running bash is executing.
