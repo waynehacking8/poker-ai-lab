@@ -48,7 +48,7 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    under its +5.10 line. The gate works on the opponents it names; it fails open-set: a closed four-way softmax routes
    an unseen bot to the expert it looks like, with rising confidence (92% off the default past hand 40).
 
-Next: Fable writes the slice after G0 (outcome verifier running).
+Next: Fable writes the slice after G0 (14.47 verified).
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 

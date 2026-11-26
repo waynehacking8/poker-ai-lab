@@ -2208,3 +2208,6 @@ min, classifier 2, chipzen line 6, screens 8, confirm 82, departure 26. Seeds 94
   closer than V5b's. The failure is open-set: sticky_overbettor is in no class's rows, its features sit nearest
   small_ball's, and a closed four-way softmax has no way to say "none of these", so the posterior climbs with evidence
   toward the wrong expert. The arm with the higher threshold left that bot alone (4.1%) but lost on the screen score.
+* **Outcome verifier: CONFIRMED** (fresh context, own script from the raw jsonl, no read module imported): every cell,
+  the headline, the chipzen line, the fresh cell, the choice (difference 0.027 over the 0.005 margin), the pins
+  (G50 8b1a4cc0..., clf d068ea0d..., all four teachers) and the registry lines (94, 95, 112, 113 only) as stated.
