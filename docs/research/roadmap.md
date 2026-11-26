@@ -1522,6 +1522,17 @@ reader and driver)**
   `on_round_result`, the fallback and counters in `rl/runtime.py` and `rl/bot.py` with the fault test through
   `deploy/bot.py`, one command and tag, and void defined (one whole rerun on the same seeds; counters nonzero or a
   second void stop the slice).
+* **Build record:** step 1 PASS (image tar.gz 64.6 MB, peak memory 99 MB, no scipy, parity 200/200 against `g0b-root` 27773b0, guard 0
+  skips over 2,000 engine matches and over the 330 replays equal to the engine reference, fault fallback through `deploy/bot.py`, latency at
+  0.5 vCPU mean 2.1 ms, max 53 ms). Build verifier 1 REFUTED: the item 9 and gate driver steps kept rc 0 and a stale PASS when the read
+  failed (`| tee` and `;`), and 9 test mutations survived; fixed (`c1v5-root` b14b176 tests only, image byte-identical; `c1v5` 712010d).
+  Build verifier 2 REFUTED: a PASS could come from rows whose counters were never checked (the judge reused existing rows; the reader
+  required no counter record), the slice-end order was untested, verdict-changing literals in `b1_read.py` and the judge were unpinned, and
+  the step 2 budget test was flaky; the artifact and parity held. The cap of two is reached; fixed first-hand at 2026-11-26 19:40 UTC
+  (`c1v5` 1564a53): the reader stops unless each of the 34 counted v5 runs, and at the gate the league run, has a counter record of the
+  right count; item 9's bounds and guard use the reader's own Z 1.96 and -2.0; the judge replays counted cells; the driver refuses a
+  non-empty LOGS or league out, removes a PASS verdict beside a failed step and keeps the step order in one function; the step 2 clock is in
+  nanoseconds; one plant per surviving mutation (30 new).
 * **Writes, each with its rollback:** commits on two local branches (revert); gb10-d `~/c1v5-run/`,
   `~/poker-ai-lab-x2r/logs/c1v5/`, `~/poker-ai-lab-league/candidates/c1v5-src`, `out/c1v5/` (delete); registry lines
   118 to 120 (restore the copy); the image tag `holdem-v5-c1v5` and `~/build-rl/holdem-v5-c1v5.tar.gz` on gb10-d
