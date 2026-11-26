@@ -1057,7 +1057,10 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   `m2_` (`br_chipzen`), `m3_` (fb2-900) prefixes, including a `keep` array where the teacher has one, applied as
   the single-network path applies it (the ensemble loader's refusal of `keep` does not apply to G0 files).
   Tests first: (a) on 200 fixed states the G0 probabilities equal the formula computed from the five networks
-  separately within 1e-9 (plants: weights not renormalised, ramp 0.10, threshold applied to the wrong class); (a2)
+  separately within 1e-9 (plants: weights not renormalised, ramp 0.10, threshold applied to the wrong class), on
+  the G80 and G50 files and on a test-fixture G0 file with t = 0.30 (never a play arm; at t of 0.5 or more two
+  specialist weights cannot both be positive, so renormalisation is unreachable there); the 200 states must include
+  at least one where the fixture's unscaled weights sum above 1, so each plant changes a probability; (a2)
   cross-tree parity: on the first 200 held-out rows of `~/v5b-run/data.npz`, `tools/g0_clf.py`'s posterior (the one
   the calibration report and misfire table use) and the `g0-root` runtime's posterior from the same G0 file agree
   within 1e-9 (plants: tanh replaced by ReLU in the runtime, the input scaling dropped, float32 in the runtime); a
@@ -1132,7 +1135,9 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   1,000-match cell, came from the unseeded opponent, and paired across two roots untested. Revised above: the file
   layout, scaling, activation and precision are literal with a cross-tree parity test and `keep` test (test a2);
   `chipzen` is read at 2,000 against a new fb2-900 arm, with its line measured on the seeded opponent (2b), and test
-  (b) covers `chipzen` across the roots.
+  (b) covers `chipzen` across the roots. Plan review 2 REVISE: the renormalisation plant could never fire at
+  t = 0.80 or 0.50. The review cap of two is reached; the stated minimum revision (a t = 0.30 test fixture with a
+  state whose unscaled weights sum above 1) was applied first-hand at 2026-11-26 06:52 UTC and recorded here.
 
 ### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
 
