@@ -1170,9 +1170,15 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   sizes are the input to add. G50's own play also moved the counts toward `small_ball` (24.4% off the default on
   fb2-900's logs, 33.0% overall and 92.4% past hand 40 in its own play), so every gate figure is read on rows from
   both actors.
-* **Reference arm:** G80, read post hoc on seed 95, seed 113 and the departure cells after 14.47 (a measurement, not
-  a verdict; recorded beside 14.47). Its rows give the reference shares for line 13 and its read is the third arm of
-  step 2.
+* **Prerequisite P0, G80 read post hoc (a measurement, not a verdict; recorded as experiments 14.48 before step D):**
+  holdem-x2r `g0` 77f0c00 `tools/g0_posthoc_g80.sh`, run on gb10-d as `setsid -f bash ~/g0-run/g80_posthoc.sh`
+  (byte-identical copy, sha256 01e612b0...) from `~/d0-run/x2r-g0`, file `~/g0-run/students/g80.npz` (verified against
+  its pins first): `sticky_overbettor` 2,000 on seed 113; departure by hand bucket (`tools/g0_depart.py`, 200 matches,
+  seed 95) on `sticky_overbettor`, `small_ball`, `chipzen` and `small_ball_b`; seed 95 on all thirteen B1 and D4
+  cells at V5b's counts and `chipzen` 2,000. Rows under `~/poker-ai-lab-x2r/logs/g0/posthoc_g80/{fresh,depart,confirm}`,
+  `done` marker there; paired by the same pairing as G0's read (fb2-900 arms on disk). Writes: that directory
+  (delete); no registry line (seeds 95 and 113 are G0's, same arms). Budget 100 minutes, stop at 200. Started
+  2026-11-26 10:59 UTC. Its read is G80's read in steps 19 and 20; S2 does not use it.
 
 **Step A: one logging run (holdem-rl branch `g0b-rl` from `g0-rl` bad56dd, `tools/ad0_log.py` extended)**
 
@@ -1189,8 +1195,11 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
    written under a separate directory; the gate fitter refuses any D4 name (test L4).
 5. Seed 114, registered `114 G0B read` (data). Smoke: 10 matches per cell type and actor on this path, timed; the
    runner computes the stop line from the smoke and stops at twice it.
-6. Hold-out by pair: each fitting cell's pairs split by `heldout(tag, pair_id)` into fit (50%), calibration (25%)
-   and test (25%), the same split for both actors of a pair id (both seats of a pair go the same way).
+6. Hold-out by pair: u = the first 8 bytes of sha256(`g0b-split:{cell}:{pair_id}`) as an integer / 2^64, where
+   cell is the opponent cell name only (`small_ball`, `league:<spec>`, `gen:<k>`; never the actor), and pair_id =
+   hero seed // 7 (`ad0_log.pair_of`). Test if u < 0.25, calibration if 0.25 <= u < 0.50, fit otherwise. Both seats
+   of a pair and both actors of a pair id get the same label. Test L11: literal labels for six fixed (cell, pair_id)
+   inputs, and one pair id under both actors gets one label (plants: the actor in the key, the bands swapped).
 
 **Step B: gate GS (holdem-rl `g0b-rl`, `tools/g0b_gate.py`; float64 throughout)**
 
@@ -1225,10 +1234,13 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
    terms; without the support test.
 13. Line S1: `sticky_overbettor`, G50-actor rows: routed to any expert on at most 10% of hands in every bucket, at
    both thresholds.
-14. Line S2: true bp100 and `small_ball`, test pairs, hands 11 and later, each actor: the share routed to the right
-   expert is at least 0.8 of the share G80 routes there on G80's own post hoc departure rows of the same opponent
-   and buckets (G80's shares fixed before step C runs; the threshold of the compared GS arm is 0.80).
-15. Reported, no stop: every other D4 cell under both actors at most 10% in every bucket; a miss is named in step 2's
+14. Line S2: true bp100 and `small_ball`, test pairs, hands 11 and later, each actor, per bucket (11 to 20, 21 to 40,
+   over 40): GS80's share of hands routed to the right expert is at least 0.8 of G80's share on the same hands. G80's
+   share is computed offline by G0's own classifier and weights (`~/g0-run/students/g80.npz`, through `g0-root`'s
+   `Policy.g0_posterior` and `g0_weights`) on features built by `rl/features.py` `build`'s f46 to f55 formulas from
+   the logged `st` after hand k-1, as G0's misfire table did; so both arms are read on the same hands in the same
+   units.
+15. Reported, no stop: every other D4 cell under both actors at most 10% in every bucket; a miss is named in step 20's
    read.
 16. S1 or S2 fails: stop and return the table to the roadmap agent. No second input extension inside this slice.
 
@@ -1237,12 +1249,21 @@ reader and driver)**
 
 17. GS file layout (literal): `gs_t`, `gs_ramp` (0.15), `gs_alpha` (0.01), `gs_min_trials` (3), `gs_temp`,
    `gs_classes` (the four names), `gs_prior` (4), `gs_pairs` (8 x 2), `gs_edges` (0.5, 1.0), `gs_alpha_beta`
-   (4 classes x 14 terms x 2), all float64; teachers under `m0_` to `m3_` exactly as G0. The runtime keeps a second
-   per-match record of the opponent's bets from `round_result`'s `action_history`; the bot's observation, Tracker
-   and all-in answer are unchanged.
-18. Twenty new generated StyleBots: draw seed 115 (registered `115 G0B read`), V5b's D2 sampler and ranges, the same
-   0.25 exclusion against the D4 vectors, and none identical to one of V5b's 60. Indices 0 to 9 validation, 10 to 19
-   test, fixed before any play. Validation play seed 116, test play seed 117 (registered).
+   (4 classes x 14 terms x 2), all float64; teachers under `m0_` to `m3_` exactly as G0. Runtime interface
+   (`g0b-root`): `RLBot` holds `self.sizes`, a `SizeRecord` (six counts and two totals) reset in `on_match_start` and
+   updated only in `on_round_result`, after `self.tracker.round_result`, from that result's `action_history` and
+   `self.tracker.me`. `RLBot.decide` calls `self.policy.act(f, mask, gate=(self.tracker.st, self.sizes))` when the
+   policy is a GS file and `self.policy.act(f, mask)` otherwise; `Policy.act` and `Policy.probs` take `gate=None`.
+   So the gate at a decision sees hands 1 to k-1 only. The observation, Tracker and all-in answer are unchanged.
+18. Twenty new generated StyleBots, drawn by holdem-x2r `g0b` `tools/v5b_styles.py draw` with `--seed 115` and
+   `--n 20` added (registered `115 G0B read`): V5b's sampler and ranges, V5b's exclusion set and bound literally
+   (`~/v5b-run/excl.json`, sha256 5d2f4564..., vectors of `small_ball`, bp100 and the eleven D4 cells, reused, not
+   remeasured; redraw within 0.25 by `style_bots_check.distance`), and a style equal in every attribute to one of
+   V5b's 60 (`~/v5b-run/styles.json`, ddca5ac1...) is redrawn. Written to `~/g0b-run/styles_g0b.json` (sha256 in the
+   record). Cell names `gen2:<k>`, k = 0 to 19, resolved to entry k of that file (env `G0B_STYLES`, default that path)
+   by `holdem/gen_style.py` in `g0b-root` (ported from `v5b` bedc22e with the parity test V5b used) and in `g0b`'s
+   `style_map.make_opp`; `gen:<k>` keeps V5b's file. Indices 0 to 9 validation, 10 to 19 test, fixed before any play.
+   Validation play seed 116, test play seed 117 (registered).
 19. Screen, per arm (G80, GS50, GS80): B1's screen (seed 94, six cells, league pairs 400 to 499, 78.0% filter) plus
    the ten validation styles, 200 matches each on seed 116, paired against a new fb2-900 arm on the same seed.
    Eligible: passes the filter, pooled validation gain lower bound above -2.0, no validation style gain under -5.0.
@@ -1262,21 +1283,29 @@ reader and driver)**
    3. PASS. Fresh outcome verifier, then the roadmap agent writes the candidate slice.
    `chipzen` is reported against its +5.10 line and does not decide.
 
-* **Tests (each failing on its plant; plant runner committed with them):** L1 logger parity: the G50 actor in the
-  logger plays 50 matches of `small_ball` byte-identical in match results to `rl.eval_arena --model g50.npz` from
-  `~/d0-run/x2r-g0` on the same seed (plant: posterior in float32); and fb2-900 likewise against `~/d0-run/x2r`
-  (plant: a logging hook that consumes a random draw). L2 replay: `Tracker.update` over the logged action list
-  reproduces the logged `st` on every hand of a 20-match smoke (plant: the logger drops blinds). L3 sizing: on ten
+* **Tests (each failing on its plant; plant runner committed with them):** L1 logger parity: (a) on 200 logged decision states the logger's
+  G50 action probabilities equal `g0-root` `Policy.probs` from the same file within 1e-12 (plant: posterior in
+  float32); (b) the G50 actor plays 50 matches of `small_ball` byte-identical in match results to
+  `rl.eval_arena --model g50.npz` from `~/d0-run/x2r-g0` on the same seed, and fb2-900 likewise against
+  `~/d0-run/x2r` (plant: a logging hook that consumes a random draw). L2 replay, on a 20-match smoke: every logged
+  hand's list starts with `post_small_blind` and `post_big_blind`, and `Tracker.update` over the list reproduces the
+  logged `st` (plants: the logger drops blinds, caught by the first assertion; the logger drops each hand's last
+  action, caught by the second). L3 sizing: on ten
   hand-built histories with literal expected buckets (opening raise preflop, a 3-bet, a postflop bet into a pot,
   a raise over a bet, an all-in, a check-call street), the fraction and bucket match (plants: pot without the
   current street, level not subtracted, all-in not sized). L4 the fitter refuses D4 names (plant: `tight_sticky`
   among the fitting cells). L5 the Beta-binomial log-likelihood and tail against direct summation on small n
-  (plants: tail one-sided, min trials 1, alpha 0.05). L6 cross-tree parity: on 200 logged decision states the
-  fitter's GS weights and the `g0b-root` runtime's from the same GS file agree within 1e-9 (plants: size record
-  updated before the decision, support test skipped in the runtime). L7 neutrality: a GS file forced to population
-  plays 50 matches of `small_ball`, `ext:ashwing` and `tight_sticky` byte-identical to fb2-900 from `~/d0-run/x2r`
-  (plant: 1e-6 on an expert weight). L8 the style draw: twenty styles, none within 0.25 of a D4 vector, none equal to
-  a V5b style, split 0-9 and 10-19 (plants: exclusion dropped, split by order of play). L9 the rule table gives
+  (plants: tail one-sided, min trials 1, alpha 0.05). L6 cross-tree parity: the step A per-hand log of 20 matches
+  is replayed message by message (`on_match_start`, `on_round_start`, `on_round_result`, and a decision state at each
+  logged decision) into a `g0b-root` `RLBot` with a GS file; at every decision its GS weights equal the fitter's,
+  computed from the same log, within 1e-9 (plants: the size record updated in `decide` from the current hand, the
+  support test skipped in the runtime). L7 neutrality: a GS file forced to population
+  gives, on 200 logged decision states, action probabilities equal to fb2-900's exactly (plant: 1e-6 on an expert
+  weight), and plays 50 matches of `small_ball`, `ext:ashwing` and `tight_sticky` byte-identical to fb2-900 from
+  `~/d0-run/x2r` (plant: the gate consumes a random draw). L8 the style draw: reads `~/g0b-run/styles_g0b.json` and `excl.json`; twenty styles,
+  none within 0.25 of any of the thirteen exclusion vectors, none equal to a V5b style, split 0-9 and 10-19; a
+  20-match play of `gen2:0` from `~/d0-run/x2r-g0b` builds entry 0 of the new file, not V5b's entry 0 (plants:
+  exclusion dropped, `gen2:` resolved to V5b's file, split by order of play). L9 the rule table gives
   exactly one verdict for every combination (plants: each guard term dropped). L10 literals: every number above,
   the seeds and registry lines, the file layout.
 * **Seeds:** 114 (logging), 115 (style draw), 116 (validation play), 117 (test play), registered `G0B read`; 94, 95
@@ -1285,14 +1314,23 @@ reader and driver)**
 * **Writes, each with its rollback:** commits on three local branches (revert); gb10-d `~/g0b-run/` (logs, gate fit,
   GS files, styles), `~/d0-run/x2r-g0b/`, `~/poker-ai-lab-x2r/logs/g0b/`, `~/poker-ai-lab-league/candidates/g0b-src`
   and `out/g0b/` (delete); registry lines 114 to 117 (restore the copy). `~/bpq.lock`: leave.
+* **Owners:** holdem-rl `g0b-rl` from `g0-rl` bad56dd (logger, gate fit, step C); holdem-x2r `g0b-root` from
+  `g0-root` 0e3b521 (GS file, loader, `SizeRecord`, `gen2:`), `g0b` from `g0` 77f0c00 (style draw, judge, reader,
+  driver). Branch names differ from every existing branch of the shared holdem-x2r repo.
 * **Budget (each phase stops at twice its number):** logging about 90 minutes (13,600 fitting and 4,400 evaluation
   matches; replaced by the smoke's estimate), gate fit and step C about 10, screen about 40 for three arms with the
-  validation styles, read about 110, departure about 30. About 5 box-hours on cores 0-17, after G80's post hoc read.
+  validation styles, read about 110, departure about 30. About 5 box-hours on cores 0-17, after P0.
 * **Non-goals:** no network trained, no expert added, no change to the deployed bot, no upload, no within-match value
   estimate, no distillation before a gate passes. Held-out design from here: D4 stays the fixed regression set,
   `sticky_overbettor` included, reported every time; claims about unseen opponents rest on test styles drawn per
   slice and never reused once a design has responded to them; `ext:ashwing_hive` and `ext:wolf` stay the real-code
   held-out cells.
+* **Review record:** plan review 1 REVISE: (1) G80's post hoc read was unspecified though S2 and steps 19 and 20 used
+  it; (2) three cross-references pointed at the wrong items; (3) the float32, 1e-6 and blind-drop plants could not
+  be seen by their assertions; (4) the three-way split was not literal; (5) the new styles had no file, prefix or
+  literal exclusion set; (6) the GS runtime interface was undefined. Revised: P0 names the script, cells and writes;
+  S2 reads G80's classifier offline on the same hands; the plants pair with exact-probability, blind-start and
+  last-action assertions; the split, the styles file, `gen2:` and `excl.json`, and `RLBot`'s gate call are literal.
 
 ### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
 
