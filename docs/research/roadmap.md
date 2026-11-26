@@ -4,7 +4,7 @@ Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The 
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
 
-## Where we are (2026-11-25 15:24 UTC)
+## Where we are (2026-11-26 00:14 UTC)
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
 win probability against it, and a safety blend. Revision 2's lookahead work (14.17 to 14.24) showed the
@@ -34,9 +34,13 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    and fb2-900 plays bp100 +19.4, `small_ball` +19.8 and the two Ashwing cells +1.1 [-0.7, +2.9] against fb2-900.
    B1's shortfall is the training method (PPO on the mix), not identity or capacity. AD1 and S7 drop.
 
-Next: **V5a** (spec below, full process, building): judge the distilled student W1 as the candidate with no PPO.
-**TT** (tier 2, building): more specialist teachers for a second student. bp100 is a coarse Blueprint stand-in (much
-more aggressive preflop, 14.37).
+8. **A teacher for `chipzen`** (14.41, TT T-b): an hour of PPO from fb2-900 gains +11.8 [+9.4, +14.1] there (fb2-900
+   wins 67.5%) and joins V5b; teachers for `sticky_overbettor`, `loose_passive` and `never_fold_pre` gain about 4.6
+   where fb2-900 already wins 84 to 94% and do not.
+
+Next: **V5a** (spec below, running since 2026-11-26 00:12 UTC): judge the distilled student W1 as the candidate with
+no PPO. **TT** T-a reads still running; then V5b's teacher set is fb2-900, T1, C1 plus `br_chipzen` and any T-a
+teacher over +8.0.
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 
