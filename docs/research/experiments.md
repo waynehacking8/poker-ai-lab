@@ -2118,3 +2118,42 @@ matches per cell on seed 95 from `~/d0-run/x2r`, 2 workers on cores 18-19, 2026-
   (`read_a.rc` 0) is unaffected. Lesson: never replace a script a running bash is executing.
 * Check: an independent pairing script (no reader import) gives the same four gains and intervals; every file has
   1,000 rows on seed 95, all paired with the baseline; the run log names each teacher's `latest.npz`.
+
+### 14.46 V5b: DEFAULT FAIL on sticky_overbettor; bp100 holds +15.5 with coverage (2026-11-26)
+
+Pre-registered in roadmap "### V5b" (revision 2 plus Amendment 1). Driver `tools/v5b_drive.sh` (holdem-x2r v5b bedc22e)
+on gb10-d, 2026-11-26 02:10 to 06:39 UTC, every step rc 0: vectors 50 min, draw 5, D1+D2 data 57, D3 9, fit 8
+(1,874,255 rows), judge 2 h 20. Seeds 3, 94, 95, 108, 110 and 111 registered V5B read.
+
+* **Choice:** screen scores e256 76.98, e512 77.24 (difference under the 0.5-point margin), both through the 78.0%
+  league filter (e256 lowest arch:5 79.5%, 22 of 23 at 80%; e512 lowest bot:Blueprint 80.0%, 23 of 23): **e256**.
+* **Confirm, seed 95, paired against fb2-900 on (seed, hero seat):**
+
+| cell | weight | n | gain | 95% interval |
+|---|---|---|---|---|
+| bp100 | 0.70 | 4000 | +15.5 | [+13.7, +17.2] |
+| tight_sticky (D4) | 0.10 | 2000 | +0.0 | [-1.2, +1.2] |
+| sticky_overbettor (D4) | 0.09 | 2000 | **-4.2** | **[-6.1, -2.4]** |
+| small_ball_b (D4) | 0.08 | 2000 | +2.1 | [-0.1, +4.2] |
+| ext:autodidact (D4) | 0.03 | 1000 | -1.5 | [-4.3, +1.3] |
+| small_ball | 0 | 2000 | +7.3 | [+5.3, +9.4] |
+| never_fold_pre (D4) | 0 | 2000 | -0.9 | [-2.1, +0.3] |
+| raise_station (D4) | 0 | 2000 | +0.8 | [+0.0, +1.6] |
+| loose_passive (D4) | 0 | 2000 | +0.1 | [-1.2, +1.4] |
+| ext:ashwing (D4) | 0 | 1000 | -1.9 | [-4.7, +0.9] |
+| ext:ashwing_search (D4) | 0 | 1000 | -2.6 | [-5.3, +0.1] |
+| ext:ashwing_hive (D4) | 0 | 1000 | -1.1 | [-3.5, +1.3] |
+| ext:wolf (D4) | 0 | 1000 | -0.4 | [-1.8, +1.0] |
+
+* Headline +10.57 [+9.33, +11.81]. Guard: one failure, the D4 cell sticky_overbettor (gain under -2.0 with the
+  upper bound under 0). **Verdict: branch 2, DEFAULT FAIL.** The E1 gate was not run (not needed past branch 2).
+* **Fresh seed 108 (reported, past the deciding branch):** bp100 +13.8 [+11.4, +16.2] holds, pooled Ashwing holds
+  (ashwing +0.6, hive +0.8), small_ball +7.4 [+5.5, +9.4] does not hold, so branch 4 would also have failed.
+* **J3:** no D4 cell under -5.0 (lowest sticky_overbettor -4.2). **Price of coverage:** bp100 lower bound +13.7
+  over its +10.0 line; small_ball +5.3 under its +11.0 line (recorded).
+* **Members (item 6, seed 95):** ensemble bp100 +16.4, pooled Ashwing -1.5; members +16.8/+16.6/+16.9 and
+  -1.1/-1.9/-1.1. The ensemble sits inside the members' spread; averaging did not add gain here.
+* **Chipzen (step 0, reported only):** +4.0 [+0.6, +7.4].
+* **Described, not decided:** coverage kept bp100 near AD0's level (+15.5 vs the AD0 ensemble's +17.8, 14.44) and moved every held-out
+  real-bot cell to within about 3 points of level, none clearly up; the one clear loss is the held-out rule bot
+  sticky_overbettor. small_ball gains +7.3, under its price line.
