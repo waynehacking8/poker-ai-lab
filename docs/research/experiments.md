@@ -2069,3 +2069,5 @@ are seed 1's keys).
   seed alone; seed 3 would fail V5a's pooled Ashwing bound (-2.0 with the upper bound under zero). bp100 holds
   (+16.3 to +19.4). A student's Ashwing number is about as much fit noise as the guard's width, so a single fit is
   a draw, not the method's value; how V5b chooses among students is for the roadmap agent.
+* Check: the same reader on seed 1's rows reproduces 14.39's verified numbers exactly (bp100 +19.4 [+16.9, +21.8],
+  pooled +1.1 [-0.7, +2.9]); every arm pairs on all its keys (no missing pair).
