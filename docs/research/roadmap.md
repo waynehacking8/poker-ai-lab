@@ -986,6 +986,12 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
      `ext:ashwing_hive` 1,000 each) against the arms on disk, registered under `95 V5A read`. If it lands clearly
      under the members' mean (about +18 on bp100, about -0.8 pooled Ashwing) on either, it returns to the roadmap
      agent before V5b's fit.
+  9. Where the ensemble loads: `rl/runtime.py` `Policy` on `v5b-root` learns the ensemble file; a single-network
+     file takes the unchanged path, proven by step 0's neutrality test (`small_ball`, `ext:ashwing`, `tight_sticky`,
+     50 matches each, byte-identical to `~/d0-run/x2r`), so fb2-900's arms on disk stay valid. Every candidate cell
+     (screen, confirmation, fresh seed, item 6, item 8) runs from `~/d0-run/x2r-v5b`; the league screen and E1 use a
+     candidate root `~/poker-ai-lab-league/candidates/v5b-src` (an archive of `v5b-root`, written by the runner;
+     rollback: delete). `rl/bot_v5b.py` on holdem-rl carries the same loader, written only after PASS.
 * **Review record:** plan review 1 REVISE (T-a teachers against held-out cells; StyleBot ranges, measurement and
   exclusion left to the builder; rule branches and J3's screen baseline missing; seeds, seeding table and fitter
   not named; the adapter's pins and per-match seeding; no tests, owners, writes or budget). Revised above
