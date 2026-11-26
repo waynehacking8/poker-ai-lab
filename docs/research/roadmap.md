@@ -1130,6 +1130,18 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   comparison arms, not in the trunks' models. To the trunks: the `ad0_log` extensions, generated styles with
   per-match seeding, `chipzen` seeding and hold-out by pair (v5b-rl squashed first); the ensemble loader is not
   merged (14.46: ensembling adds nothing; dropped from future specs). T-a and T-b teachers stay on disk with hashes.
+* **After G0 (decided 2026-11-26, before G0 reads; Wayne: design calls are ours, not his):** a gated mixture with
+  weights continuous in a posterior and a default expert holding the uncertainty mass is an opponent model plus a
+  decision procedure, so G0 itself may become the bot. The candidate slice after a G0 PASS judges two candidates on
+  the same cells and fresh confirmation seeds: G0 (the chosen arm) and one 256 network distilled from G0's own play,
+  chosen by the pre-registered judge only, G0 preferred on a tie inside the margin (no fit loss). Full process and
+  the gate (E1, heuristic head to head, fresh verifier) for both, plus a deployment check for the mixture: every
+  expert file and the classifier shipped and hash-pinned, decision time in the arena container, behaviour identical
+  to the judged code on replayed matches. G0's current run stays a tier 2 measurement. Longer term (Wayne's MoE
+  question): experts by style family defined by shared best response (a teacher-by-opponent gain matrix, which
+  also sets the expert count), a learned gate with name-seeded history as prior, fb2-900 as default expert; the
+  scarce input is validated stand-ins for the entrant-faced names of 14.29, ahead of more experts. Upload or swap
+  stays Wayne's explicit yes on a candidate that passed the full gate.
 * **Review record:** plan review 1 REVISE: (1) the classifier is fitted in holdem-rl and evaluated again in
   `g0-root` with no parity test and no fixed file layout; (2) the `chipzen` line of +5.9 sat on the lower bound of a
   1,000-match cell, came from the unseeded opponent, and paired across two roots untested. Revised above: the file
