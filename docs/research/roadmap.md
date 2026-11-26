@@ -38,8 +38,8 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    wins 67.5%) and joins V5b; teachers for `sticky_overbettor`, `loose_passive` and `never_fold_pre` gain about 4.6
    where fb2-900 already wins 84 to 94% and do not.
 
-Next: **V5a** (spec below, running since 2026-11-26 00:12 UTC): judge the distilled student W1 as the candidate with
-no PPO. **TT** T-a reads still running; then V5b's teacher set is fb2-900, T1, C1 plus `br_chipzen` and any T-a
+Next: **V5b** (spec below): specialists plus fb2-900 coverage data, held-out cells for the default. **V5a** ended
+chosen none (14.42). **TT** T-a reads still running; then V5b's teacher set is fb2-900, T1, C1 plus `br_chipzen` and any T-a
 teacher over +8.0.
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
@@ -831,6 +831,61 @@ details). All fixed here. The cap was reached, so no third review; Wayne's stand
   `ext:ashwing_hive` 1,000 each, paired against the fb2-900 arms on disk, from `~/d0-run/x2r`; the three fits' gains
   side by side. It sets how V5b chooses among students and how much of a student's ext number is fit noise; it does
   not touch V5a's chosen student or rule. Registered as `95 V5A read` (bp100 through the queue).
+
+### V5b. Specialists plus coverage: one student that keeps the gains and plays fb2-900 elsewhere (spec, 2026-11-26; full process, the roadmap agent's decision after 14.42)
+
+* **Question:** does a student distilled from the specialists (T1 on bp100, C1 on `small_ball`, `br_chipzen` on
+  `chipzen`, and any T-a teacher over +8.0) plus fb2-900's labels on the league opponents and on generated styles
+  pass B1's whole judge, and does its default (fb2-900's play) hold on opponents it was never fitted on?
+* **Why:** V5a failed the league filter (14.42) on opponents AD0's data never covered (base:lag 64.5 and 74.5). The
+  arena has 289 names, so play against unfitted opponents decides the long run: the fix teaches a default and keeps
+  held-out cells to measure it. Missing labels are fixed with rows, not PPO (C0, D0).
+* **Step 0, the `chipzen` opponent is seeded first (eval path only; from the TT inputs above):** in `rl/eval_arena.py`
+  `make_chipzen()` gets `set_seed` reseeding the HoldemBot from the arena's per-match value
+  (`opp.set_seed(pair_seed * 13 + hero_seat)`, `holdem/arena.py`). Tests first: two 50-match `chipzen` runs on one
+  seed give identical rows; with the seeding removed they do not; `small_ball`, `ext:ashwing` and `tight_sticky` rows
+  (50 matches each) are byte-identical to the 8be6e38 root. The new root is a copy of `~/d0-run/x2r` with only this
+  change; non-`chipzen` cells keep their 8be6e38 rows, the `chipzen` cell gets new arms from the new root (fb2-900 and
+  the chosen student) on the confirmation seed.
+* **Data (AD0's rows stay, pinned by sha256; new rows logged by `tools/ad0_log.py` the AD0 way: hero's raw
+  observation, label softmax(masked logits) before `AllInAnswer` and search, the legal mask, 10% held out by match):**
+  * D1 league coverage: fb2-900 against all 23 league opponents, 300 matches each, labels fb2-900. Base names map one
+    to one to holdem-rl BASELINES (`base:station` station, `base:maniac` maniac, `base:nit` nit, `base:random` random,
+    `base:reference` reference, `base:lag` lag, `base:station_raiser` station_raiser). `arch:0` to `arch:5` and the
+    ten `bot:` names are the league's `CloneBot` (`league/clone.py`, model `league/data/clones.npz`): an adapter
+    `league:<spec>` builds that class from the league checkout (pinned commit and model sha256), with a parity test
+    that for recorded states it returns the same action and size as the league's own build at the same seed.
+  * D2 default coverage: 60 generated StyleBots (`holdem/opponents.py` `StyleBot` class attributes `open_p`, `play_p`,
+    `face_p`, `pre_size`, `bet`, `street_bet`, `bet_size`, `rr`, `cont`) drawn from a seeded range (seed 110,
+    registered `110 V5B data`; ranges listed in the build), 100 matches each, labels fb2-900. A drawn style is redrawn
+    when its measured 8-axis vector (`tools/style_bots_check.py` `distance`, `BOUND` 0.25) is within 0.25 of
+    `small_ball`'s or bp100's measured vector, or when its parameters equal a judge cell's style.
+  * D3 `br_chipzen` against `chipzen`, 1,000 matches, replaces fb2-900's `chipzen` rows as that opponent's labels;
+    T-a teachers likewise if they clear +8.0.
+  * D4 held out, never in the data: `tight_sticky`, `sticky_overbettor`, `small_ball_b`, `never_fold_pre`,
+    `raise_station`, `loose_passive`, `ext:ashwing`, `ext:ashwing_hive`, `ext:ashwing_search`, `ext:autodidact`,
+    `ext:wolf`.
+  * D5 time: every new cell type is estimated from a 20-match smoke on the logging path itself; the runner checks a
+    stop line at twice the estimate.
+* **Fit:** F1 converged fits only (cap 300 epochs, patience 10, best epoch kept, random init, fit seed 1, raw
+  counts). F2 batch weights by group: bp100 20%, `small_ball` 10%, `chipzen` 10%, the four trained ext names 10%,
+  league 30%, generated styles 20%. F3 two students, 256 and 512 wide; the 256 student is preferred unless the 512
+  beats it by more than 0.5 on the screen score.
+* **Judge:** J1 screen exactly B1's (seed 94, league pairs 400-499, 78.0% filter), both students. J2 confirmation,
+  fresh-seed check and gate exactly V5a's text (seed 95 on every B1 cell against the arms on disk; seed 108 for bp100,
+  `small_ball`, `ext:ashwing` and `ext:ashwing_hive` with V5a's bounds; E1 on pairs 200-399; heuristic head to head).
+  League opponents are now fitted, so E1 is a fit check and D4 carries the generalisation claim. J3 a new table, at
+  the screen for both students and at confirmation for the chosen one: the gain against fb2-900 on each D4 cell; a
+  flag (not a gate beyond B1's guard) when any D4 cell is under -5.0. J4 reported as before: bp100 beside the
+  Blueprint clone, the shove table, E3 probes, decision time, the fit-seed spread (14.42's run).
+* **Rule:** R1 PASS: a student passes the screen filter, B1's rule on seed 95, the fresh-seed check and the gate;
+  fresh verifier, then Wayne. R2 filter fails again: stop, per-opponent table to the roadmap agent; no second coverage
+  round. R3 filter passes but a D4 cell fails B1's guard line: stop and return (the default does not generalise from
+  60 styles; next is a design question). R4 if the chosen student's bp100 gain on seed 95 has its lower bound under
+  +10.0 or `small_ball`'s under +11.0, record it as the price of coverage and still read R1 as written.
+* **Placement:** D1 and D2 logging start on cores 0-17 after the fit-seed spread; they do not wait for step 0.
+* **Not done:** PPO repair on the league (C0, D0 priced it; the fault is missing labels); judge style cells as data
+  (it would hide the 289-name question).
 
 ### TT. More teachers: single-opponent ceilings where the student has none (spec, 2026-11-25; tier 2)
 
