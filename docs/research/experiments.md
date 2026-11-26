@@ -2211,3 +2211,32 @@ min, classifier 2, chipzen line 6, screens 8, confirm 82, departure 26. Seeds 94
 * **Outcome verifier: CONFIRMED** (fresh context, own script from the raw jsonl, no read module imported): every cell,
   the headline, the chipzen line, the fresh cell, the choice (difference 0.027 over the 0.005 margin), the pins
   (G50 8b1a4cc0..., clf d068ea0d..., all four teachers) and the registry lines (94, 95, 112, 113 only) as stated.
+
+### 14.48 G80 read post hoc (G0b prerequisite P0): guards hold, gains just short; its own play drifts too (2026-11-26)
+
+A measurement, not a verdict (G80 lost G0's choice, 14.47). `tools/g0_posthoc_g80.sh` (holdem-x2r `g0` 77f0c00), run on
+gb10-d 10:59 to 12:23 UTC from `~/d0-run/x2r-g0`, file `~/g0-run/students/g80.npz` verified against its pins; same
+seeds, counts and fb2-900 arms as G0's read; rows `~/poker-ai-lab-x2r/logs/g0/posthoc_g80`. Numbers from my own
+recompute of the raw rows (paired on (seed, hero seat), n-1 variance, the 14.47 verifier's method).
+
+| cell | n | gain | 95% interval |
+|---|---|---|---|
+| bp100 | 4000 | +11.4 | [+9.9, +12.8] |
+| small_ball | 2000 | +11.1 | [+9.4, +12.8] |
+| chipzen | 2000 | +1.4 | [-0.1, +2.8] |
+| sticky_overbettor (D4) | 2000 | -0.4 | [-1.0, +0.2] |
+| small_ball_b (D4) | 2000 | +0.1 | [-0.8, +0.9] |
+| other D4 cells | 1000-2000 | -0.7 to +0.1 | lowest lower bound -1.5 (ext:ashwing_search) |
+| fresh sticky_overbettor, seed 113 | 2000 | -1.4 | [-2.0, -0.8] |
+
+* Headline +7.93 [+6.91, +8.96]. No D4 guard failure; the fresh lower bound -1.985 is just above -2.0. Under G0's
+  rule G80 would read GAINS SHORT: bp100 +9.9 and `small_ball` +9.4 lower bounds under +10.0 and +11.0; `chipzen`
+  under its +5.10 line.
+* **Departure in its own play (200 matches, seed 95), share of decisions off the default by hand bucket:**
+  `sticky_overbettor` 0.3%, 4.3%, 14.4%, 43.7% (all to the `small_ball` expert; G0's misfire table on fb2-900's logs
+  gave 4.1% overall); `small_ball` 1.4%, 27.2%, 70.6%, 90.2%; `chipzen` 1.2%, 17.0%, 36.7%, 53.4%; `small_ball_b`
+  0%, 2.1%, 10.4%, 4.3%.
+* **Described, not decided:** the higher threshold trades identification speed for safety: it gives up about 4 to 5
+  points on bp100 and `small_ball` against G50 (14.47) and holds the guard. The drift of 14.47 is present at t = 0.80
+  as well (4% offline, 44% past hand 40 in its own play): the gate's own expert moves the counts it reads. G0b reads
+  every gate figure on rows from both actors for this reason. G80 is the reference arm of G0b's steps 19 and 20.
