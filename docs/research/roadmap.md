@@ -1391,9 +1391,24 @@ reader and driver)**
 
 ### C1v5. Candidate slice: GS50 as the entered bot (spec, 2026-11-26; tier 1, a candidate; the roadmap agent's decision after 14.50)
 
-* **Question:** does v5 = GS50 (the gate file `~/g0b-run/students/gs50.npz`, sha256 f7d22324..., experts T1, C1,
-  br_chipzen, default fb2-900) plus the unchanged all-in answer, packaged as it would be uploaded, keep G0b's read on
-  seeds nothing has touched and pass the upload gate?
+* **Question:** does v5 = GS50 (the gate file `~/g0b-run/students/gs50.npz`, sha256
+  f7d22324a4e7dcff00ebf67985702d1f98e1b26f443be50acfbd5c060a6891e6, experts T1, C1, br_chipzen, default fb2-900) plus
+  the unchanged all-in answer, packaged as it would be uploaded, keep G0b's read on seeds nothing has touched and pass
+  the upload gate?
+* **The artifact, one file set:** `c1v5-root` commits the GS50 file as `rl/models/gs50.npz` (`git add -f`, sha256
+  above asserted in full by a test) and `rl/bot_v5.py` (`class V5Bot(RLBot)`, model `rl/models/gs50.npz` next to it,
+  the B1Bot way). The image is built by `deploy/build_on_box.sh rl/models/gs50.npz holdem-v5-c1v5` from that commit.
+  The bot file set is every file the Dockerfile copies (`deploy/bot.py`, the `rl/` modules, `allin_v.npz`,
+  `tracker_prior.npz`, the model as `weights.npz`, the `nlhe/` files). One sha256 list of that set is recorded and
+  must match across the staged context, the image (read back with `docker run --entrypoint sha256sum`) and the league
+  export `candidates/c1v5-src` (with `rl/models/gs50.npz` in place of `weights.npz`); the x2r judge loads the same
+  commit's files. Any mismatch stops the slice.
+* **Counters, on every judged path:** the bot keeps `gate_faults` and `size_skips` (items 4 and 5) per match. When the
+  env `C1V5_COUNTERS` names a directory, `on_match_end` appends one JSON line (pid, match seed if known, the two
+  counts) to `<dir>/<pid>.jsonl`; unset (as in the image), it writes nothing and plays the same. Steps 2 and 3 set it
+  under each run's out directory; the driver sums the lines, asserts their number equals the matches played, and a
+  nonzero total of either count voids that run. A plant that raises inside the gate shows a nonzero `gate_faults` on
+  the league path (10-match smoke).
 * **Decision it feeds:** all lines pass, a fresh outcome verifier confirms the whole record, then Wayne is asked for
   his own yes to upload and swap (v4 stays entered until then; reversible while the season allows); after his yes and
   the upload, the HF release (private during Season 16). Any failed line stops the slice and returns to the roadmap
@@ -1417,12 +1432,19 @@ reader and driver)**
    puts in under the protocol's semantics (a `raise` amount is the street total, a `call` amount the chips added,
    blinds the chips posted; `chipzen_bot/nlhe/history.py`); start stacks from the previous `round_result`, the first
    hand from `match_start`'s starting stack. A hand that fails is not counted in the six size terms and increments
-   `size_skips`. Tests: (a) 0 skips over 2,000 engine matches of mixed cells; (b) the 412 cached Chipzen replays
-   (`.cache/chipzen-replays`), converted hand by hand to protocol-form histories, give 0 skips and size counts equal
-   to the same hands driven through `holdem/engine.py` by `tools/replay_conformance.py`'s driver (plant: the pot
-   without the blinds, caught by the bucket comparison); (c) the same replays converted with raise amounts as chips
-   added skip every hand where the two forms differ and count no size from them (plant: the guard removed). The
-   guarded runtime keeps 14.50's read only if (a) and parity item 3 hold.
+   `size_skips`. Replay population for (b), (c) and item 13: the NLHE replays in `.cache/chipzen-replays` that
+   `tools/replay_conformance.py` accepts, 330 matches and 10,516 hands (experiments sections 1 and 2), counts asserted
+   literally; other files are out of scope; a hand failing conformance fails the test (never dropped). Tests:
+   (a) 0 skips over 2,000 engine matches of mixed cells. (b) Each replay hand is converted to a protocol-form
+   history (raise amounts turned from the replay's chips added into street totals) with start stacks, end stacks and
+   payouts taken from the replay's own `starting_stacks`, `stacks_after` and `payouts`, never from the engine; fed
+   through `SizeRecord.update` it gives 0 skips. Its six counts per match equal an independent reference: the same
+   hand driven through `holdem/engine.py` by `replay_conformance.py`'s driver, where for each opponent `raise` or
+   `all_in` f = (raise-to minus `max(bet)`) / `pot` read from the engine `Hand` state just before the action,
+   bucketed with `GS_EDGES`, counted per street group (plant inside `SizeRecord.update`: the pot without the blinds,
+   caught by this comparison). (c) The same replays converted with raise amounts left as chips added skip every hand
+   where the two forms differ and count no size from those hands (plant: the guard removed). The guarded runtime
+   keeps 14.50's read only if (a) and parity item 3 hold.
 5. Fault path: any exception in the gate plays fb2-900's probabilities for that decision and increments
    `gate_faults`; a fault-injection test shows it. Every judged match records `gate_faults` and `size_skips`; a
    nonzero total in steps 2 and 3 voids the run.
@@ -1447,14 +1469,16 @@ reader and driver)**
 
 **Step 3: the upload gate (holdem-league, `tools/league_fresh.py`, the B1 gate path)**
 
-10. E1: v5 against the 23 opponents of `league/data/clones.npz` on pairs 200 to 399 (400 matches each): all 23 at 80%
-    or more (Wilson lower bounds reported); the paired difference against fb2-900 from its verify rows reported.
+10. E1: `tools/league_fresh.py --name rl-v5 --root candidates/c1v5-src --module rl.bot_v5 --class V5Bot --p0 200
+    --p1 400 --h2h chipzen-102b05e --workers 8 --out out/c1v5/verify-rl-v5` with `C1V5_COUNTERS` under that out
+    directory (9,600 matches): all 23 at 80% or more over 400 matches each (Wilson lower bounds reported); the paired
+    difference against fb2-900 from its verify rows reported; counter total zero and line count 9,600, else void.
 11. Head to head: `--h2h chipzen-102b05e` on the same pairs: Wilson 95% lower bound above 50%.
 
 **Step 4: reported on the card, not gating**
 
 12. bp100 beside the Blueprint clone; opposite signs with both intervals excluding zero is flagged in words.
-13. Expected arena effect: the gate run as an observer over the 412 cached replays, per entrant-faced name
+13. Expected arena effect: the gate run as an observer over item 4's replay population, per entrant-faced name
     (Blueprint, fermat6, NashForge, hoops, mr_hide, r0ckGarden, PluriBot, slopBot), the share of hands routed to each
     expert by hand bucket. If the support test keeps most real names on the default, the card says in those words
     that v5 plays as v4 against most of the live field and gains where an opponent matches an expert.
@@ -1469,9 +1493,16 @@ reader and driver)**
 * **Owners:** holdem-x2r `c1v5-root` from `g0b-root` 27773b0 (guard, fault counter, staging and image scripts),
   `c1v5` from `g0b` aaa17ad (draw, judge, reader, driver, arena-effect tool); holdem-league for E1 through the
   existing `tools/league_export.sh` and `league_fresh.py`.
-* **Tests (each failing on its plant; plant runner committed with them):** items 2 to 5 as stated; the rule table
-  gives exactly one verdict per combination (plants: each line dropped); literals: seeds, counts, lines, file paths,
-  the GS50 sha256.
+* **Tests (each failing on its plant; plant runner committed with them):** items 2 to 5 as stated; the counter path
+  (a gate raise counted on the league path; line count checked); the sha256 list check (plant: one file of the
+  export changed); the rule table gives exactly one verdict per combination (plants: each line dropped); literals:
+  seeds, counts, lines, file paths, the GS50 sha256.
+* **Review record:** plan review 1 REVISE (3): 4(b)'s comparison ran both sides through `SizeRecord.update`, so a
+  plant inside it could not fail, and the converter's stacks were unsourced; the replay population (412 files, 330
+  NLHE) was open; nothing tied E1 to the uploaded files and the league path recorded no counters. Revised: an engine
+  `Hand` reference for every opponent raise, replay stacks and payouts from the JSON, the 330 and 10,516 population
+  asserted, a committed model path and league class, one sha256 list across context, image and export, and a
+  counter file per process summed by the driver.
 * **Writes, each with its rollback:** commits on two local branches (revert); gb10-d `~/c1v5-run/`,
   `~/poker-ai-lab-x2r/logs/c1v5/`, `~/poker-ai-lab-league/candidates/c1v5-src`, `out/c1v5/` (delete); registry lines
   118 to 120 (restore the copy); a local image tag `holdem-v5:c1v5` on gb10-d (remove).
