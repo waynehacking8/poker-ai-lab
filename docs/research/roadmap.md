@@ -1506,6 +1506,62 @@ reader and driver)**
 * **Unverified at writing:** the seat shares of the Ashwing and autodidact names; whether C1v5's reported table 4.2
   holds R3's numbers; the solver image's settings.
 
+### V6. One candidate: the solver names back to the default, plus E2's classes (spec, 2026-11-27; the roadmap agent after 14.54)
+
+* **Why:** 14.54 sends Blueprint (15.4% of entrant-faced seats) and NashForge (6.1%) to the default. The one usable
+  clone number agrees: v5 sent T1 at the Blueprint clone on 45.7% of hands and gained -0.25 [-3.89, +3.39], so T1's
+  +18.9 on bp100 does not carry to that copy (14.53, 14.36). v5 is uploaded but not entered, so one candidate pays the
+  candidate steps once: v6 = the solver-name change plus E2's two classes. Order is set for a recall: the refit and
+  its offline lines first (archive only, minutes), the gate file archived, then E2's logging and classes.
+* **Envelope:**
+  * Owners and bases: branch `v6-root` from `c1v5-root` b14b176 (runtime and gate file), branch `v6` from `r45`
+    973550f (drivers, readers, fitter calls, tests, plants), holdem-rl branch `v6-rl` from `g0b-rl` (the fitter
+    `tools/g0b_gate.py`); box dir `~/v6-run`.
+  * Seeds: 127 `V6 draw` (the archive match draw in stage A). E2's 122 to 126 and 94 are already registered.
+  * Writes and rollback: branch commits (revert); `~/v6-run` (delete); registry line 127 (remove); the stage A gate
+    file and its row hashes added to archive branch `train-essentials` (a new commit).
+  * Budget, each with a hard cap at twice: stage A 30 minutes, E2 Stage 2 60, Stage 3 20, Stage 4 150, Stage 5 60.
+  * Stops: any count, parity or hash assertion that fails stops the stage and returns it to the roadmap agent; a run
+    interrupted by a recall is discarded whole and rerun in a fresh directory; each stage's result is pushed to
+    research and `restore.md` updated before the next starts.
+  * Non-goals: no training, no new expert, no change to v4, v5 or the account, no fetch from chipzen.ai.
+* **Stage A, the solver_live class (archive only):**
+  1. Rows: Blueprint and NashForge only. From item 5's archive walk (`tools/r5_arena.py route`, the runtime's own
+     term tracker, so the counts are the ones the gate sees live), per match the gate's 14 term counts at match end
+     for the seat facing the name. Up to 1,000 matches per name from A0's snapshot, drawn on seed 127; all when fewer,
+     with the count reported. Split by match: draw order even into fit, odd into held out.
+  2. Classes and priors: bp100 0.10, solver_live 0.25 (expert: the default, fb2-900), small_ball 0.10, chipzen 0.05,
+     ashwing family 0.05, autodidact family 0.05, population 0.40. A family that E2 Stage 1 leaves empty is dropped
+     and its prior goes to population. Stage A fits with the four existing classes plus solver_live (the family
+     classes join in E2 Stage 3); same terms, support test, threshold 0.50 and temperature procedure as G0b step B.
+  3. Runtime: if `Policy.gs_route` cannot map a second class to the default expert, `v6-root` adds that mapping with a
+     test that v5's gate file routes exactly as before on C1v5's 330 replays (parity with r3.json).
+  4. Offline lines, in order:
+     a. Held-out archive matches of Blueprint and of NashForge, each separately: at most 10% of hands routed to T1 in
+        every hand bucket (1 to 10, 11 to 40, 41 and later).
+     b. Held-out bp100 pairs (G0b's calibration and test pairs): the share routed to T1 at hands 11 and later not more
+        than 5 points under v5's on the same rows.
+     c. If (a) holds and (b) fails, (a) wins: the bp100 loss is recorded as the price, and v6's Stage 4 drops KEEP's
+        bp100 line (bp100 stays a GUARD cell). If (a) fails, stop: fit two classes (Blueprint and NashForge apart,
+        0.125 each) once, rerun (a) and (b); a second (a) failure stops V6 and returns it to the roadmap agent.
+  5. Reported, no line: routing after the refit for fermat6, MonteCarlo, PluriBot, mr_hide, DeepStack, Chatterbox
+     and the 330-replay names of R3.
+  6. Known limit, stated on the record: archive counts come from matches against other heroes, our class rows from
+     fb2-900 and v5; 14.47 showed the hero moves the counts. Line (a) is on archive rows, the condition closest to a
+     live opponent that we hold.
+  7. Tests and plants: the draw (seed 127, even and odd split, no match in both halves), the row count per name, the
+     routing parity of v5's own gate file after any runtime change, line (a)'s per-bucket check (one bucket at 10.1%
+     fails), line (b) at 5.0 and 5.1 points, the (c) branches, the empty-family prior move.
+* **Then E2 Stages 2 to 5** as written in "### E2.", with these changes: Stage 3 fits all classes with stage A's
+  priors and the solver_live rows; Stage 3 line 4 (old classes) also covers solver_live (its held-out share routed to
+  the default not more than 5 points under stage A's); Stage 4 KEEP's bp100 line is dropped if stage A item 4c fired;
+  the v6 card carries one line saying the headline measures gain on bp100 itself and is not an estimate of arena gain.
+* **After V6:** S1, the solver stand-in family (run the solver image at each setting it exposes, 300 logged matches
+  each against fb2-900; a variant is a stand-in for a name when its A0 distance is at most 0.17); live play, which is
+  Wayne's to start. Parked: lookahead, clone-trained experts, more style pooling.
+* **Unverified at writing:** whether `gs_route` can map two classes to the default; whether NashForge has 1,000
+  complete archive matches; E2 Stage 1's verdict.
+
 ### R4R5. Is T1 routing a liability on live names? (spec, 2026-11-27; the roadmap agent after R3)
 
 * **R3 result (reported only, ~/e2-run/r3.out on gb10-d, C1v5's 330 replays):** E2's target names are about 3.6% of
