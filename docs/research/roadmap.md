@@ -1527,41 +1527,61 @@ reader and driver)**
 * **R4, clones under v5:**
   1. Paired gain per clone: v5 `a_win` minus fb2-900 `a_win` on the same key, 400 keys per clone, mean with a 95%
      interval (z 1.96); the reader asserts 9,600 rows per file, identical key sets and identical seeds per key.
-  2. Routing: v5 replayed on the same 9,600 keys with a routing recorder (per hand: the expert the gate chose, from
-     `Policy.gs_route`); parity check: every replayed row's `a_win`, `a_chips` and `hands` equal the E1 row, or the
-     clone's routing is void. Root copy `c1v5-root` b14b176, cores 18-19 (Stage 1 holds 0-17).
-  3. Clone to name: each clone's source name from the league's clone map (the builder names the file; unverified).
-* **R5, what beats whom in the real arena (`~/chipzen-replays`, 16,099 poker matches, asserted):**
-  1. Target names: the top 15 by A0 entrant-faced share (14.29) and every name with T1 share of 25% or more in R3.
-  2. Per target name: every opponent with at least 20 archive matches against it, that opponent's win rate there
-     (match winner as A0 defines it), and that opponent's A0 vector from `vectors.json`.
-  3. Expert vectors as players: T1, C1, br_chipzen, fb2-900, br_ashwing, br_autofast, each by `style_map.sim` against
-     the fixed mix `tight_sticky`, `sticky_overbettor`, `small_ball_b`, `never_fold_pre`, `raise_station`,
-     `loose_passive`, `ext:ashwing`, `ext:autodidact_fast`, `chipzen`, `bp100`, 50 matches each on seed 127
-     (registered `127 R5 read` before it runs).
-  4. Per target name and expert: the pooled win rate of archive opponents within distance 0.25 of the expert's
-     vector, and the same for fb2-900's vector, with match counts; one widening to 0.35 when either side has under
-     100 matches, recorded.
-  5. R3 repeated on the archive (all poker matches, A0's entrant-faced filter): per name, seat share and v5's routing
-     shares. These shares replace R3's in the 2% test of rule C.
-* **Decision rule, per name with T1 share of 25% or more (in R3 or in R5 item 5), fixed now:**
-  A. LIABILITY: T1-like opponents score at least 5 points under fb2-like ones on at least 100 matches each side, or
-     R4 shows the name's clone with its paired gain upper bound under zero while routed to T1 on more than 25% of
-     hands. Action: v5.1, the gate refit with that name's real archive counts in the population class; C1v5's steps
-     again before it replaces v5.
-  B. SUPPORTED: T1-like opponents score at least 5 points above fb2-like ones on the same counts. Keep, recorded.
-  C. NO EVIDENCE: under 100 matches on either side after the widening. Above 2% of entrant-faced seats, treat as A;
-     smaller, leave as is.
-  A and B both firing (R4 says liability, R5 says supported): A wins, since a wrong expert costs and a wrong default
-  does not.
-* **Envelope:** branch `r45` from `e2` ddd487a (tools `tools/r4_clones.py`, `tools/r5_arena.py`, tests and plants
-  with a committed plant runner); box dir `~/r45-run`; outputs `r4.json`, `r5.json` and their printed tables. Budget:
-  R4 about 60 minutes on cores 18-19 (stop at 120), R5 about 45 (stop at 90; the archive pass took A0 under an hour).
-  Writes: branch commits (revert), `~/r45-run` (delete), registry line `127 R5 read` (remove). Tests: the paired
-  reader (a missing key, a seed mismatch, a 9,599-row file), the routing parity check (one changed row voids the
-  clone), the distance and pooling (a synthetic table with a known answer), the rule table (every combination of A,
-  B, C, including A and B both firing), the 16,099 assertion. Non-goals: no training, no gate refit (that is v5.1's
-  own slice after the read), no change to v5 or the account, no fetch from chipzen.ai.
+  2. Routing: v5 replayed on the same 9,600 keys with a routing recorder. The recorder is a wrapper in
+     `tools/r4_clones.py` around `Policy.gs_route` of an unchanged root copy of `c1v5-root` b14b176; the root copy's
+     per-file hash list is asserted equal to the archive's before and after the run, and every run log records the
+     root commit. Parity: every replayed row's `a_win`, `a_chips` and `hands` equal the E1 row, or that clone is void.
+     More than 2 void clones void R4 as a whole.
+  3. Clone to name: from the league's clone map. A target name with no clone, more than one clone, or a void clone has
+     no R4 reading and is judged on R5 alone.
+* **R5, what beats whom in the real arena (`~/chipzen-replays`, asserted 16,099 poker matches):**
+  1. Target names: the top 15 by A0 entrant-faced share (14.29) and every name with T1 share of 25% or more in R3 or in
+     item 5.
+  2. Per target name: every opponent with at least 20 archive matches against it, its wins and matches there (match
+     winner as A0 defines it), and its A0 vector from `vectors.json`.
+  3. Expert vectors on the field's basis: T1 and fb2-900 (the two the rule compares; C1, br_chipzen, br_ashwing,
+     br_autofast reported only) each played against the 24 league clones `arch:0` to `arch:23` (clones of archive
+     names, so the opponent mix approximates the field's), 25 matches per clone on seed 127 (registered `127 R5 read`),
+     vectors by `style_map.vector`. The T1 to fb2-900 distance is recorded.
+  4. Disjoint pools: each archive opponent of a target name goes to the nearer of T1 and fb2-900, and is dropped when
+     the two distances differ by under 0.05 or when both exceed 0.35. Per name: each pool's wins and matches, and the
+     two-sample difference T1-pool minus fb2-pool with a 95% interval.
+  5. R3 on the archive: v5's gate walked over every archive poker match by C1v5's replay reader and conformance
+     filter, asserting matches, hands accepted and hands rejected per name. Parity first: on the 330 matches shared
+     with C1v5's population the per-name routing shares equal r3.json exactly, or R5 stops. These shares replace R3's
+     in the 2% test.
+  6. Validity check, before rules A and B may use item 4: apply item 4's pooling to the league clones (each clone's
+     source name as the target, its archive opponents pooled the same way) and compare the sign of the pooled
+     difference with R4's measured paired gain (v5 minus fb2-900, on clones routed to T1 on more than 25% of hands).
+     Pass: the signs agree on at least 2 of every 3 clones with both readings, and at least 6 such clones exist.
+     Fail, or R4 void: R5 item 4 gives only C for every name.
+* **Decision rule, per name with T1 share of 25% or more (R3 or R5 item 5), fixed now, one outcome per name:**
+  A. LIABILITY: the name's R4 clone has its paired gain upper bound under zero, or (validity passed) its R5 interval
+     has the upper bound under zero with at least 100 matches in each pool. Action: v5.1, the gate refit with that
+     name's real archive counts in the population class; C1v5's steps again before it replaces v5.
+  B. SUPPORTED: not A, and (validity passed) the R5 interval's lower bound above zero on at least 100 matches each,
+     or the R4 clone's lower bound above zero. Keep, recorded.
+  D. NEUTRAL: not A or B, at least 100 matches in each pool and validity passed. Keep, recorded.
+  C. NO EVIDENCE: everything else. Above 2% of entrant-faced seats (item 5 shares), treat as A; else leave.
+* **Stops:** any count, key, seed or parity assertion that fails stops that read and returns it to the roadmap agent;
+  the void cap above; a run interrupted by a recall or any outside stop is discarded whole and rerun in a fresh
+  directory, which the driver refuses to reuse when non-empty. R4's and R5's outputs are pushed to research and the
+  `restore.md` state line updated at the end of each read, before the next starts.
+* **Envelope:** branch `r45` from `e2` ddd487a (`tools/r4_clones.py`, `tools/r5_arena.py`, `tools/r45_drive.sh`,
+  tests and plants with a committed plant runner); box dir `~/r45-run`; outputs `r4.json`, `r5.json` and their printed
+  tables. Cores 18-19 while E2 Stage 1 runs, then 0-17. Budget from a smoke on the real code path before each full
+  run (R4: 48 keys; R5 item 3: 2 matches per clone; item 5: 200 matches), scaled, recorded in the run log, stop at
+  twice the scaled number. Writes: branch commits (revert), `~/r45-run` (delete), registry line `127 R5 read`
+  (remove). Tests and plants: the paired reader (a missing key, a seed mismatch, a 9,599-row file); the routing
+  parity (one changed row voids the clone; 3 void clones void R4); a root file changed (hash check fails); the pooling
+  (overlapping pools come out disjoint, a synthetic case of equal style and different strength); the validity check
+  (agree, disagree, too few clones); item 5's parity (a perturbed gate input breaks it); the rule table enumerated over
+  (R5 interval above zero, across zero, below zero, under 100) x (R4 above, across, below, absent or void) x
+  (validity pass, fail) x (share above or below 2%), exactly one outcome per cell; the 16,099 and 9,600 assertions;
+  an interrupted run and a non-empty output directory. Non-goals: no training, no gate refit (v5.1 is its own slice
+  after the read), no change to v5 or the account, no fetch from chipzen.ai.
+* **Review record:** plan review 1 REVISE (no outcome for the middle band, R5's pooling not a valid stand-in without a
+  check, item 5 unguarded, stops and recall handling, recorder ownership and budgets); revised.
 * **Map for the slice after:** for the large default-routed names, a counter-style with pooled win rate of 65% or
   more on at least 100 matches makes the name an expert target; its clone-trained teacher is accepted only if its
   style vector lies within 0.25 of that counter-style. No such counter-style: the name stays on the default.
