@@ -2386,7 +2386,8 @@ Entrant-faced share and v5's routing (default, T1, C1, br_chipzen), item 5:
 | Chatterbox | 0.5% | 67.7% | 32.0% | 0.0% | 0.2% |
 
 * 81 names reach a T1 share of 25% or more (in item 5 or R3); Blueprint is the only one above 2% of entrant-faced
-  seats. In R3's 330 replays (v4's own Season 16 matches) Blueprint was 5.0% of seats and 60.0% T1; Chatterbox 5.3%
+  seats. In R3's 330 replays (public matches between other bots, experiments section 1; not v4's matches, corrected
+  2026-11-27 after the V6 build verifier found no v4 seat in them) Blueprint was 5.0% of seats and 60.0% T1; Chatterbox 5.3%
   and 30.0%; the Ashwing and autodidact names together about 3.6%.
 * Reading: v5 plays T1 on more than a third of its hands against the largest live name without any measurement that
   T1 gains there. The R4R5 rule decides it; under rule C (no evidence) Blueprint, above 2%, is treated as A.

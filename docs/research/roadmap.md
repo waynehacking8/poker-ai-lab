@@ -1545,7 +1545,8 @@ reader and driver)**
   2. Rows: a rerun of item 5's walk (`tools/r5_arena.py route --dump-terms`, tracker from `rl/models/gs50.npz` of
      b14b176, output `~/v6-run/a/terms.jsonl`) writing, per drawn match, the 14 term counts after every hand for the
      seat opposite the target name. Fit rows use the match-end counts; calibration rows enter the temperature choice
-     over every decision, as G0b's calibration pairs do; held-out rows never reach the fit or the temperature choice.
+     over every decision of the seat facing the name, weighted per decision as G0b's calibration pairs are (not per
+     hand); held-out rows never reach the fit or the temperature choice.
      The reused G0b fit rows (`~/g0b-run/data/fit/fb2` and `.../g50`) are listed with sha256 in a committed
      `tools/v6_g0b_rows.sha256`, asserted before the fit (plant: one changed row file fails).
   3. Classes and priors in stage A, literal: bp100 0.30, solver_live 0.25 (expert: the default, fb2-900),
@@ -1563,11 +1564,12 @@ reader and driver)**
      the bucket before it; a dry run prints the per-name, per-bucket hand counts of every line's rows before the fit.
      a. Archive: on each name's held-out matches, at most 10% of hands routed in every bucket. A name with under 300
         held-out hands in hands 1 to 10 stops stage A.
-     b. Own hero, shadow only (nothing plays): Blueprint on two pooled sources, the 400 `bot:Blueprint` keys of
-        fb2-900's E1 run replayed with the stage A gate evaluated beside the actor (R4's recorder, each replayed row
-        equal to the E1 fb2-900 row, or the source is void) and R3's Blueprint matches walked with v4 as hero;
-        NashForge on R3's matches only. At most 10% routed in every bucket. A name whose own-hero rows have under 300
-        hands in hands 1 to 10 is reported and not judged by (b); a void source is dropped and counted.
+     b. Own hero, shadow only (nothing plays): Blueprint on the 400 `bot:Blueprint` keys of fb2-900's E1 run replayed
+        with the stage A gate evaluated beside the actor (R4's recorder, each replayed row equal to the E1 fb2-900 row,
+        or the source is void and (b) is not judged). R3's 330 replays are public matches between other bots, not
+        ours (corrected 2026-11-27), so they are not an own-hero source; NashForge has no own-hero rows and is not
+        judged by (b). At most 10% routed in every bucket. Under 300 hands in hands 1 to 10: reported, not judged.
+        No judging line reads a match from the fit or calibration band (asserted per row).
      c. bp100: the held-out bp100 pairs of G0b step A, under each of its two logged actors (fb2-900 and G50, the test-labelled
         bp100 rows in `~/g0b-run/data/fit/<actor>/bp100`), with both v5's gate file and the stage A gate evaluated offline on the same rows; the
         share routed to T1 at hands 11 and later, pooled over those hands, per actor, not more than 5.0 points under
@@ -1584,7 +1586,7 @@ reader and driver)**
      not v6 playing.
   8. Tests and plants: the literal draw over a fixed candidate list, including one Blueprint-against-NashForge match
      and one Blueprint-against-Blueprint match (both dropped); the four-band split with no match in two bands; the
-     150-match and 300-hand floors and the (b) not-judged branch at 160 hands; the bucket pooling; held-out rows
+     120-match and 300-hand floors and the (b) not-judged branch at 160 hands; the bucket pooling; held-out rows
      reaching the temperature choice; the literal prior vector summing to 1.00; the reused-row hash list; both runtime
      tests and their plants; lines (a) and (b) with 10.1% to br_chipzen and 0% to T1 failing; line (c) at 5.0, 5.1,
      10.0 and 10.1 points per actor; every branch of (d).
@@ -1606,7 +1608,9 @@ reader and driver)**
   two owners for Stages 2 to 5, no smoke, plant runner or registry copy); revised. Plan review 2 REVISE (no v5 rows on
   G0b's bp100 pairs, line (b) would stop on NashForge's sample, matches with both names, no path for each E2 verdict,
   no positive runtime test, the bp100 prior cut confounded line (c) and the price branch was unbounded, no fitter commit
-  or row hashes); the cap of two is reached, fixed first-hand on 2026-11-27 (this text).
+  or row hashes); the cap of two is reached, fixed first-hand on 2026-11-27 (this text). Build verifier 1 REFUTED
+  (line (b) read R3's third-party replays as own-hero rows, including fit and calibration matches; calibration weighed
+  per hand, not per decision); fixed in the text above and in the build.
 * **After V6:** S1, the solver stand-in family (run the solver image at each setting it exposes, 300 logged matches
   each against fb2-900; a variant is a stand-in for a name when its A0 distance is at most 0.17); live play, which is
   Wayne's to start. Parked: lookahead, clone-trained experts, more style pooling.
