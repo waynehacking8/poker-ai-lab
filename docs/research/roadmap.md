@@ -1532,7 +1532,8 @@ reader and driver)**
 * **Order:** R5 item 5 (routing on the archive), then R4, then the validity check, then R5 items 2 to 4 only if the
   check can pass, then the rule table.
 * **R5 item 5, routing on the archive (runs first):** v5's gate walked over every archive poker match by C1v5's
-  replay reader and conformance filter, asserting 16,099 poker matches and printing hands accepted and rejected per
+  replay reader and conformance filter, asserting 16,099 poker matches (A0's snapshot: archive files with mtime up to 2026-11-25 13:24:17 +0800, 20,421
+  files; the archive now holds 37,963 poker matches, not used, so the read stays on A0's population) and printing hands accepted and rejected per
   name. Parity first: on the 330 matches shared with C1v5's population, the per-name routing shares equal r3.json
   exactly, or R5 stops (plant: a perturbed gate input breaks it). Output per name: entrant-faced seat share (A0's
   filter) and routing shares. The target list is fixed from it: every name with T1 share of 25% or more here or in R3.
@@ -1547,8 +1548,7 @@ reader and driver)**
   3. A clone's R4 reading is usable for a name only when the clone is not void and its recorded T1 share is above 25%.
 * **Validity check (licenses R5's style pooling):** counted clones are usable R4 readings whose interval excludes
   zero. Pass needs at least 5 counted clones and the pooled sign (item 4 below, applied to the clone's archive name)
-  agreeing with R4's sign on all of them when there are 5 to 7, or on all but one when there are 8 to 10 (chance pass
-  under random signs at most 3.5%, asserted by a test). Under 5 counted clones: fail without running items 2 to 4,
+  agreeing with R4's sign on all of them when there are 5 to 7, or on all but one when there are 8 to 10 (chance pass under random signs at most 9/256 = 3.52%, at 8 clones, asserted exactly by a test). Under 5 counted clones: fail without running items 2 to 4,
   and R5 gives no A, B or D for any name.
 * **R5 items 2 to 4 (only when the check can pass):** per target name, every opponent with at least 20 archive matches
   against it (opponents absent from `vectors.json` dropped and counted); T1 and fb2-900 vectors played against the ten
