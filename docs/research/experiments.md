@@ -2391,3 +2391,27 @@ Entrant-faced share and v5's routing (default, T1, C1, br_chipzen), item 5:
 * Reading: v5 plays T1 on more than a third of its hands against the largest live name without any measurement that
   T1 gains there. The R4R5 rule decides it; under rule C (no evidence) Blueprint, above 2%, is treated as A.
 
+### 14.53 R4: v5 against fb2-900 on the ten `bot:` clones; only Blueprint routes to T1, and its gain spans zero
+
+Tool: holdem-x2r `r45` 973550f `tools/r4_clones.py` (paired reader on C1v5's E1 rows, pairs 200 to 399, 400 keys per
+clone; v5 replayed with a `gs_route` recorder, every replayed row equal to E1; root b14b176 hashes checked before and
+after). Output `~/r45-run/r4` on gb10-d, table in `~/r45-run/drive-r4.out`. 0 void clones.
+
+| clone | v5 minus fb2-900 | 95% interval | T1 share of hands | usable (T1 above 25%) |
+|---|---|---|---|---|
+| Blueprint | -0.25 | [-3.89, +3.39] | 45.7% | yes, across zero |
+| DeepStack | -0.75 | [-2.38, +0.88] | 17.7% | no |
+| mr_hide | -1.25 | [-2.87, +0.37] | 5.4% | no |
+| InfernalMonarch | +0.00 | [-1.39, +1.39] | 3.7% | no |
+| SolvencyCheck | -0.50 | [-1.70, +0.70] | 1.7% | no |
+| MercuryRetrograde | -0.25 | [-1.10, +0.60] | 1.2% | no |
+| AutodidactInnovations | +0.00 | [-1.39, +1.39] | 0.9% | no |
+| PoetAndCoder | +0.00 | [-0.69, +0.69] | 0.8% | no |
+| Kimiko | +0.00 | [+0.00, +0.00] | 0.3% | no |
+| qwentom-leap | +0.50 | [-0.19, +1.19] | 0.3% | no |
+
+* No clone is usable with an interval that excludes zero, so the validity check counts 0 clones (5 needed) and fails;
+  R5's style pooling does not run and gives no A, B or D. Seed 127 stays unregistered.
+* Reading: against the Blueprint clone v5 routes T1 on 45.7% of hands and wins the same as fb2-900 within about 3.6
+  points either way. Clones overstate (14.25), so this neither supports nor condemns T1 there.
+
