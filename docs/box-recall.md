@@ -53,3 +53,24 @@ copy, not a git checkout.
 
 Other boxes, home folders only: gb10-c holds `~/.cache` 457 GB (model cache), `~/gb10-agent` 86 GB (models only, no desks) and `~/oss`
 72 GB; gb10-a holds `~/workspce` and `~/fedgpt_data` (84 GB each, not from this project); gb10-b is empty.
+
+## 3. Still to move when the date is known (2026-11-27 01:55 UTC)
+
+Code is all on GitHub. These data sets are the ones worth copying; everything else (model and HF caches, venvs, `perf-probe`, eval data,
+`bp-src`) can be downloaded or rebuilt.
+
+| Priority | What | Size |
+|---|---|---|
+| cannot be redone | gb10-d `~/gb10-agent/desks` and `~/gb10-agent/logs` | 0.8 GB |
+| cannot be redone | gb10-c `~/.claude/projects` (OSS loop session transcripts) and `~/.agentsview` | 1.3 GB |
+| slow | gb10-d `~/chipzen-replays` | 4.1 GB |
+| slow | gb10-d `~/bp-data` (blueprint-100bb.tar and its data) and `~/bp-logs` | 4.1 GB |
+| slow | gb10-d `~/poker-ai-lab-rl/ckpt` + `logs`, the other ckpt folders | 3.0 GB |
+| slow | gb10-d `~/poker-ai-lab-d2s2/data` + `logs` | 3.8 GB |
+| slow | gb10-d `~/ad0-run` and `~/v5b-run` data | 2.0 GB |
+| slow | gb10-d `~/poker-ai-lab-x2r/logs` (C1v5 rows; copy after the run ends) and `~/poker-ai-lab-league/out` | 0.3 GB |
+| slow | gb10-c `~/oss/rounds` (r115 alone 26 GB; part of it is tracked in oss-loop-state) | 29 GB |
+| small | gb10-c `~/loop-eng` poller state (3 modified files: poll-state.json, poller.lock, seen_ids.txt) | KB |
+
+gb10-c OSS worktrees: every branch commit is on a remote, except three detached `frozen/sgl-45520-*` heads (older versions of the same
+upstream PR commit, one commit each); low value.
