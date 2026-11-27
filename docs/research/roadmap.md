@@ -1594,8 +1594,11 @@ reader and driver)**
      Threshold 0.50, ramp 0.15, support test (alpha 0.01, at least 3 trials) on every expert class, as v5.
   4. Lines. "Routed" means an expert other than the default has weight above 0. Buckets hands 1 to 10, 11 to 40, 41 and
      later; a bucket with under 300 hands for a source is pooled into the bucket before it; a dry run prints every
-     line's per-source, per-bucket hand counts before the fit. No judging line reads a fit or calibration row
-     (asserted per row).
+     line's per-source, per-bucket hand counts before the fit. No judging line reads a fit or calibration row of any
+     class in the fit being judged (asserted per row across every class's bands, seed 127, stage A, G0b and, in fit 2,
+     seed 128 alike; an assertion failure is STOP_V6B).
+     Before any line, the cross-tree runtime test (tests and plants, item 2) runs on the fitted gate; a failure stops
+     stage B (STOP_V6B).
      a. Solver sources, at most 10% routed in every bucket, per source: Blueprint and NashForge on the seed 127
         held-out band (a name with under 300 held-out hands in hands 1 to 10 stops stage B); the 400 `bot:Blueprint`
         shadow keys replayed by `tools/v6_shadow.py` with the stage B gate beside the actor (each replayed row equal to
@@ -1621,7 +1624,9 @@ reader and driver)**
         AutodidactInnovations to their experts.
   5. Remedies (each at most once, applied together in fit 2): split, solver_like replaced by `solver_bp100` (G0b bp100
      rows) and `solver_arch` (Blueprint and NashForge rows) at 0.15 each, both default; field_extra, a default class at
-     0.05 (population 0.45 to 0.40) fitted on the fired names' archive matches drawn with seed 128 by V6 stage A item
+     0.05 (population 0.45 to 0.40) fitted on the fired names' archive matches drawn with seed 128 (Blueprint and NashForge
+     are already in solver_like: either firing is STOP_V6B and never enters field_extra, so no seed 128 band can hold a
+     seed 127 match) by V6 stage A item
      1's procedure (per name sorted by match id, `numpy.random.default_rng(128).permutation(n)` per name in the list
      order above, first min(n, 1,000), index mod 4: 0 calibration, 1 held out, 2 and 3 fit; matches where both seats
      are fired names dropped and counted; a fired name with under 120 held-out matches stops), its calibration band
@@ -1634,12 +1639,14 @@ reader and driver)**
      | 1 | (b), (c) or (d) fails, whatever (a) and (e) show | STOP_V6B |
      | 1 | (b), (c), (d) hold; (a) fails on one source; (e) fires for no name | fit 2 with the split |
      | 1 | (b), (c), (d) hold; (a) fails on two or three sources; (e) fires for no name | fit 2 with the split |
-     | 1 | (a) to (d) hold; (e) fires for one or more names | fit 2 with field_extra over the fired names |
-     | 1 | (b), (c), (d) hold; (a) fails; (e) fires | fit 2 with the split and field_extra |
+     | 1 | (a) to (d) hold; (e) fires for one or more names, none of them Blueprint or NashForge | fit 2 with field_extra over the fired names |
+     | 1 | (b), (c), (d) hold; (a) fails; (e) fires, not for Blueprint or NashForge | fit 2 with the split and field_extra |
      | 2 | (a) to (d) hold and (e) fires for no name | PASS: the gate goes to stage C |
      | 2 | any of (a) to (d) fails | STOP_V6B |
      | 2 | a name added to field_extra still fires | STOP_V6B |
      | 2 | (e) fires for a name not in field_extra | STOP_V6B |
+     | 1 or 2 | (e) fires for Blueprint or NashForge | STOP_V6B |
+     | 1 or 2 | a per-row band assertion, an input hash, a floor stop or the cross-tree test fails | STOP_V6B |
 
      After a PASS the gate file, its sha256 and the row hash lists go to `train-essentials`.
 * **Stage C, judge, registered before any play, one arm (v6b), fresh fb2-900 arms on the same keys:** eligibility on B1's
@@ -1669,18 +1676,21 @@ reader and driver)**
      an empty action history, a non-empty cell directory).
   2. `v6-root`: the class-to-expert map literal with T1 absent (a file naming T1 or a missing network is refused); the
      five literal sha256 values in the builder (one byte changed in any source fails); gs50.npz still routes exactly as
-     before on C1v5's 330 replays (parity with r3.json); an L6-form cross-tree test: stage A held-out rows replayed
-     through the `v6-root` runtime give class posteriors and per-expert weights equal to the fitter's within 1e-9, with
-     at least one decision where each of the four expert classes has weight above 0 and one where solver_like's
-     posterior is above 0.50 with all expert weights 0 (plants: ashwing mapped to br_autofast, solver_like mapped to
-     C1, the map read by position).
+     before on C1v5's 330 replays (parity with r3.json); an L6-form cross-tree test: stage A held-out rows plus G0b's
+     test-labelled small_ball and chipzen pairs, both actors each, replayed through the `v6-root` runtime give class
+     posteriors and per-expert weights equal to the fitter's within 1e-9, with, over that pooled set, at least one
+     decision where each of the four expert classes has weight above 0 and one where solver_like's posterior is above
+     0.50 with all expert weights 0 (plants: ashwing mapped to br_autofast, solver_like mapped to C1, the map read by
+     position). It runs twice: before launch on a synthetic fixture gate with fixture rows, and in the stage B driver
+     step on the fitted gate and the real rows, after the fit and before lines (a) to (e); each plant fails both runs.
   3. `v6`: thresholds at 10.0% (holds) and 10.1% (fails) for lines (a), (d) and (e); 50.0% (holds) and 49.9% (fails)
      for (b); 5.0 (holds) and 5.1 points (fails) for (c); the bucket pooling and the floors (stage A's 300-hand floors,
      line (a)'s stop at 299 archive hands, the shadow and line (d) not-judged branches at 299); the void shadow branch;
      the nine-name list against a fixture `r5_route.json` (a tenth name above 2% fails); every row of the outcome
      table, including the split on one source and on two, field_extra on one name, both remedies together, and each
      fit 2 stop; the seed 128 draw (literal order, both-seats-fired dropped, the 120 floor) and its registry line
-     written only when (e) fires; stage C's GUARD, NEW and KEEP lines at their bounds; the driver's fresh-directory
+     written only when (e) fires; a fixture where Blueprint fires ends STOP_V6B with no seed 128 draw; a plant putting
+     one solver_like fit match into field_extra's held-out band fails the per-row assertion; stage C's GUARD, NEW and KEEP lines at their bounds; the driver's fresh-directory
      refusal, `.pushed` gating, fail-closed steps under pipefail, the budget stop from a planted smoke estimate over
      twice the number, and the swap stop.
 * **S1 beside it (spare cores, its own spec later):** solver image variants at each setting the image exposes, 300
@@ -1693,7 +1703,11 @@ reader and driver)**
   rows, seed and band, line (e)'s rows; (3) stage A rows (500 per name and actor, E2's row checks, hand floors, actors
   for (b) and (c), one row directory); (4) base commits and the writes and rollback list; (5) an enumerated test and
   plant list. Revised (this text): Stage B items 2, 3, 5, 6 and line (e); Stage A items 1 to 4; the envelope; the tests
-  and plants list.
+  and plants list. Plan review 2 REVISE (2026-11-27), two blockers: (1) a seed 128 draw for Blueprint or NashForge would
+  overlap seed 127's bands and the per-row assertion's scope was unstated; (2) the cross-tree test's rows could not give
+  C1 or br_chipzen weight and its timing against the fitted gate was unstated. The cap of two is reached; fixed
+  first-hand (Blueprint or NashForge firing is STOP_V6B, the assertion spans every class's bands, the test adds G0b's
+  small_ball and chipzen pairs and runs on a fixture gate before launch and on the fitted gate before the lines).
 * **Unverified at writing:** whether solver_like's three sources form one coherent class; whether chipzen-like bots
   play in the arena (br_chipzen's live value); the solver image's settings; v6b against any live opponent; the hands
   per match against the four stage A names (the floors decide).
