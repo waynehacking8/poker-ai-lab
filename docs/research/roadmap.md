@@ -1506,6 +1506,43 @@ reader and driver)**
 * **Unverified at writing:** the seat shares of the Ashwing and autodidact names; whether C1v5's reported table 4.2
   holds R3's numbers; the solver image's settings.
 
+### R4R5. Is T1 routing a liability on live names? (spec outline, 2026-11-27; the roadmap agent after R3)
+
+* **R3 result (reported only, ~/e2-run/r3.out on gb10-d, C1v5's 330 replays):** E2's target names are about 3.6% of
+  seats (Ashwing_v3 0.8%, Ashwing_v2 0.2%, AutodidactInnovations 2.7%), so E2 is worth about half a point of field
+  win rate. v5's gate already sends T1 against live names it was never measured on: Blueprint 60.0% of hands,
+  MonteCarlo 64.6%, Shuck1e1 82.6%, allin_v8 80.6%, cutewalrus 73.6%, MARK2R 51.3%, Awika-v7 40.9%, Chatterbox
+  30.0%. Routing is not gain: T1 is a best response to bp100, and 14.33 priced a wrong expert at 12 to 18 points.
+  The largest default-routed names (Kimiko 7.7%, DeepStack 7.6%, PoetAndCoder 6.8%, MercuryRetrograde 6.5%,
+  Fabulous 6.1%, qwentom-leap 5.5%) go almost all to the default.
+* **E2 rescoped:** Stage 1 finishes and its matrix is recorded (it fixes class membership); Stages 2 to 5 do not
+  run as their own slice. The two classes ride along in the next candidate.
+* **R4, clones under v5 (archive only, no new matches):** from C1v5's E1 logs, per league clone, the share of hands
+  v5 routed to each expert and v5's paired gain against fb2-900 on pairs 200 to 399. Read the sign of the paired
+  difference, not the level (clones overstate, 14.25). If the logs hold no routing counts, replay the gate over the
+  logged hands.
+* **R5, what beats whom in the real arena (the 16,099-match archive):** for each of the top 15 names by A0
+  entrant-faced share and each name with T1 share of 25% or more in R3: every opponent with at least 20 archive
+  matches against it, its win rate and its A0 eight-axis style vector; the style vectors of our experts as players
+  (T1, C1, br_chipzen, fb2-900, br_ashwing, br_autofast) from logs we hold; per name, the pooled win rate of archive
+  opponents within 0.25 of each expert's style against those within 0.25 of fb2-900's style (one widening to 0.35
+  allowed, recorded).
+* **Decision rule, per name with T1 share of 25% or more, fixed now:**
+  A. LIABILITY: T1-like opponents score at least 5 points under fb2-like ones on at least 100 matches each side, or
+     R4 shows the clone's paired gain upper bound under zero while routed to T1 on more than 25% of hands. Action:
+     v5.1, the gate refit with that name's real archive counts in the population class; C1v5's steps again before
+     it replaces v5.
+  B. SUPPORTED: T1-like opponents score at least 5 points above fb2-like ones on the same counts. Keep, recorded.
+  C. NO EVIDENCE: under 100 matches on either side. Above 2% of entrant-faced seats, treat as A; smaller, leave.
+* **Map for the slice after:** for the large default-routed names, a counter-style with pooled win rate of 65% or
+  more on at least 100 matches makes the name an expert target; its clone-trained teacher is accepted only if its
+  style vector lies within 0.25 of that counter-style. No such counter-style: the name stays on the default.
+* **Candidate after that:** v6 = v5.1's gate changes plus E2's two classes plus accepted clone-trained experts, one
+  pass through C1v5's steps.
+* **Unverified at writing:** whether the archive holds per-action records (to repeat R3 with A0's shares) or only
+  outcomes and style counters; whether enough opponents sit near T1's style to reach 100 matches; whether E1's logs
+  hold routing counts; Blueprint's true share (5.0% in R3, 15.4% in A0).
+
 ### C1v5. Candidate slice: GS50 as the entered bot (spec, 2026-11-26; tier 1, a candidate; the roadmap agent's decision after 14.50)
 
 * **Question:** does v5 = GS50 (the gate file `~/g0b-run/students/gs50.npz`, sha256
