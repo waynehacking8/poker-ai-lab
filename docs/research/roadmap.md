@@ -59,8 +59,8 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    `small_ball` +20.1 [+18.1], twenty new styles pooled -0.2; 23 of 23 league opponents at 80% or more over 400
    (lowest 83.25%); head to head over 102b05e 76.25% (Wilson lower 71.8%). The first candidate to clear the gate.
 
-Next (no slice written yet; levers in `restore.md` section 6): experts for the Ashwing and autodidact families,
-where v5 equals fb2-900 (T-a's teachers, 14.45), and real-arena measurement of v5 once it plays.
+Next: **E2** (spec below): experts for the Ashwing and autodidact families, where v5 equals fb2-900, with R3 beside
+it to size the solver class that follows.
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 
@@ -1394,6 +1394,55 @@ reader and driver)**
   Its other 39 mutations were caught; three survivors judged equivalent (a tail of exactly 0.01; an exact float
   collision with a V5b style, which the real-file L8 step would catch; a default path equal to the explicit one).
   Step D launches from g0b-root 27773b0 and g0b aaa17ad.
+
+### E2. Two more experts: the Ashwing and autodidact families (spec outline, 2026-11-27; the roadmap agent's decision after 14.51)
+
+* **Why first:** Ashwing_v3 and AutodidactInnovations are the only arena entrants whose real code we hold (14.37), so a
+  gain against them needs no stand-in argument. The teachers exist and are archived (`train-essentials`): `br_ashwing`
+  +16.0 and +15.4, `br_autofast` +13.4 on real code (14.45). The gate machinery is proven (14.49 to 14.51). No training,
+  short stages, which suits a box that may be recalled. It does not touch the largest class (solver-like names, about
+  35% of entrant seats, 14.29); that is the slice after E2, sized by R3.
+* **R3, tier 1, beside E2 (archive only):** per entrant-faced name (14.29's list plus Ashwing_v3 and
+  AutodidactInnovations) from v4's Season 16 replays: seat share, the share of hands v5's gate routes to each expert,
+  and the A0 distance to each class. Two numbers order the work after E2: the seat share of the Ashwing and autodidact
+  names, and whether any solver name routes to T1 at all.
+* **Stage 1, gain matrix (seed 121):** `br_ashwing` and `br_autofast` against the eight ext names we hold (ashwing,
+  ashwing_search, ashwing_hive, ashwing_v2, ashwing_value, ashwing_adaptive, autodidact, autodidact_fast), 500 matches
+  each, paired against fb2-900. A name joins a teacher's class when that teacher's gain has a lower bound of +5.0 or
+  more. `ext:ashwing_hive` and `ext:wolf` are never members: they stay the held-out real-code cells. Names that join
+  nothing go to the population class.
+* **Stage 2, logging (seed 122):** the member names, 500 matches each under both actors (fb2-900 and v5; autodidact at
+  300 if the smoke says it is too slow), action lists as in G0b; existing class rows reused by hash.
+* **Stage 3, gate GS50+2, offline lines (one arm, nothing selected):**
+  1. Classes bp100, small_ball, chipzen, ashwing family, autodidact family, population; priors 0.30, 0.10, 0.05, 0.05,
+     0.05, 0.45; the same terms, support test and threshold 0.50 as v5.
+  2. New classes: on held-out pairs, hands 11 and later, at least 50% routed to the right expert.
+  3. Misroute: every D4 cell, hive, wolf and V5b's generated styles at most 10% routed to any expert in every hand
+     bucket, under both actors.
+  4. Old classes: the routed share to the right expert not more than 5 points under v5's on the same rows.
+  5. Any line fails: stop and return the table to the roadmap agent.
+* **Stage 4, read (confirmation seed 125; ten validation styles drawn on seed 123 and played on 124; ten test styles
+  played on 126; new fb2-900 arms throughout):**
+  6. Eligibility on B1's screen (seed 94, pairs 400 to 499, 78.0% filter) and the validation styles, as in G0b.
+  7. Lines on seed 125, in order. GUARD: no cell under -2.0 with its upper bound under zero, hive and wolf included;
+     test styles pooled lower bound above -2.0, none under -5.0 with its upper bound under zero. KEEP: bp100 lower
+     bound above +10.0, small_ball above +11.0. NEW: lower bounds above +8.0 on ext:ashwing, +7.7 on
+     ext:ashwing_search, +6.7 on ext:autodidact (half of each teacher's gain). A NEW miss with GUARD and KEEP holding
+     is recorded and still goes on, since it is no worse than v5.
+* **Stage 5, candidate v6:** C1v5's steps unchanged (deployment check with live-format parity for the gate inputs,
+  fault counter with one record per run, E1 on pairs 200 to 399, the heuristic head to head, a fresh verifier, then
+  Wayne). Entering it is his call for the next season.
+* **Recall care:** the fitted gate file and the class rows' hashes go to `train-essentials` at the end of stage 3;
+  each stage's table is pushed to research before the next starts; `restore.md` gets the E2 state line each time.
+* **Seeds:** 121 to 126 as above (the registry's next free is 121).
+* **After E2 (outline, to be specified from R3):** the solver class. Make the stand-in a family, not one bot: run the
+  solver image at several settings (play threshold, resolver on and off, other stack depths if the image allows;
+  which knobs exist is unverified), measure each variant's A0 distance to Blueprint, fermat6, NashForge and hoops,
+  train one teacher against the pooled variants nearest the real names, and fit the gate class on the pooled variants
+  so its support covers the real names. Pre-registered check: R3's routing table repeated; the real solver names must
+  route to that expert.
+* **Unverified at writing:** the seat shares of the Ashwing and autodidact names; whether C1v5's reported table 4.2
+  holds R3's numbers; the solver image's settings.
 
 ### C1v5. Candidate slice: GS50 as the entered bot (spec, 2026-11-26; tier 1, a candidate; the roadmap agent's decision after 14.50)
 
