@@ -1506,7 +1506,7 @@ reader and driver)**
 * **Unverified at writing:** the seat shares of the Ashwing and autodidact names; whether C1v5's reported table 4.2
   holds R3's numbers; the solver image's settings.
 
-### V6b. v6 without T1: experts only where we hold real code or our own judge cell (spec, 2026-11-27; the roadmap agent after 14.56)
+### V6b. v6 without T1: experts only where we hold real code or our own judge cell (spec, 2026-11-27; the roadmap agent after 14.56; revision 1 after plan review 1)
 
 * **Why:** 14.56 shows that on the gate's 14 terms arena Blueprint and bp100 overlap, and 14.53 shows T1 gains nothing
   on the Blueprint clone at 45.7% routing. Every hand T1 plays in the arena is on an opponent we have no evidence for,
@@ -1517,75 +1517,186 @@ reader and driver)**
 * **Rule for any expert in a candidate (standing from here):** an expert enters only for opponents where we hold real
   code, our own judge cell, or a stand-in accepted by S1's two lines; a stand-in-based expert is capped at weight 0.5
   until live matches exist. Any expert taking more than 10% of the hands of an archive name above 2% of entrant-faced
-  seats, without real-code or live evidence for that name, gets that name's archive rows added to solver_like (or to a
-  second default-routed class) once, and the stage B table is read again.
-* **Package:** experts fb2-900 (default), C1 (small_ball), br_chipzen (chipzen), br_ashwing (ashwing family),
-  br_autofast (autodidact family); T1 is not in the package. Checkpoints asserted by full sha256 (br_ashwing
-  b247feb2..., br_autofast 08575045..., fb2-900 f7a29a39..., C1 and br_chipzen as in gs50's package at b14b176).
-* **Stages:**
-  1. Stage A, logging (E2 Stage 2 as written: seed 122, member names ext:ashwing, ext:ashwing_search, ext:autodidact,
-     ext:autodidact_fast, 500 matches each, fit pairs 0 to 199 and held out 200 to 249, under both actors fb2-900 and
-     v5 (v5's own play is what the deployed gate saw; the new gate's input is counts of the opponent, logged under both
-     actors as in G0b).
-  2. Stage B, gate fit and offline lines. Classes and priors, literal: solver_like 0.30 (expert: default; fitted on
-     bp100's G0b fit rows pooled with the fit-band archive rows of Blueprint and NashForge from 14.56's draw, seed 127,
-     reused by hash), small_ball 0.10 (C1), chipzen 0.05 (br_chipzen), ashwing 0.05 (br_ashwing), autodidact 0.05
-     (br_autofast), population 0.45 (default); sum 1.00. Threshold 0.50, terms, support test and temperature as v5,
-     calibration weighted per decision. If solver_like's three sources disagree on held-out rows (any source's own
-     held-out rows routed to a non-default expert above 10% in any bucket while the pooled class passes the others), split
-     into two default-routed classes (bp100; Blueprint with NashForge) at 0.15 each, once. Lines, buckets hands 1 to 10,
-     11 to 40, 41 and later, 300-hand pooling as in V6:
-     a. held-out archive Blueprint and NashForge (14.56's held-out band), the 400 `bot:Blueprint` shadow keys, and G0b's
-        held-out bp100 pairs under both actors: at most 10% routed to any expert in every bucket;
-     b. the new classes on stage A's held-out pairs: at least 50% to the right expert at hands 11 and later;
-     c. small_ball and chipzen: right-expert share at hands 11 and later not more than 5 points under v5's on the same
-        rows;
-     d. every remaining D4 cell (hive and wolf always), and V5b's generated styles: at most 10% routed in every bucket
-        under both actors;
-     e. reported: routing for every A0 name above 2% of entrant-faced seats; the standing rule above applies.
-     Any line fails after the one split: stop and return to the roadmap agent.
-  3. Stage C, judge, registered before any play, fresh fb2-900 arms: eligibility on B1's screen (seed 94, pairs 400 to
-     499) and ten validation styles (drawn on 123, played on 124) as G0b; confirmation on seed 125 across every C1v5
-     cell (bp100 included), hive and wolf held out; twenty new generated styles drawn and played on seed 126.
-     GUARD: no cell under -2.0 with its upper bound under zero; the twenty styles pooled lower bound above -2.0, none under
-     -5.0 with its upper bound under zero. NEW: lower bounds above +8.0 on ext:ashwing, +7.7 on ext:ashwing_search, +6.7
-     on ext:autodidact. KEEP: small_ball lower bound above +11.0; chipzen reported against +5.10. A NEW or KEEP miss with
-     GUARD holding is recorded and the candidate still proceeds (at worst v4 on those cells). B1's headline is not used
-     (0.70 of it sits on bp100, where v6b plays the default by design).
-  4. Stage D, candidate: C1v5's steps unchanged (deployment check with live-format parity for the gate inputs, one
-     fault-counter record per run, E1 on pairs 200 to 399, the heuristic head to head, a fresh verifier, then Wayne).
-     Card in plain words: v6b applies an expert only where we hold the opponent's real code or our own judge cell;
-     against the solver names and every other live name it plays as v4; v5's bp100 gain is given up on purpose; v6b is
-     meant to replace v5 on the account because v5 would play T1 against Blueprint on about 38% of hands with no evidence
-     that it helps.
-* **Envelope:** branches `v6-root` (runtime: the five-expert package, the class-to-expert map, T1 removed),
-  `v6` (drivers, readers, tests, plants), `v6-rl` (fitter); box dir `~/v6-run/b` onward; seeds 94 and 122 to 126 are
-  E2's registered lines and are read here under E2's registration (no new seed), any further style draw takes the next
-  free seed (128) registered first. Budget, hard cap at twice, each from a smoke on the real path: stage A 60 minutes,
-  B 20, C 150, D 60. Stops, fresh directories, `.pushed` gating, plant runner with every plant caught before launch, and
-  `train-essentials` (gate file and class row hashes after stage B), as in V6. Non-goals: no training, no new expert,
-  no change to v4, v5 or the account, no fetch from chipzen.ai.
+  seats, without real-code or live evidence for that name, gets that name's archive rows added to a default-routed
+  class once (stage B, outcome rows R and S+R), and the stage B lines are read again.
+* **Package (`rl/models/v6b.npz`, one file as gs50.npz is):** the gate plus five networks, each asserted by full sha256 of
+  its source file before the build: fb2-900 (default) f7a29a39d1bedf08c9c52129205f72af2f73c5bfd59c25de5443629dd088c7d3,
+  C1 97f051f381aaaae130072c2cbd010b236e0cfffd798fe111d5e1b08d0b2d0ed9, br_chipzen
+  666a436345eb5fd7180a886916c6200a35632ab3fe10c441ee6da09359048989 (both as `tools/g0_build.py` TEACHER_SHA, the files
+  gs50.npz was built from), br_ashwing b247feb2e7c15e767fda96c5a654fa36243916083ba263af5f7a34ed6aeb80d6, br_autofast
+  08575045b55952d6b37ae8cfa8910442cde918328089fe257db6fe76cdcbbc45 (E2's literals). T1 is not in the file. The gate file
+  carries an explicit class-to-expert map (`gs_class_expert`, one entry per class: an expert name or `default`); the
+  runtime reads the map, never the class position, and refuses a file whose map names a network the file does not hold.
+  Class-to-expert map, literal: small_ball to C1, chipzen to br_chipzen, ashwing to br_ashwing, autodidact to
+  br_autofast, solver_like (and `solver_bp100`, `solver_arch`, `field_extra` if stage B adds them) and population to the
+  default.
+* **Envelope:**
+  * Owners and bases: `v6-root` continues from 562cb58 (runtime: the map-driven `gs_route` with four experts, the
+    five-network builder, packaging; T1 removed from the v6b path, v5's gs50.npz still loads and routes as before);
+    `v6` continues from e23e5a9 (drivers, readers, judge, tests, plants); `v6-rl` continues from 79dc09a (fitter and
+    stage A logger). Every commit is pushed to `origin` and `archive`. Box: `~/v6-run/b` (code copies `code-root`,
+    `code-x2r`, `code-rl` with their `.commit` files, markers, gate files), stage A rows in one directory
+    `~/v6-run/b/a/rows/<actor>/<name>/` with actors `fb2` and `v5`; stage C rows `~/v6-run/b/c/`; stage D
+    `~/v6-run/b/d/` and the league run `~/poker-ai-lab-league/out/v6b/`. V6's `~/v6-run/a` is read only.
+  * Seeds: 94 and 122 to 126 are E2's registered lines (`94 E2 read`, `121 E2 read` to `126 E2 read`), read here under
+    E2's registration; the driver greps the registry for exactly one line each before stage A. Seed 128 is used only if
+    stage B's standing rule fires: the driver then copies the registry to `~/v6-run/b/seed_registry.pre-v6b` (once),
+    appends `128 V6b draw`, and greps for exactly one such line before the draw. Stage D's E1 pairs 200 to 399 and the
+    head to head use C1v5's league keys unchanged (no seed).
+  * Writes and rollback: commits on `v6-root`, `v6`, `v6-rl` (revert, including the T1 removal on `v6-root`);
+    `~/v6-run/b` and `~/poker-ai-lab-league/out/v6b/` (delete); registry line 128 if written (remove that line; the
+    pre-copy is the reference); the package `~/build-rl/holdem-v6b.tar.gz` (delete); after stage B one `train-essentials`
+    commit with the gate file, its sha256 and the class row hash lists (revert).
+  * Budget, hard cap at twice, each from a smoke on the real path before the stage (a scaled estimate over twice the
+    number does not start the stage): stage A 60 minutes, B 20, C 150, D 60. Cores 0-17 only; the driver stops a stage
+    when swap use on gb10-d rises above 12 GiB (gb10-d is shared with bench containers).
+  * Stops: any count, floor, parity or hash assertion that fails stops the stage and returns it to the roadmap agent; a
+    run interrupted by a recall or any outside stop is discarded whole and rerun in a fresh directory (the driver
+    refuses a non-empty one); each stage's result is pushed to research and `restore.md` updated before the next stage
+    starts (a `.pushed` marker per stage gates the next, as in V6).
+  * Non-goals: no training, no new expert, no change to v4, v5 or the account, no fetch from chipzen.ai.
+* **Stage A, logging (E2 Stage 2, amended):**
+  1. Cells: ext:ashwing, ext:ashwing_search, ext:autodidact, ext:autodidact_fast, each under both actors fb2-900
+     (`rl/models/fb2_it000900.npz`, f7a29a39...) and v5 (`rl/models/gs50.npz` of b14b176, f7d22324a4e7dcff00ebf67985702d1f98e1b26f443be50acfbd5c060a6891e6),
+     seed 122, exactly 500 matches per cell (250 pairs, both hero seats, pair numbers as G0b's logger), eight cells,
+     raw counts and action histories as G0b step A. No 300-match fallback: a smoke whose scaled estimate is over 120
+     minutes stops the stage.
+  2. Bands by pair number, the same for every cell and actor: pairs 0 to 149 fit, 150 to 199 calibration, 200 to 249
+     held out. (E2 Stage 2 had fit 0 to 199 and held out 200 to 249; the calibration band is taken from E2's fit band
+     so the new classes enter the temperature choice; held out is unchanged.)
+  3. Row checks (E2 Stage 1's, carried over; the reader, with plants): every cell exactly 500 rows with distinct keys;
+     the fb2 and v5 cells of a name have equal key sets; each cell's run log names the actor's asserted sha256 and the
+     root commit; every row has a non-empty action history and per-hand term counts. A short, duplicated, mismatched or
+     wrong-hash cell is void: it is played once more whole on seed 122 in a fresh directory; a second void stops stage A.
+  4. Hand floors (checked at the end of stage A, before stage B): per name and actor, the held-out pairs' hands at 11 and
+     later at least 300, else stage A stops; per name and actor, the calibration pairs at least 300 hands in all.
+* **Stage B, gate fit and offline lines:**
+  1. Classes and priors, literal, in this file order: small_ball 0.10 (C1), chipzen 0.05 (br_chipzen), ashwing 0.05
+     (br_ashwing), autodidact 0.05 (br_autofast), solver_like 0.30 (default), population 0.45 (default); sum 1.00.
+     Fit rows (match-end counts, as G0b): small_ball, chipzen and population from G0b's fit-labelled pairs in
+     `~/g0b-run/data/fit/{fb2,g50}` (population: the league:* and gen:* cells, as v5); solver_like from G0b's
+     fit-labelled bp100 pairs (both actors) pooled with the fit band of V6's seed 127 draw (Blueprint 500 matches,
+     NashForge 280) in `~/v6-run/a/terms/terms.jsonl`; ashwing from stage A's fit pairs of ext:ashwing and
+     ext:ashwing_search, autodidact from those of ext:autodidact and ext:autodidact_fast, both actors pooled.
+  2. Pinned inputs, asserted before the fit (a mismatch stops): `tools/v6_g0b_rows.sha256` (G0b fit rows, unchanged from
+     V6); a new committed `tools/v6b_inputs.sha256` listing `~/v6-run/a/terms/terms.jsonl`
+     f6736310ea7e97212166c386dcb1df6a3259d9b1a16c43a65332bf88afa3e501, `~/v6-run/a/terms/drawn.json` and
+     `~/v6-run/a/shadow/rows.jsonl` (their sha256 taken once by the build from the box files and committed), and every
+     row file of `~/g0b-run/data/eval/{fb2,g50}`; band counts asserted literal: Blueprint calibration 250, held out 250,
+     fit 500; NashForge 140, 140, 280. Stage A's own rows are listed with sha256 by stage A's reader and the list is read
+     back before the fit.
+  3. Temperature: chosen on G0b's grid (0.05 to 1.00 in steps of 0.05) by the least summed weighted negative
+     log-likelihood of the true class over these calibration rows only: G0b's calibration-labelled pairs of bp100
+     (true class solver_like), small_ball, chipzen and the population cells, both actors, weighted by the hero's
+     decisions per hand; the calibration band of the seed 127 draw (Blueprint and NashForge, true class solver_like),
+     weighted by the decisions of the seat facing the name; stage A's calibration pairs 150 to 199 (true class ashwing or
+     autodidact), both actors, weighted by the hero's decisions. Fit-band and held-out rows never enter (asserted per row).
+     Threshold 0.50, ramp 0.15, support test (alpha 0.01, at least 3 trials) on every expert class, as v5.
+  4. Lines. "Routed" means an expert other than the default has weight above 0. Buckets hands 1 to 10, 11 to 40, 41 and
+     later; a bucket with under 300 hands for a source is pooled into the bucket before it; a dry run prints every
+     line's per-source, per-bucket hand counts before the fit. No judging line reads a fit or calibration row
+     (asserted per row).
+     a. Solver sources, at most 10% routed in every bucket, per source: Blueprint and NashForge on the seed 127
+        held-out band (a name with under 300 held-out hands in hands 1 to 10 stops stage B); the 400 `bot:Blueprint`
+        shadow keys replayed by `tools/v6_shadow.py` with the stage B gate beside the actor (each replayed row equal to
+        E1's or the shadow source is void and not judged; under 300 hands in hands 1 to 10: reported, not judged);
+        G0b's test-labelled bp100 pairs, under fb2 and under g50 separately. Sources for the outcome table: bp100 (either
+        actor), Blueprint (archive or shadow), NashForge.
+     b. New classes, per member name and actor (fb2, v5), on stage A's held-out pairs 200 to 249: at hands 11 and later,
+        pooled, at least 50.0% of hands with the right expert's weight above 0 (ashwing names: br_ashwing; autodidact
+        names: br_autofast).
+     c. Old classes, per actor (fb2, g50), on G0b's test-labelled small_ball and chipzen pairs: the share of hands at 11
+        and later with the right expert's weight above 0 (C1, br_chipzen) under the stage B gate is not more than 5.0
+        points under v5's gate (gs50.npz) on the same rows.
+     d. Misroute, per cell and actor (fb2, g50), at most 10% routed in every bucket: G0b's eval rows of tight_sticky,
+        sticky_overbettor, small_ball_b, never_fold_pre, raise_station, loose_passive, ext:ashwing_hive and ext:wolf in
+        `~/g0b-run/data/eval/{fb2,g50}` (200 matches each), and the test-labelled pairs of the gen:0 to gen:59 cells in
+        `~/g0b-run/data/fit/{fb2,g50}` pooled per actor. Under 300 hands in hands 1 to 10: reported, not judged.
+     e. Standing rule: item 5's walk (`tools/r5_arena.py route`) over A0's snapshot with the stage B gate through the
+        `v6-root` runtime, for the names above 2% of entrant-faced seats, literal and asserted equal to the list
+        `r5_route.json` gives: Blueprint, fermat6, NashForge, hoops, mr_hide, r0ckGarden, PluriBot, slopBot,
+        WSmithSimLab. Per name, all its hands pooled; seed 127 fit and calibration matches excluded. A name fires when
+        any one expert has weight above 0 on more than 10.0% of its hands (none of the nine has real-code or live
+        evidence for any expert). Also reported, no line: every other A0 name's routing and Ashwing_v3 and
+        AutodidactInnovations to their experts.
+  5. Remedies (each at most once, applied together in fit 2): split, solver_like replaced by `solver_bp100` (G0b bp100
+     rows) and `solver_arch` (Blueprint and NashForge rows) at 0.15 each, both default; field_extra, a default class at
+     0.05 (population 0.45 to 0.40) fitted on the fired names' archive matches drawn with seed 128 by V6 stage A item
+     1's procedure (per name sorted by match id, `numpy.random.default_rng(128).permutation(n)` per name in the list
+     order above, first min(n, 1,000), index mod 4: 0 calibration, 1 held out, 2 and 3 fit; matches where both seats
+     are fired names dropped and counted; a fired name with under 120 held-out matches stops), its calibration band
+     entering the temperature choice and its held-out band the only rows line (e) reads for that name in fit 2.
+  6. Outcome table, literal (STOP_V6B returns the table to the roadmap agent; nothing goes to stage C):
+
+     | fit | condition | action |
+     |---|---|---|
+     | 1 | (a), (b), (c), (d) hold, (e) fires for no name | PASS: the gate goes to stage C |
+     | 1 | (b), (c) or (d) fails, whatever (a) and (e) show | STOP_V6B |
+     | 1 | (b), (c), (d) hold; (a) fails on one source; (e) fires for no name | fit 2 with the split |
+     | 1 | (b), (c), (d) hold; (a) fails on two or three sources; (e) fires for no name | fit 2 with the split |
+     | 1 | (a) to (d) hold; (e) fires for one or more names | fit 2 with field_extra over the fired names |
+     | 1 | (b), (c), (d) hold; (a) fails; (e) fires | fit 2 with the split and field_extra |
+     | 2 | (a) to (d) hold and (e) fires for no name | PASS: the gate goes to stage C |
+     | 2 | any of (a) to (d) fails | STOP_V6B |
+     | 2 | a name added to field_extra still fires | STOP_V6B |
+     | 2 | (e) fires for a name not in field_extra | STOP_V6B |
+
+     After a PASS the gate file, its sha256 and the row hash lists go to `train-essentials`.
+* **Stage C, judge, registered before any play, one arm (v6b), fresh fb2-900 arms on the same keys:** eligibility on B1's
+  screen (seed 94, pairs 400 to 499, 78.0% filter) and ten validation styles (drawn on 123, played on 124) as G0b;
+  ineligible stops. Confirmation on seed 125 across every C1v5 item 9 cell (bp100 included, 4000 matches; the six
+  rule bots 2000 each; small_ball and chipzen 2000 each; ext:ashwing, ext:ashwing_search, ext:ashwing_hive,
+  ext:autodidact, ext:wolf 1000 each) plus ext:autodidact_fast 1000; twenty new generated styles drawn and played on
+  seed 126. GUARD: no cell under -2.0 with its upper bound under zero (hive and wolf included); the twenty styles pooled
+  lower bound above -2.0, none under -5.0 with its upper bound under zero. NEW: lower bounds above +8.0 on ext:ashwing,
+  +7.7 on ext:ashwing_search, +6.7 on ext:autodidact. KEEP: small_ball lower bound above +11.0; chipzen reported
+  against +5.10. A NEW or KEEP miss with GUARD holding is recorded and the candidate proceeds (at worst v4 on those
+  cells); a GUARD failure stops. Counters: one fault-counter record per counted run, read fail-closed as C1v5.
+* **Stage D, candidate:** C1v5 steps 1, 3 and 4 unchanged (step 2's fresh confirmation is stage C): deployment check
+  (limits, purity, live-format parity for the gate inputs on the 330 replays and 2,000 engine matches, the size-record
+  guard, the fault counter, latency at 0.5 vCPU, sha256 list equal across context, image and export), E1 on league pairs
+  200 to 399 (23 opponents, 400 matches each, 80% each) and the head to head over 102b05e (400 matches, Wilson lower
+  bound above 50%), then the card and a fresh outcome verifier, then Wayne for the swap yes. Card in plain words: v6b
+  applies an expert only where we hold the opponent's real code or our own judge cell; against the solver names and
+  every other live name it plays as v4; v5's bp100 gain is given up on purpose; v6b is meant to replace v5 on the
+  account because v5 would play T1 against Blueprint on about 38% of hands with no evidence that it helps.
+* **Tests and plants (committed with a plant runner per branch; every plant caught before launch):**
+  1. `v6-rl`: the six-class prior vector literal and summing to 1.00 (and the split and field_extra vectors); class
+     rows per class from the named sources only (a D4 name or a held-out pair in the fit fails); the band split by pair
+     (149 fit, 150 calibration, 199 calibration, 200 held out); the temperature rows (a held-out or fit row entering
+     fails; per-decision weights); the input hash lists (one changed row file, one changed terms.jsonl, wrong band
+     counts fail); stage A row checks (499 rows, a duplicate key, unequal key sets between actors, a wrong actor hash,
+     an empty action history, a non-empty cell directory).
+  2. `v6-root`: the class-to-expert map literal with T1 absent (a file naming T1 or a missing network is refused); the
+     five literal sha256 values in the builder (one byte changed in any source fails); gs50.npz still routes exactly as
+     before on C1v5's 330 replays (parity with r3.json); an L6-form cross-tree test: stage A held-out rows replayed
+     through the `v6-root` runtime give class posteriors and per-expert weights equal to the fitter's within 1e-9, with
+     at least one decision where each of the four expert classes has weight above 0 and one where solver_like's
+     posterior is above 0.50 with all expert weights 0 (plants: ashwing mapped to br_autofast, solver_like mapped to
+     C1, the map read by position).
+  3. `v6`: thresholds at 10.0% (holds) and 10.1% (fails) for lines (a), (d) and (e); 50.0% (holds) and 49.9% (fails)
+     for (b); 5.0 (holds) and 5.1 points (fails) for (c); the bucket pooling and the floors (stage A's 300-hand floors,
+     line (a)'s stop at 299 archive hands, the shadow and line (d) not-judged branches at 299); the void shadow branch;
+     the nine-name list against a fixture `r5_route.json` (a tenth name above 2% fails); every row of the outcome
+     table, including the split on one source and on two, field_extra on one name, both remedies together, and each
+     fit 2 stop; the seed 128 draw (literal order, both-seats-fired dropped, the 120 floor) and its registry line
+     written only when (e) fires; stage C's GUARD, NEW and KEEP lines at their bounds; the driver's fresh-directory
+     refusal, `.pushed` gating, fail-closed steps under pipefail, the budget stop from a planted smoke estimate over
+     twice the number, and the swap stop.
 * **S1 beside it (spare cores, its own spec later):** solver image variants at each setting the image exposes, 300
   logged matches each against fb2-900. A variant is a stand-in for a name when (1) its A0 distance to the name is at
   most 0.17 and (2) on the gate's 14 terms its held-out rows route to a class fitted on that name's archive rows on at
   least 50% of hands at 11 and later. A variant passing both gives a teacher worth training and a class that tells it
   from bp100; none passing closes the offline route to the solver class.
-* **Review record:** plan review 1 REVISE (2026-11-27), revision pending, five blockers to fix: (1) the temperature
-  rule and every class's calibration rows are not fixed (state T fixed at v5's value or chosen on the grid over named
-  calibration rows; give the new classes a calibration band or exclude them; a committed sha256 list of the seed 127
-  fit-band rows from `~/v6-run/a`); (2) Stage B lacks a literal outcome table (all pass; (a) fails on one source only;
-  (a) fails otherwise; (b), (c) or (d) fails before the split; any failure after it; the standing rule firing, firing
-  after a split, a name still above 10% after the re-read), the standing rule's destination class, prior, rows, draw
-  seed and band, and line (e)'s rows; (3) Stage A rows: pin 500 matches per name and actor (no 300 fallback; a smoke
-  over the cap stops), carry E2 Stage 1's row checks, per-line hand floors with a stop or not-judged branch, the actors
-  for lines (b) and (c), one row directory; (4) base commits per branch (`v6-root` 562cb58, `v6` e23e5a9, `v6-rl`
-  79dc09a) and a writes and rollback list (branch commits, box dirs, a registry line 128 with label and pre-copy,
-  `train-essentials`, the T1 removal in `v6-root`); (5) an enumerated V6b test and plant list (six-class prior vector
-  summing to 1.00, the class-to-expert map with T1 absent, literal sha256 for all five experts, an L6-form cross-tree
-  runtime test with a positive decision for each new class, the split trigger, the standing rule, thresholds at 10.0
-  and 10.1%, 50%, 5.0 and 5.1 points, the not-judged and stop branches).
+* **Review record:** plan review 1 REVISE (2026-11-27), five blockers: (1) temperature rule and calibration rows not
+  fixed, no hash list of the seed 127 rows; (2) no literal stage B outcome table, the standing rule's class, prior,
+  rows, seed and band, line (e)'s rows; (3) stage A rows (500 per name and actor, E2's row checks, hand floors, actors
+  for (b) and (c), one row directory); (4) base commits and the writes and rollback list; (5) an enumerated test and
+  plant list. Revised (this text): Stage B items 2, 3, 5, 6 and line (e); Stage A items 1 to 4; the envelope; the tests
+  and plants list.
 * **Unverified at writing:** whether solver_like's three sources form one coherent class; whether chipzen-like bots
-  play in the arena (br_chipzen's live value); the solver image's settings; v6b against any live opponent.
+  play in the arena (br_chipzen's live value); the solver image's settings; v6b against any live opponent; the hands
+  per match against the four stage A names (the floors decide).
 
 ### V6. One candidate: the solver names back to the default, plus E2's classes (spec, 2026-11-27; the roadmap agent after 14.54)
 
