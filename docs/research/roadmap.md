@@ -6,7 +6,10 @@ not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in
 v5 (GS50, 14.51) passed the full upload gate on 2026-11-27 and is uploaded as `poker-ai-lab-v5`; the Season 16
 swap window had closed, so v4 stays entered. To continue on a new machine, read `restore.md` first.
 
-## Where we are (2026-11-27 02:30 UTC)
+## Where we are (2026-11-27 08:23 UTC)
+
+**Redirect (Wayne, 2026-11-27 08:23 UTC):** the known-opponent expert line (G0 to V6b) stops; it is not a global solution. Next is a first-principles plan for the global path from a fresh roadmap agent: a base strategy that unknown opponents cannot exploit, an opponent model that generalizes from the real field, and a decision procedure with a safety blend. V6b is parked (its Status line).
+
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
 win probability against it, and a safety blend. Revision 2's lookahead work (14.17 to 14.24) showed the
@@ -1507,6 +1510,8 @@ reader and driver)**
   holds R3's numbers; the solver image's settings.
 
 ### V6b. v6 without T1: experts only where we hold real code or our own judge cell (spec, 2026-11-27; the roadmap agent after 14.56; revision 1 after plan review 1)
+
+* **Status: STOPPED 2026-11-27 08:23 UTC by Wayne, before any run.** He asked whether this is a global solution and judged it is not: every slice since G0 adds an expert for a known opponent behind a gate, which gains only where the gate names the opponent (v5: bp100, small_ball, chipzen; V6b's families are about 2 to 4% of live seats) and leaves the base strategy, which a 2-minute exploiter beats 96.5%, unchanged. Work returns to the global path (opponent model plus a decision procedure plus a safety blend, Wayne 2026-11-21). The partial build is parked unverified: `v6-root` e9a9d95, `v6-rl` 6d56896, `v6` e23e5a9 (no V6b commit); gb10-d scratch `~/v6b-build`. No seed, registry line or run directory was written.
 
 * **Why:** 14.56 shows that on the gate's 14 terms arena Blueprint and bp100 overlap, and 14.53 shows T1 gains nothing
   on the Blueprint clone at 45.7% routing. Every hand T1 plays in the arena is on an opponent we have no evidence for,

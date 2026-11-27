@@ -105,7 +105,7 @@ roadmap's order of evidence:
 4. Box outputs of 14.52 to 14.56 (E2 Stage 1 rows and classes, R3, item 5, R4, the rule table, V6 stage A gates,
    lines and terms including the seed 127 fit-band rows V6b reuses) are on archive branch `train-essentials`,
    `results/results-20261127.tar.gz` (sha256 072e0849...2c2e, paths relative to the box home).
-5. Next: V6b (roadmap "### V6b."), plan review 1 REVISE recorded in its review record; revise, then build and run.
+5. V6b was revised and reviewed twice, then STOPPED by Wayne on 2026-11-27 08:23 UTC before any run (roadmap "### V6b." Status): the known-opponent expert line is not a global solution. Partial build parked unverified on `v6-root` e9a9d95 and `v6-rl` 6d56896. Next: the global path plan (roadmap "Where we are", Redirect).
 6. To resume on a new machine: ship the branches, copy `code-root` from `c1v5-root` b14b176, and relaunch a stage with
    its driver's restart flag (`E2_RESTART=1`, `R45_RESTART=1`, `V6_RESTART=1`); every driver refuses stale directories.
 
