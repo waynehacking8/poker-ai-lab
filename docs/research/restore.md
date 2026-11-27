@@ -92,8 +92,8 @@ roadmap's order of evidence:
 2. Real-arena measurement of v5 once it plays (Season 17 entry or challenges), since clones overstate (14.3, 14.36).
 3. Revision 2's lookahead (14.17 to 14.24), parked until the opponent model at the root is good enough.
 
-**State on 2026-11-27 (update with each read):** E2 (roadmap "### E2.") runs Stage 1 only, the gain matrix on seed
-121 (`~/e2-run` on gb10-d, branch `e2` ddd487a); its class table fixes membership for the next gate. R4R5 (roadmap
+**State on 2026-11-27 (update with each read):** E2 Stage 1 is done (14.55, CONTINUE both; the gain matrix on seed
+121 (`~/e2-run` on gb10-d, branch `e2` ddd487a); its class table fixes membership for the next gate). V6 (roadmap "### V6.") is next: stage A, a solver_live class for Blueprint and NashForge, then E2 Stages 2 to 5 into one candidate v6. R4R5 (roadmap
 "### R4R5.", branch `r45` 973550f, `~/r45-run`) decides per live name whether v5's T1 routing is a liability; item 5
 is done (14.52: Blueprint, 15.4% of entrant-faced seats, gets T1 on 38.5% of hands), R4 next, then the validity
 check, R5 and the rule table. A rule-A outcome leads to v5.1, a gate refit through C1v5's steps. To resume on a new

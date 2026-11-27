@@ -2429,3 +2429,28 @@ clones), so R5 contributed nothing and every target name is C.
 * What this does not show: that T1 loses to Blueprint. It shows nothing measures T1 there, and the rule puts the
   largest live names on the default until something does.
 
+### 14.55 E2 Stage 1: the teachers' gain matrix; both families get a class (CONTINUE both)
+
+Tool: holdem-x2r `e2` ddd487a `tools/e2_drive.sh` on gb10-d (03:18 to 04:44 UTC), root b14b176, seed 121, 500 matches
+per cell, 24 cells, 0 voids; `~/poker-ai-lab-x2r/logs/e2/stage1_table.txt` and `stage1_classes.json`. Build verifier
+CONFIRMED.
+
+| name | br_ashwing minus fb2-900 | br_autofast minus fb2-900 | class |
+|---|---|---|---|
+| ext:ashwing | +14.2 [+10.2, +18.2] | -2.8 [-7.3, +1.7] | ashwing |
+| ext:ashwing_search | +13.6 [+9.6, +17.6] | -2.0 [-6.5, +2.5] | ashwing |
+| ext:ashwing_hive | +5.8 [+2.3, +9.3] | -6.6 [-10.5, -2.7] | held out (population) |
+| ext:ashwing_v2 | +5.8 [+2.3, +9.3] | -6.6 [-10.5, -2.7] | population |
+| ext:ashwing_adaptive | +5.8 [+2.3, +9.3] | -6.6 [-10.5, -2.7] | population |
+| ext:ashwing_value | +0.8 [-2.0, +3.6] | +2.2 [-0.8, +5.2] | population |
+| ext:autodidact | +1.2 [-2.9, +5.3] | +14.2 [+10.3, +18.1] | autodidact |
+| ext:autodidact_fast | +2.2 [-2.2, +6.6] | +13.2 [+9.3, +17.1] | autodidact |
+
+* Verdict CONTINUE both: ashwing family {ext:ashwing, ext:ashwing_search}, autodidact family {ext:autodidact,
+  ext:autodidact_fast}. The teachers are specific: each loses or ties against the other family.
+* `ext:ashwing_hive`, `ext:ashwing_v2` and `ext:ashwing_adaptive` give identical rows on every key apart from the
+  opponent label (checked by hashing the rows without it). In our harness the V2 and Adaptive classes play exactly as
+  Hive Mind, so their river logic never changes an action. The engine does send `seats` with `is_self`; why the river
+  path is inert is unverified. It changes no class here (all three are population), but `ext:ashwing_v2` is not an
+  independent cell, and the live Ashwing_v2 may play differently on the river than our copy.
+
