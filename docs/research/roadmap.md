@@ -1516,7 +1516,7 @@ reader and driver)**
 * **Envelope:**
   * Owners: V6 supersedes E2's `e2-root` (never created) and continues `e2` as `v6`. Runtime, gate files and
     packaging on `v6-root` from `c1v5-root` b14b176; drivers, readers, tests and plants on `v6` from `r45` 973550f (which
-    contains `e2`); the fitter on holdem-rl `v6-rl` from `g0b-rl`. Box: `~/v6-run` (code copies, markers, stage A rows
+    contains `e2`); the fitter on holdem-rl `v6-rl` from `g0b-rl` 9e413f6. Box: `~/v6-run` (code copies, markers, stage A rows
     and gate files), E2 Stage 2 to 5 rows under `~/v6-run/e2/` (E2 Stage 1's rows stay in `~/poker-ai-lab-x2r/logs/e2/`,
     read only). The `train-essentials` commit is made from `~/v6-run` by the main session.
   * Seeds: 127 `V6 draw`. Before stage A the driver copies the registry to `~/v6-run/seed_registry.pre-v6` (once),
@@ -1534,52 +1534,77 @@ reader and driver)**
     smoke estimate over the cap.
   * Non-goals: no training, no new expert, no change to v4, v5 or the account, no fetch from chipzen.ai.
 * **Stage A, the solver_live class:**
-  1. Candidates and draw: every A0-snapshot poker match (item 5's population) with Blueprint or NashForge as a seat,
-     per name sorted by match id ascending; `numpy.random.default_rng(127).permutation(n)` per name (Blueprint first),
-     the first min(n, 1,000) kept in that order. Bands by position in the drawn order: index mod 4 = 0 calibration,
-     1 held out, 2 and 3 fit. Floors: at least 150 held-out matches per name, else stage A stops.
-  2. Rows: a rerun of item 5's walk (`tools/r5_arena.py route --dump-terms`, gate file `rl/models/gs50.npz` of
-     b14b176 for the tracker, output `~/v6-run/a/terms.jsonl`) writing, per drawn match, the 14 term counts after
-     every hand for the seat facing the name (the runtime's own tracker, so the counts are what the gate sees live).
-     Fit rows use the match-end counts; calibration rows enter the temperature choice over every decision, as G0b's
-     calibration pairs do; held-out rows never reach the fit or the temperature choice (plant: held-out rows fed to the
-     temperature choice must fail a test).
-  3. Classes and priors in stage A, literal: bp100 0.10, solver_live 0.25 (expert: the default, fb2-900),
-     small_ball 0.10, chipzen 0.05, population 0.50 (sum 1.00; the 0.10 for the two E2 families sits in population
-     until E2 Stage 3, where it moves to them as 0.05 and 0.05, or stays with an empty family). Same terms, support
-     test, threshold 0.50 and temperature grid as G0b step B; the existing class rows reused by hash.
+  1. Candidates and draw: every A0-snapshot poker match (item 5's population) with Blueprint or NashForge as a seat.
+     Matches where both seats are target names (Blueprint against NashForge, or a name against itself) are dropped
+     and counted. Per name, sorted by match id ascending; `numpy.random.default_rng(127).permutation(n)` per name
+     (Blueprint first, a fresh generator per name), the first min(n, 1,000) kept in that order. Bands by position in
+     the drawn order: index mod 4 = 0 calibration, 1 held out, 2 and 3 fit. Floor: at least 150 held-out matches per
+     name, else stage A stops.
+  2. Rows: a rerun of item 5's walk (`tools/r5_arena.py route --dump-terms`, tracker from `rl/models/gs50.npz` of
+     b14b176, output `~/v6-run/a/terms.jsonl`) writing, per drawn match, the 14 term counts after every hand for the
+     seat opposite the target name. Fit rows use the match-end counts; calibration rows enter the temperature choice
+     over every decision, as G0b's calibration pairs do; held-out rows never reach the fit or the temperature choice.
+     The reused G0b fit rows (`~/g0b-run/data/fit/fb2` and `.../g50`) are listed with sha256 in a committed
+     `tools/v6_g0b_rows.sha256`, asserted before the fit (plant: one changed row file fails).
+  3. Classes and priors in stage A, literal: bp100 0.30, solver_live 0.25 (expert: the default, fb2-900),
+     small_ball 0.10, chipzen 0.05, population 0.30 (sum 1.00). bp100 keeps v5's 0.30 so that line (c) isolates the
+     effect of the new class; solver_live's mass comes from population. (The roadmap agent proposed bp100 0.10; kept at
+     0.30 here so a bp100 change cannot be traced to two causes; recorded as a design call.) Same terms, support test,
+     threshold 0.50 and temperature grid as G0b step B.
   4. Runtime: if `Policy.gs_route` cannot map a second class to the default expert, `v6-root` adds that mapping, with
-     a test that v5's own gate file still routes exactly as before on C1v5's 330 replays (parity with r3.json).
+     (i) a test that v5's own gate file still routes exactly as before on C1v5's 330 replays (parity with r3.json), and
+     (ii) a cross-tree test in G0b L6's form: held-out Blueprint and NashForge per-hand rows replayed through the
+     `v6-root` runtime give class posteriors and per-expert weights equal to the fitter's within 1e-9, with at least
+     one decision where solver_live's posterior is above 0.50 (plant: solver_live mapped to T1).
   5. Offline lines, in order. "Routed" means w_k > 0 for any expert other than the default; T1 is reported as a
      column. Buckets: hands 1 to 10, 11 to 40, 41 and later; a bucket with under 300 hands for a name is pooled into
-     the bucket before it, and a name with under 300 hands in hands 1 to 10 stops stage A.
-     a. Archive: on each name's held-out matches, at most 10% of hands routed in every bucket.
-     b. Own hero: v6's stage A gate replayed through R4's recorder on the 400 `bot:Blueprint` keys under the fb2-900
-        actor, and walked over R3's Blueprint and NashForge matches (v4 as hero); at most 10% routed in every bucket
-        with the same pooling rule.
-     c. bp100: on G0b's held-out bp100 pairs, per actor (fb2-900 and v5), the share routed to T1 at hands 11 and
-        later, pooled over those hands, not more than 5.0 points under v5's on the same rows.
-     d. Outcomes: (a) and (b) hold and (c) holds: pass. (a) and (b) hold and (c) fails: pass with the bp100 price
-        recorded; then E2 Stage 3 line 4 compares bp100 with stage A's share instead of v5's, and Stage 4 drops KEEP's
-        bp100 line (bp100 stays a GUARD cell). (a) or (b) fails: fit two classes once (Blueprint and NashForge apart,
-        0.125 each) and rerun (a) to (c); a second failure of (a) or (b) stops V6 and returns it to the roadmap agent.
+     the bucket before it; a dry run prints the per-name, per-bucket hand counts of every line's rows before the fit.
+     a. Archive: on each name's held-out matches, at most 10% of hands routed in every bucket. A name with under 300
+        held-out hands in hands 1 to 10 stops stage A.
+     b. Own hero, shadow only (nothing plays): Blueprint on two pooled sources, the 400 `bot:Blueprint` keys of
+        fb2-900's E1 run replayed with the stage A gate evaluated beside the actor (R4's recorder, each replayed row
+        equal to the E1 fb2-900 row, or the source is void) and R3's Blueprint matches walked with v4 as hero;
+        NashForge on R3's matches only. At most 10% routed in every bucket. A name whose own-hero rows have under 300
+        hands in hands 1 to 10 is reported and not judged by (b); a void source is dropped and counted.
+     c. bp100: the held-out bp100 pairs of G0b step A, under each of its two logged actors (fb2-900 and G50, the rows in
+        `~/g0b-run/data/eval`), with both v5's gate file and the stage A gate evaluated offline on the same rows; the
+        share routed to T1 at hands 11 and later, pooled over those hands, per actor, not more than 5.0 points under
+        v5's. A row set whose actor label is not fb2-900 or G50 fails a test.
+     d. Outcomes: (a), (b) and (c) hold: pass. (a) and (b) hold and (c) misses by more than 5.0 but at most 10.0 points
+        on either actor: pass with the bp100 price recorded; E2 Stage 3 line 4 then compares bp100 with stage A's share
+        instead of v5's, and Stage 4 drops KEEP's bp100 line (bp100 stays a GUARD cell). (c) misses by more than 10.0
+        points: stop. (a) or (b) fails: fit two classes once (Blueprint and NashForge apart, 0.125 each) and rerun (a)
+        to (c); a second failure of (a) or (b) stops V6 and returns it to the roadmap agent.
   6. Reported, no line: routing after the refit for fermat6, MonteCarlo, PluriBot, mr_hide, DeepStack, Chatterbox
      and R3's 330-replay names.
-  7. Known limit, on the record: archive counts come from other heroes and our class rows from fb2-900 and v5 (14.47
-     showed the hero moves counts); line (b) is the check under our own hero that we can run without live play.
-  8. Tests and plants: the literal draw over a fixed candidate list; the four-band split with no match in two bands;
-     the 150-match and 300-hand floors; the bucket pooling; held-out rows reaching the temperature choice; the literal
-     prior vector summing to 1.00; v5's own routing parity after any runtime change; line (a) and (b) with 10.1% to
-     br_chipzen and 0% to T1 failing; line (c) at 5.0 and 5.1 points per actor; every branch of (d), including the
-     comparator switch in E2 Stage 3 line 4.
+  7. Known limit, on the record: archive counts come from other heroes and the class rows from fb2-900 and G50 (14.47
+     showed the hero moves counts); line (b) is the own-hero check we can run without live play, and it is a shadow,
+     not v6 playing.
+  8. Tests and plants: the literal draw over a fixed candidate list, including one Blueprint-against-NashForge match
+     and one Blueprint-against-Blueprint match (both dropped); the four-band split with no match in two bands; the
+     150-match and 300-hand floors and the (b) not-judged branch at 160 hands; the bucket pooling; held-out rows
+     reaching the temperature choice; the literal prior vector summing to 1.00; the reused-row hash list; both runtime
+     tests and their plants; lines (a) and (b) with 10.1% to br_chipzen and 0% to T1 failing; line (c) at 5.0, 5.1,
+     10.0 and 10.1 points per actor; every branch of (d).
+* **E2 Stage 1's verdict decides the continuation (one path each):**
+  * `CONTINUE both`: E2 Stages 2 to 5 as below.
+  * `CONTINUE ashwing only` or `CONTINUE autodidact only`: Stages 2 to 5 for that family only; the empty family's 0.05
+    stays in population.
+  * `STOP E2`: no Stage 2; Stage 3 refits nothing new and uses stage A's gate as v6's gate (its lines 2 and 4 for the
+    families drop; line 3 misroute and line 4 for the old classes and solver_live still apply); Stage 4 without its
+    NEW lines; then Stage 5.
 * **Then E2 Stages 2 to 5** as written in "### E2.", owned as in the envelope above, with these changes: Stage 3 fits
-  all classes with stage A's priors (families at 0.05 each, population 0.40) and the solver_live rows; Stage 3 line 4
+  all classes with stage A's priors (families at 0.05 each
+  taken from population, which goes to 0.20) and the solver_live rows; Stage 3 line 4
   also covers solver_live (its held-out share routed not more than 5 points above stage A's); the stage A (d)
   comparator switch applies; the v6 card carries one line saying the headline measures gain on bp100 itself and is
   not an estimate of arena gain.
 * **Review record:** plan review 1 REVISE (rows lacked per-hand counts and a calibration band, line (a) could pass
   on empty buckets and bounded T1 only, no own-hero check, priors summed to 0.90, branch (c) clashed with E2 Stage 3,
-  two owners for Stages 2 to 5, no smoke, plant runner or registry copy); revised.
+  two owners for Stages 2 to 5, no smoke, plant runner or registry copy); revised. Plan review 2 REVISE (no v5 rows on
+  G0b's bp100 pairs, line (b) would stop on NashForge's sample, matches with both names, no path for each E2 verdict,
+  no positive runtime test, the bp100 prior cut confounded line (c) and the price branch was unbounded, no fitter commit
+  or row hashes); the cap of two is reached, fixed first-hand on 2026-11-27 (this text).
 * **After V6:** S1, the solver stand-in family (run the solver image at each setting it exposes, 300 logged matches
   each against fb2-900; a variant is a stand-in for a name when its A0 distance is at most 0.17); live play, which is
   Wayne's to start. Parked: lookahead, clone-trained experts, more style pooling.
