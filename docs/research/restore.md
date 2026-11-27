@@ -69,7 +69,10 @@ Not worth copying: model and Hugging Face caches, venvs, `bp-src` (upstream gith
 ## 5. First checks on the new machine
 
 1. Clone the archive, archive `c1v5-root` into a run root and `c1v5` into an evaluation tree (LF endings).
-2. Build the venvs from `environment/` and run each tree's `pytest -q`; the evaluation tree also runs its plant runner
+2. Build the venvs from `environment/` and run each tree's slice tests (for the root: `tests/test_c1v5_root.py`,
+   `test_g0b_root.py`, `test_rl_*.py`; the repo-wide `pytest` also collects old CFR tests that need pandas). In a
+   tree without `.git`, set `C1V5_REF` to an archive of `27773b0` for the parity test. Rehearsed 2026-11-27 from a fresh
+   clone of the archive: 80 passed, 5 skipped; the evaluation tree also runs its plant runner
    (`tests/c1v5_plants.py`: 130 of 130 caught on the old box).
 3. Rebuild the v5 image from `c1v5-root` and check `rl/models/weights.npz` sha256 f7d22324...91e6 and the 17-file
    list in the image against the Hugging Face copy.
