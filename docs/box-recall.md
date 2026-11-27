@@ -13,7 +13,7 @@ box are `git archive` copies, so a matching blob means the file is in a commit; 
 | Status | Files | Where it is now |
 |---|---|---|
 | In a pushed commit | 20,449 | GitHub, poker-ai-lab |
-| Only in a local PC branch | 2,754 | PC checkout, 35 local branches with no remote plus 5 commits on holdem-league and 25 on holdem-rl |
+| Only in a local PC branch | 2,754 | **pushed**: all 42 local branches are on poker-ai-lab-archive (35 had no remote; holdem-league and holdem-rl were 5 and 25 commits ahead of origin) |
 | In no commit (box only) | 318 code and small result files, plus data | **pushed** to the private repo github.com/waynehacking8/poker-ai-lab-archive, branch `box-d-snapshot`, folder `box-d/` (read back: 318 files) |
 
 The box-only set is small scripts and result summaries from the run folders (`ad0-run`, `c1v5-run`, `g0b-run`, `v5b-run`, `x3b-verify`,
@@ -22,10 +22,7 @@ The box-only set is small scripts and result summaries from the run folders (`ad
 `d2_timing/gen_*` (generated). No secret pattern (HF, OpenAI, GitHub, AWS tokens, private keys, bearer tokens) was found in the snapshot or
 in the unpushed local commits.
 
-Open: pushing the local branches to the private archive repo was refused by the session's permission classifier. The command, for Wayne
-to run: `git -C C:/Users/WEI-CHENG/Desktop/poker-ai-lab push https://github.com/waynehacking8/poker-ai-lab-archive.git 'refs/heads/*:refs/heads/*'`.
-They go to the private repo, not the public one, because they carry models still unpublished during Season 16 (`rl/models/gs50.npz`,
-`s2_it1800.npz`, `b1.npz`, `blueprints/d*.bp`). The local branches sit on the PC, so the box recall alone does not lose them.
+All 42 local branches were pushed to the same private repo on 2026-11-27 at Wayne's request; every branch tip on the archive equals the local one (read back with `git ls-remote`). They go to the private repo, not the public one, because they carry models still unpublished during Season 16 (`rl/models/gs50.npz`, `s2_it1800.npz`, `b1.npz`, `blueprints/d*.bp`).
 
 Other git repos on gb10-d (`claude-code-config`, `loop-eng`, `oss`) are clean with nothing unpushed. `~/gb10-agent` on the box is a deploy
 copy, not a git checkout.
