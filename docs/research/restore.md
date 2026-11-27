@@ -1,0 +1,93 @@
+# Restore: continue the research on a clean machine (2026-11-27)
+
+The test boxes are vendor loans and may go back. This page is what a new machine needs to pick up where the work
+stopped: where the code, the models and the records are, which data has to be copied off the old box, how the
+environment was built, and what comes next. The result record is `experiments.md`, the plan is `roadmap.md`.
+
+## 1. Where everything is
+
+| What | Where | Visibility |
+|---|---|---|
+| Research records (this folder) | github.com/waynehacking8/poker-ai-lab, branch `research`, `docs/research/` | public |
+| Deploy branch and HANDOFF | same repo, branch `holdem-chipzen` (`docs/HANDOFF.md`, `docs/box-recall.md`) | public |
+| Every work branch (42) and the box-only files | github.com/waynehacking8/poker-ai-lab-archive (all branches; `box-d-snapshot`; `desktop-leftovers`) | private |
+| The shipped v5 commit | tag `v5-c1v5` on the archive = `c1v5-root` b14b176 | private |
+| v5 package as uploaded | Chipzen bot `poker-ai-lab-v5` (uploaded 2026-11-27), image `holdem-v5-c1v5.tar.gz` sha256 3758ca7f...0840 | account |
+| v5 runtime, weights, card, research copy | huggingface.co/waynehacking8/poker-ai-lab-hunl-v5 (private until the Season 16 playoffs end) | private |
+| Python package lists, seed registry | `env/` next to this page | public |
+
+Clone everything with `git clone https://github.com/waynehacking8/poker-ai-lab-archive.git` (all branches come along),
+then `git -c core.autocrlf=false` for every `git archive` that goes to a Linux box (CRLF breaks the shell scripts).
+
+## 2. The code lines
+
+Work was split into three trees that live side by side on the box, each an `git archive` copy of one branch:
+
+| Tree on the box | Branch line (latest) | What it holds |
+|---|---|---|
+| `~/poker-ai-lab-rl` | `holdem-rl` b047c04, then per-slice branches ending in `-rl` (latest `g0b-rl` 9e413f6) | training: `rl/` PPO trainer (torch), `tools/rl_s2.sh`, `t1_run.sh`, `b1_run.sh`, `ckpt/`, `tools/seed_registry.txt` |
+| `~/poker-ai-lab-x2r` (and per-run copies `~/<slice>-run/code-*`) | `holdem-x2r` 8be6e38, then per-slice branches without a suffix (latest `c1v5` 4767f28) | evaluation: arena drivers, judges and readers (`tools/*_drive.sh`, `*_judge.sh`, `*_read.py`), fault-plant runners |
+| run roots `~/<slice>-run/code-root*` | per-slice branches ending in `-root` (latest `c1v5-root` b14b176) | what gets packaged: `rl/` runtime and bot classes, `deploy/` (Dockerfile, build and parity scripts), the pinned model files |
+| `~/poker-ai-lab-league` | `holdem-league` 57a63b8 | the 23-opponent league, candidates, leaderboard (`out/`) |
+
+To continue from v5: start the root tree from `c1v5-root`, the evaluation tree from `c1v5`, and the training tree
+from `g0b-rl` (it builds the gate and the experts). Each slice's spec in `roadmap.md` names its branches and the
+exact commands.
+
+## 3. Environment
+
+* Python 3.12.3. Training venv (`~/poker-ai-lab-rl/.venv`): `env/requirements-rl-venv.txt` (torch 2.15.0 with the
+  CUDA 13 wheels, numba 0.68.1, numpy 2.5.5, chipzen-bot 0.7.0, pytest 9.2.0). League venv:
+  `env/requirements-league-venv.txt` (numpy, chipzen-bot, pytest). The deployed bot needs numpy only.
+* The training trainer picks CUDA when present and falls back to CPU. The old box was a 20-core ARM machine with
+  one GPU and 121 GB of memory; arena runs used 6 to 18 worker processes.
+* Docker with buildx for the Chipzen image, which is `linux/amd64`: on an ARM box install QEMU binfmt first
+  (`docker run --privileged --rm tonistiigi/binfmt --install amd64`, lost at reboot). Build:
+  `deploy/build_on_box.sh` and `deploy/remote_build.sh` on the root tree.
+* Hosted limits the image must meet: 0.5 vCPU, 256 MB, 5 s per decision, under 200 MB, non-root user.
+
+## 4. Data to copy off the old box (paths on gb10-d)
+
+Code is all on GitHub. These are the results that cost hours or days to make again; sizes and the full list are in
+`docs/box-recall.md` on `holdem-chipzen`.
+
+| Priority | Path | Size | Needed for |
+|---|---|---|---|
+| 1 | `~/poker-ai-lab-rl/ckpt/` (68 runs; `fb2/it000900.npz` carries the PPO value head the deployed npz lacks; the v5 experts' teachers are `br_bp100` (T1) and `br_chipzen`) | 2.8 GB | any training that starts from fb2-900 or the experts |
+| 1 | `~/poker-ai-lab-rl/tools/seed_registry.txt` (copy in `env/`) | 4 KB | fresh-seed discipline: the next free seed is 121 |
+| 1 | `~/chipzen-replays/` (44,169 public match files) | 4.1 GB | replay clones, the real-arena reads; about 54 h of paced fetching to redo |
+| 2 | `~/bp-data/` (`blueprint-100bb.tar` and its abstraction) and `~/bp-logs/` | 4.1 GB | the bp100 opponent (the largest share of the field) |
+| 2 | `~/poker-ai-lab-d2s2/data/g1` and `logs/` | 3.8 GB | the G1 per-name fine-tune data |
+| 2 | `~/ad0-run/data*`, `~/v5b-run/data*` | 2.0 GB | distillation rows (about 97 min each to redo) |
+| 1 | `~/poker-ai-lab-x2r/ckpt/br_small_ball/` (C1, the third v5 teacher) | 30 MB | rebuilding or extending the v5 experts |
+| 3 | `~/poker-ai-lab-x2r/logs/`, `~/poker-ai-lab-league/out/` | 0.3 GB | raw rows behind every recorded result |
+| 3 | `~/g0b-run/students/`, `~/g0b-run/styles_g0b.json`, `~/c1v5-run/styles_c1v5.json`, `~/v5b-run/styles.json` | small | the gate files and the generated test styles (exclusion lists for new styles) |
+
+Not worth copying: model and Hugging Face caches, venvs, `bp-src` (upstream github.com/matteo-psnt/poker-solver).
+
+## 5. First checks on the new machine
+
+1. Clone the archive, archive `c1v5-root` into a run root and `c1v5` into an evaluation tree (LF endings).
+2. Build the venvs from `env/` and run each tree's `pytest -q`; the evaluation tree also runs its plant runner
+   (`tests/c1v5_plants.py`: 130 of 130 caught on the old box).
+3. Rebuild the v5 image from `c1v5-root` and check `rl/models/weights.npz` sha256 f7d22324...91e6 and the 17-file
+   list in the image against the Hugging Face copy.
+4. Rerun one cheap arena cell (for example `python -m rl.eval_arena --model rl/models/gs50.npz --opp ext:wolf
+   --matches 200 --seed <smoke seed> --workers 6`) to confirm the engine and opponents load; use a seed outside the
+   registry for smoke runs, so the next read still gets an untouched one.
+
+## 6. Where the research stands and what is next
+
+v5 (GS50: fb2-900 plus three experts behind an open-set opponent gate) passed the full upload gate (14.51) and is
+uploaded to the account; Season 16 keeps v4 because the swap window closed on 23 Nov. v5 gains only where the gate
+routes (bp100 +18.9, `small_ball` +20.1, `chipzen` +5.9) and plays as fb2-900 elsewhere. The open levers, in the
+roadmap's order of evidence:
+
+1. The Ashwing and autodidact families, where v5 equals fb2-900: the T-a experts (`br_ashwing` +16.0 and +15.4,
+   `br_autofast` +13.4, 14.45) are trained and kept for later; the gate would need a class for each to route to them.
+2. Real-arena measurement of v5 once it plays (Season 17 entry or challenges), since clones overstate (14.3, 14.36).
+3. Revision 2's lookahead (14.17 to 14.24), parked until the opponent model at the root is good enough.
+
+Process rules that held through the work: a written spec per slice, plan review and outcome verification, fresh
+seeds from the registry for every read, counters on every judged run, and a fault-plant runner committed with the
+tests.

@@ -3,8 +3,10 @@
 Set 2026-11-22. Wayne's goal: the long-term strongest bot, a "future king". The Season 16 deadline does
 not matter. The Season 16 entry is `poker-ai-lab-v4` (rl-fb2-900 plus the all-in answer of S0, image sha256
 0291ee39...) since 2026-11-22 18:45 UTC, Wayne approved. `poker-ai-lab-v3` (rl-fb2-900) stays uploaded.
+v5 (GS50, 14.51) passed the full upload gate on 2026-11-27 and is uploaded as `poker-ai-lab-v5`; the Season 16
+swap window had closed, so v4 stays entered. To continue on a new machine, read `restore.md` first.
 
-## Where we are (2026-11-26 16:55 UTC)
+## Where we are (2026-11-27 02:30 UTC)
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
 win probability against it, and a safety blend. Revision 2's lookahead work (14.17 to 14.24) showed the
@@ -52,9 +54,13 @@ Revision 3 re-aimed the judge at the opponents an entrant actually meets (14.29:
    `small_ball` hands from hand 11.
 12. **G0b step D: GS50 PASS** (14.50): bp100 +18.4 [+16.7], `small_ball` +18.8 [+16.9], `chipzen` +7.0,
    `sticky_overbettor` -0.2 on fresh seed 113, test styles pooled -0.1; 23 of 23 league opponents at 80% or more
-   on the screen. Next: the candidate slice (upload gate on GS50 as it would be entered).
+   on the screen.
+13. **C1v5: v5 = GS50 as entered, VERDICT PASS** (14.51): headline +13.21 [+12.00], bp100 +18.9 [+17.2],
+   `small_ball` +20.1 [+18.1], twenty new styles pooled -0.2; 23 of 23 league opponents at 80% or more over 400
+   (lowest 83.25%); head to head over 102b05e 76.25% (Wilson lower 71.8%). The first candidate to clear the gate.
 
-Next: **G0b** (spec below): opponent bet sizes, a population class and a support test, so the gate can stay on fb2-900 for an opponent it was not built for; G80 read post hoc as the reference arm.
+Next (no slice written yet; levers in `restore.md` section 6): experts for the Ashwing and autodidact families,
+where v5 equals fb2-900 (T-a's teachers, 14.45), and real-arena measurement of v5 once it plays.
 
 ## Revision 3 (2026-11-25): re-aim the judge at the classes that decide titles (in progress)
 
