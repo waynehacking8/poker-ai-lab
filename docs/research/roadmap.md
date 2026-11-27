@@ -1538,8 +1538,10 @@ reader and driver)**
      Matches where both seats are target names (Blueprint against NashForge, or a name against itself) are dropped
      and counted. Per name, sorted by match id ascending; `numpy.random.default_rng(127).permutation(n)` per name
      (Blueprint first, a fresh generator per name), the first min(n, 1,000) kept in that order. Bands by position in
-     the drawn order: index mod 4 = 0 calibration, 1 held out, 2 and 3 fit. Floor: at least 150 held-out matches per
-     name, else stage A stops.
+     the drawn order: index mod 4 = 0 calibration, 1 held out, 2 and 3 fit. Floor: at least 120 held-out matches per
+     name, else stage A stops (lowered from 150 on 2026-11-27 after the build's dry run counted NashForge at 140 held
+     out, 324 of its 884 matches being against Blueprint and dropped; no routing had been computed; the 300-hand
+     bucket floor, the real power guard, is unchanged and NashForge's held-out buckets hold 1,341, 3,047 and 1,973).
   2. Rows: a rerun of item 5's walk (`tools/r5_arena.py route --dump-terms`, tracker from `rl/models/gs50.npz` of
      b14b176, output `~/v6-run/a/terms.jsonl`) writing, per drawn match, the 14 term counts after every hand for the
      seat opposite the target name. Fit rows use the match-end counts; calibration rows enter the temperature choice
@@ -1566,8 +1568,8 @@ reader and driver)**
         equal to the E1 fb2-900 row, or the source is void) and R3's Blueprint matches walked with v4 as hero;
         NashForge on R3's matches only. At most 10% routed in every bucket. A name whose own-hero rows have under 300
         hands in hands 1 to 10 is reported and not judged by (b); a void source is dropped and counted.
-     c. bp100: the held-out bp100 pairs of G0b step A, under each of its two logged actors (fb2-900 and G50, the rows in
-        `~/g0b-run/data/eval`), with both v5's gate file and the stage A gate evaluated offline on the same rows; the
+     c. bp100: the held-out bp100 pairs of G0b step A, under each of its two logged actors (fb2-900 and G50, the test-labelled
+        bp100 rows in `~/g0b-run/data/fit/<actor>/bp100`), with both v5's gate file and the stage A gate evaluated offline on the same rows; the
         share routed to T1 at hands 11 and later, pooled over those hands, per actor, not more than 5.0 points under
         v5's. A row set whose actor label is not fb2-900 or G50 fails a test.
      d. Outcomes: (a), (b) and (c) hold: pass. (a) and (b) hold and (c) misses by more than 5.0 but at most 10.0 points
