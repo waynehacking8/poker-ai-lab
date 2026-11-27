@@ -11,6 +11,7 @@ environment was built, and what comes next. The result record is `experiments.md
 | Research records (this folder) | github.com/waynehacking8/poker-ai-lab, branch `research`, `docs/research/` | public |
 | Deploy branch and HANDOFF | same repo, branch `holdem-chipzen` (`docs/HANDOFF.md`, `docs/box-recall.md`) | public |
 | Every work branch (42) and the box-only files | github.com/waynehacking8/poker-ai-lab-archive (all branches; `box-d-snapshot`; `desktop-leftovers`) | private |
+| Training essentials (fb2 run with its value head, the v5 expert teachers `br_bp100`, `br_small_ball`, `br_chipzen`, the T-a teachers `br_ashwing`, `br_autofast`, the gate files, the test styles; 68 MB) | same archive, branch `train-essentials` (`box-d/<old home path>`, `SHA256SUMS`) | private |
 | The shipped v5 commit | tag `v5-c1v5` on the archive = `c1v5-root` b14b176 | private |
 | v5 package as uploaded | Chipzen bot `poker-ai-lab-v5` (uploaded 2026-11-27), image `holdem-v5-c1v5.tar.gz` sha256 3758ca7f...0840 | account |
 | v5 runtime, weights, card, research copy | huggingface.co/waynehacking8/poker-ai-lab-hunl-v5 (private until the Season 16 playoffs end) | private |
@@ -48,7 +49,7 @@ exact commands.
 
 ## 4. Data to copy off the old box (paths on gb10-d)
 
-Code is all on GitHub. These are the results that cost hours or days to make again; sizes and the full list are in
+Code and the training essentials above are on GitHub. These are the larger results that cost hours or days to make again; sizes and the full list are in
 `docs/box-recall.md` on `holdem-chipzen`.
 
 | Priority | Path | Size | Needed for |
