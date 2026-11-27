@@ -1506,7 +1506,7 @@ reader and driver)**
 * **Unverified at writing:** the seat shares of the Ashwing and autodidact names; whether C1v5's reported table 4.2
   holds R3's numbers; the solver image's settings.
 
-### R4R5. Is T1 routing a liability on live names? (spec outline, 2026-11-27; the roadmap agent after R3)
+### R4R5. Is T1 routing a liability on live names? (spec, 2026-11-27; the roadmap agent after R3)
 
 * **R3 result (reported only, ~/e2-run/r3.out on gb10-d, C1v5's 330 replays):** E2's target names are about 3.6% of
   seats (Ashwing_v3 0.8%, Ashwing_v2 0.2%, AutodidactInnovations 2.7%), so E2 is worth about half a point of field
@@ -1517,23 +1517,51 @@ reader and driver)**
   Fabulous 6.1%, qwentom-leap 5.5%) go almost all to the default.
 * **E2 rescoped:** Stage 1 finishes and its matrix is recorded (it fixes class membership); Stages 2 to 5 do not
   run as their own slice. The two classes ride along in the next candidate.
-* **R4, clones under v5 (archive only, no new matches):** from C1v5's E1 logs, per league clone, the share of hands
-  v5 routed to each expert and v5's paired gain against fb2-900 on pairs 200 to 399. Read the sign of the paired
-  difference, not the level (clones overstate, 14.25). If the logs hold no routing counts, replay the gate over the
-  logged hands.
-* **R5, what beats whom in the real arena (the 16,099-match archive):** for each of the top 15 names by A0
-  entrant-faced share and each name with T1 share of 25% or more in R3: every opponent with at least 20 archive
-  matches against it, its win rate and its A0 eight-axis style vector; the style vectors of our experts as players
-  (T1, C1, br_chipzen, fb2-900, br_ashwing, br_autofast) from logs we hold; per name, the pooled win rate of archive
-  opponents within 0.25 of each expert's style against those within 0.25 of fb2-900's style (one widening to 0.35
-  allowed, recorded).
-* **Decision rule, per name with T1 share of 25% or more, fixed now:**
+* **Facts checked on gb10-d (2026-11-27):** C1v5's E1 run `~/poker-ai-lab-league/out/c1v5/verify-rl-v5/results.jsonl`
+  and the earlier `~/poker-ai-lab-league/out/verify-fb2-900/results.jsonl` each hold 9,600 rows on the same 9,600
+  (opponent, pair, seat) keys, pairs 200 to 399 of the 24 league clones `arch:0` to `arch:23`, and every key has the
+  same match seed in both, so the paired gain needs no new matches. Neither file holds routing counts or hands. The
+  archive `~/chipzen-replays` holds per-action records (A0's reader uses streets[].actions[]), so R3's routing can be
+  repeated on it. Style vectors: A0's eight axes in `tools/style_map.py` (each in [0, 1], a missing axis read as 0.5),
+  distance Euclidean, field vectors in `~/poker-ai-lab-x2r/logs/a0/vectors.json`.
+* **R4, clones under v5:**
+  1. Paired gain per clone: v5 `a_win` minus fb2-900 `a_win` on the same key, 400 keys per clone, mean with a 95%
+     interval (z 1.96); the reader asserts 9,600 rows per file, identical key sets and identical seeds per key.
+  2. Routing: v5 replayed on the same 9,600 keys with a routing recorder (per hand: the expert the gate chose, from
+     `Policy.gs_route`); parity check: every replayed row's `a_win`, `a_chips` and `hands` equal the E1 row, or the
+     clone's routing is void. Root copy `c1v5-root` b14b176, cores 18-19 (Stage 1 holds 0-17).
+  3. Clone to name: each clone's source name from the league's clone map (the builder names the file; unverified).
+* **R5, what beats whom in the real arena (`~/chipzen-replays`, 16,099 poker matches, asserted):**
+  1. Target names: the top 15 by A0 entrant-faced share (14.29) and every name with T1 share of 25% or more in R3.
+  2. Per target name: every opponent with at least 20 archive matches against it, that opponent's win rate there
+     (match winner as A0 defines it), and that opponent's A0 vector from `vectors.json`.
+  3. Expert vectors as players: T1, C1, br_chipzen, fb2-900, br_ashwing, br_autofast, each by `style_map.sim` against
+     the fixed mix `tight_sticky`, `sticky_overbettor`, `small_ball_b`, `never_fold_pre`, `raise_station`,
+     `loose_passive`, `ext:ashwing`, `ext:autodidact_fast`, `chipzen`, `bp100`, 50 matches each on seed 127
+     (registered `127 R5 read` before it runs).
+  4. Per target name and expert: the pooled win rate of archive opponents within distance 0.25 of the expert's
+     vector, and the same for fb2-900's vector, with match counts; one widening to 0.35 when either side has under
+     100 matches, recorded.
+  5. R3 repeated on the archive (all poker matches, A0's entrant-faced filter): per name, seat share and v5's routing
+     shares. These shares replace R3's in the 2% test of rule C.
+* **Decision rule, per name with T1 share of 25% or more (in R3 or in R5 item 5), fixed now:**
   A. LIABILITY: T1-like opponents score at least 5 points under fb2-like ones on at least 100 matches each side, or
-     R4 shows the clone's paired gain upper bound under zero while routed to T1 on more than 25% of hands. Action:
-     v5.1, the gate refit with that name's real archive counts in the population class; C1v5's steps again before
-     it replaces v5.
+     R4 shows the name's clone with its paired gain upper bound under zero while routed to T1 on more than 25% of
+     hands. Action: v5.1, the gate refit with that name's real archive counts in the population class; C1v5's steps
+     again before it replaces v5.
   B. SUPPORTED: T1-like opponents score at least 5 points above fb2-like ones on the same counts. Keep, recorded.
-  C. NO EVIDENCE: under 100 matches on either side. Above 2% of entrant-faced seats, treat as A; smaller, leave.
+  C. NO EVIDENCE: under 100 matches on either side after the widening. Above 2% of entrant-faced seats, treat as A;
+     smaller, leave as is.
+  A and B both firing (R4 says liability, R5 says supported): A wins, since a wrong expert costs and a wrong default
+  does not.
+* **Envelope:** branch `r45` from `e2` ddd487a (tools `tools/r4_clones.py`, `tools/r5_arena.py`, tests and plants
+  with a committed plant runner); box dir `~/r45-run`; outputs `r4.json`, `r5.json` and their printed tables. Budget:
+  R4 about 60 minutes on cores 18-19 (stop at 120), R5 about 45 (stop at 90; the archive pass took A0 under an hour).
+  Writes: branch commits (revert), `~/r45-run` (delete), registry line `127 R5 read` (remove). Tests: the paired
+  reader (a missing key, a seed mismatch, a 9,599-row file), the routing parity check (one changed row voids the
+  clone), the distance and pooling (a synthetic table with a known answer), the rule table (every combination of A,
+  B, C, including A and B both firing), the 16,099 assertion. Non-goals: no training, no gate refit (that is v5.1's
+  own slice after the read), no change to v5 or the account, no fetch from chipzen.ai.
 * **Map for the slice after:** for the large default-routed names, a counter-style with pooled win rate of 65% or
   more on at least 100 matches makes the name an expert target; its clone-trained teacher is accepted only if its
   style vector lies within 0.25 of that counter-style. No such counter-style: the name stays on the default.
