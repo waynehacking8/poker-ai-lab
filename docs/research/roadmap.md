@@ -8,7 +8,7 @@ swap window had closed, so v4 stays entered. To continue on a new machine, read 
 
 ## Where we are (2026-11-27 08:23 UTC)
 
-**Redirect (Wayne, 2026-11-27 08:23 UTC):** the known-opponent expert line (G0 to V6b) stops; it is not a global solution. The roadmap agent's plan is "### Global path" and its first slice "### GP0." (a measurement: the lookahead's ceiling where the base is weak, whether a model fitted only on arena-visible logs carries it on real code, and the sturdier base on the aggressor styles). V6b is parked (its Status line).
+**Redirect (Wayne, 2026-11-27 08:23 UTC):** the known-opponent expert line (G0 to V6b) stops; it is not a global solution. The roadmap agent's plan is "### Global path" and its first slice "### GP0." (a measurement: the lookahead's ceiling where the base is weak, whether a model fitted only on arena-visible logs carries it on real code, and the sturdier base on the aggressor styles). V6b is parked (its Status line). **GP0 Stage 0 (14.57): BASE-FLAT**, S2 it1800 minus fb2-900 on `small_ball` -0.9 [-2.9, +1.1], pooled over four aggressor cells -1.25 [-2.12, -0.38]; the base stays last. Stage A next.
 
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match

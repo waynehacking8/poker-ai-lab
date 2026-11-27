@@ -111,7 +111,11 @@ roadmap's order of evidence:
 7. GP0 (roadmap "### GP0.", the global path's first slice, a measurement): its inputs are on `train-essentials` 88df139
    (`box-d/poker-ai-lab-rl/ckpt/s2/it001800.npz`, the G1 base fits `box-d/poker-ai-lab-d2s2/data/g1/*.pt` and
    `slice2k/fit_fold0_*.pt`, the D2a logs as `box-d/poker-ai-lab-d2s2/logs/d2a-<bot>.tar.xz` for ashwing,
-   autodidact_fast and wolf; untar into `~/poker-ai-lab-d2s2/logs/d2/`); 18 hashes read back. Plan review 1 running.
+   autodidact_fast and wolf; untar into `~/poker-ai-lab-d2s2/logs/d2/`); 18 hashes read back. Plan reviewed (READY),
+   built on `gp0` e1424cd (archive only), build verifiers capped and fixed first-hand. Run dir `~/gp0-run` (code in
+   `code/`, seeds 128 to 132 `GP0 read`). Stage 0 done (14.57, BASE-FLAT). Stage A next:
+   `cd ~/gp0-run/code && setsid -f bash tools/gp0_drive.sh A > ~/gp0-run/driveA.out 2>&1 < /dev/null`; a stage
+   interrupted by a recall is rerun with `GP0_RESTART=1` (the old directory is moved aside).
 8. `origin` (poker-ai-lab) is public: only research and holdem-chipzen go there; code branches with weights and
    `train-essentials` stay on the private archive (Wayne, 2026-11-27).
 

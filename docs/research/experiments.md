@@ -2485,3 +2485,26 @@ fermat6 15.5% to 2.7%.
   its hands on T1, while bp100 keeps 93% or more. On these 14 terms Blueprint and bp100 overlap: the gate sees
   Blueprint as bp100 for long stretches. A gate on these terms cannot keep T1 for bp100 and keep it off Blueprint.
 
+
+### 14.57 GP0 Stage 0: BASE-FLAT; the sturdier base (S2 it1800) does not win more against the aggressor styles
+
+Tool: holdem-x2r `gp0` e1424cd `tools/gp0_drive.sh 0` on gb10-d (12:38 to 12:41 UTC 2026-11-27), from `~/gp0-run/code`
+(`code.commit`); rows, records and result in `~/gp0-run/stage0/` (`result.json`, `runs.jsonl`, `capacity_*.json`).
+Seed 128 (`128 GP0 read`, registered with 129 to 132 by the driver, pre-copy `~/gp0-run/seed_registry.pre-gp0`).
+S2 it1800 `~/poker-ai-lab-rl/ckpt/s2/it001800.npz` (sha256 prefix 4989481c5e7d5d8b, asserted) against fb2-900, plain
+`rl.eval_arena`, 2,000 matches per cell, paired on (seed, hero seat). Capacity at the run: 19.0 GiB available, swap 11.9
+GiB, 16 workers (shared device; timings are from a shared box).
+
+| cell | it1800 minus fb2-900 (points) | 95% interval |
+|---|---|---|
+| `small_ball` | -0.90 | [-2.91, +1.11] |
+| `small_ball_b` | -2.45 | [-4.44, -0.46] |
+| `sticky_overbettor` | -1.30 | [-2.76, +0.16] |
+| `loose_passive` | -0.35 | [-1.70, +1.00] |
+| pooled (equal weight) | -1.25 | [-2.12, -0.38] |
+
+* Verdict **BASE-FLAT** (the `small_ball` upper bound +1.11 is under +4.0): E3 stays a reported number and the base
+  stays last in the order; no base slice is specified beside GP1.
+* Reading: S2's exploiter league made the policy harder to exploit (E3 96.5% to 78.7%, 14.10, 14.15) but it does not
+  convert into wins against the styles that take fb2-900's over-fold; if anything it gives up about a point. The leak
+  those styles take is one the decision procedure has to answer online, which is what Stages A and B measure.
