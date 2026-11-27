@@ -102,7 +102,11 @@ roadmap's order of evidence:
    it; on the gate's 14 terms the two overlap. Branches `v6` e23e5a9, `v6-root` 562cb58, `v6-rl` 79dc09a; box dir
    `~/v6-run`; seed 127 used. The next step is the roadmap agent's call (v6 without T1, other terms, or S1 and live
    play).
-4. To resume on a new machine: ship the branches, copy `code-root` from `c1v5-root` b14b176, and relaunch a stage with
+4. Box outputs of 14.52 to 14.56 (E2 Stage 1 rows and classes, R3, item 5, R4, the rule table, V6 stage A gates,
+   lines and terms including the seed 127 fit-band rows V6b reuses) are on archive branch `train-essentials`,
+   `results/results-20261127.tar.gz` (sha256 072e0849...2c2e, paths relative to the box home).
+5. Next: V6b (roadmap "### V6b."), plan review 1 REVISE recorded in its review record; revise, then build and run.
+6. To resume on a new machine: ship the branches, copy `code-root` from `c1v5-root` b14b176, and relaunch a stage with
    its driver's restart flag (`E2_RESTART=1`, `R45_RESTART=1`, `V6_RESTART=1`); every driver refuses stale directories.
 
 Process rules that held through the work: a written spec per slice, plan review and outcome verification, fresh
