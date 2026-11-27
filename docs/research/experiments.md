@@ -2508,3 +2508,7 @@ GiB, 16 workers (shared device; timings are from a shared box).
 * Reading: S2's exploiter league made the policy harder to exploit (E3 96.5% to 78.7%, 14.10, 14.15) but it does not
   convert into wins against the styles that take fb2-900's over-fold; if anything it gives up about a point. The leak
   those styles take is one the decision procedure has to answer online, which is what Stages A and B measure.
+* Outcome verifier CONFIRMED (2026-11-27): every gain, SE and interval recomputed from the raw rows with its own script
+  (2,000 distinct shared keys per cell and arm, won consistent with stacks, pool = mean of the four gains with SE
+  sqrt(sum SE^2)/4); a 40-match replay per arm on small_ball and loose_passive matched its own arm's rows 40 of 40 and the
+  other arm's 13 or 14 of 40, so each arm used its pinned model; registry diff exactly 128 to 132 `GP0 read`.
