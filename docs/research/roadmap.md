@@ -8,7 +8,7 @@ swap window had closed, so v4 stays entered. To continue on a new machine, read 
 
 ## Where we are (2026-11-27 08:23 UTC)
 
-**Redirect (Wayne, 2026-11-27 08:23 UTC):** the known-opponent expert line (G0 to V6b) stops; it is not a global solution. Next is a first-principles plan for the global path from a fresh roadmap agent: a base strategy that unknown opponents cannot exploit, an opponent model that generalizes from the real field, and a decision procedure with a safety blend. V6b is parked (its Status line).
+**Redirect (Wayne, 2026-11-27 08:23 UTC):** the known-opponent expert line (G0 to V6b) stops; it is not a global solution. The roadmap agent's plan is "### Global path" and its first slice "### GP0." (a measurement: the lookahead's ceiling where the base is weak, whether a model fitted only on arena-visible logs carries it on real code, and the sturdier base on the aggressor styles). V6b is parked (its Status line).
 
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
@@ -1508,6 +1508,142 @@ reader and driver)**
   route to that expert.
 * **Unverified at writing:** the seat shares of the Ashwing and autodidact names; whether C1v5's reported table 4.2
   holds R3's numbers; the solver image's settings.
+
+### Global path: decomposition and ranking (the roadmap agent after the Redirect, 2026-11-27 08:30 UTC)
+
+Read only report; the first slice is "### GP0." below. Order: GP0, then GP1 chosen by GP0's outcome table (Path A the
+lookahead as the bot, the safety blend first, Path C model work, or Path B a deeper procedure), a base slice only on
+BASE-UP, live reads as seasons allow. V6b stays parked; v5 stays uploaded and not entered, no v5.1; v4 stays the default
+entry. No new per-opponent expert.
+
+#### 1.1 What decides match wins against the live field
+
+* **Objective:** the field-weighted sum over opponents of P(match win), on what an entrant actually faces (14.29, 14,531 entrant seats): Blueprint 15.4%, fermat6 6.8%, NashForge 6.1%, hoops 5.8%, mr_hide 5.7%, r0ckGarden 5.3%, PluriBot 3.8%, slopBot 2.7%, WSmithSimLab 2.3%, the ten regulars 5.4%, a long tail for the rest. The solver-like cluster is about 35% of seats. The names we hold code for (Ashwing, autodidact) are 2 to 4%.
+* **How a match is won:** 100 bb start, blind steps every 20 hands, median field match 26 hands, 42% end before hand 21 (experiments section 1, Revision 2). A hand of 5,000 chips or more occurs in 76.5% of matches (14.29). So a match is one or two stack-sized pots plus the small-pot drift that sets the stacks going into them. Match value is near linear in chips between near-equals (14.28, K 0.80 against bp100) and strongly concave when we have an edge (14.16), so the utility must follow the estimated edge.
+* **Where our chips go today (real code and one live loss):** folding after the flop (60.7% folds to 0.4 to 0.8 pot flop bets against a 39.5% break-even, 14.26; the exploiter takes 1.09M chips there, 14.8); stack commitments at bad equity against the solver proxy (flop shoves called at 0.284, river call-offs at 0.198, 14.27); thin river raises into better hands (14.26).
+* **The fact that orders everything:** we have no measurement of our own win rate against 96% of the live field. Live record is about ten matches (14.26, HANDOFF). Clones overstate by 20 to 30 points (14.3) and even good clones by 2 to 7 (14.25). bp100 sits at the edge of the solver cluster (0.250 from Blueprint, preflop raise +0.22, 14.37), T1 gains nothing on the Blueprint clone (14.53), and Blueprint cannot be told from bp100 on the gate's terms (14.56).
+* **A fact about v5 that supports the owner's challenge (14.52, checked in the table):** on live names v5's small-ball expert fires on at most 0.2% of hands (slopBot, the bot it was styled on: 0.1%) and br_chipzen on at most 7%. Live, v5 differs from v4 almost only by T1 on solver-looking names (Blueprint 38.5% of hands, MonteCarlo 41%, NashForge 21%), where nothing measures T1. The +18.9 and +20.1 are gains on our stand-ins.
+* **Why adaptation is still the right core:** the best responses conflict. Training on one class gains 12 to 22 points there (14.12, 14.30, 14.31, 14.41) and costs 6 to 18 elsewhere (14.33); one PPO policy on the mix keeps a quarter of the gains and loses 3 to 5 on other families (14.36). No single reactive policy is best against this field, so the gain has to come from knowing the opponent, and the owner's rule says how: a model plus a procedure plus a safety blend, applied identically to every name.
+
+#### 1.2 Levers
+
+| lever | evidence held | expected gain on the live field | cost here | risk |
+|---|---|---|---|---|
+| **E. Evaluation that reflects the field** | 14.3, 14.25, 14.37, 14.53, 14.56; about ten live matches | none directly; it is what tells the other levers apart on 96% of seats | zero compute. Archive reads are free; live challenges are the owner's standing limit and are not raised | without it every gain below is a claim about held-out real code and archive calibration, not about the arena |
+| **M. Opponent model that generalizes from the field** | frequencies: name adds 0.080 nats, in-match +0.378 on unseen names (14.13); the λ range +1.09 nats on held-out replays (14.20); one population net fails cold start but passes for names with history (14.32); a per-name fine-tune gives R +1.00 against +0.57 at 1,000 matches and +0.88 at 100, failing only fold calibration at big postflop bets by 5 to 7 points (14.34); 75.1% of seats face a name with 100 or more archived matches, under 1% a first match (14.29) | sets how much of the procedure's ceiling is realized: true range +3.2 against X1's range -4.8 on the same seeds (14.19) | GPU minutes per name (0.06 GPU-hours for three bots, 14.34) | likelihood and strength move apart (14.25); big-bet calibration; runtime size in numpy is unmeasured |
+| **P. Decision procedure** | match-win utility is required, a one-street search is not enough (14.16); rollouts with the true model +4.2 [+2.7, +5.7], losses halved, on cells we already win 92% (14.17); with X1 plus λ at N = 32: `ext:` +2.8 [+0.9, +4.7], rule pool +0.1, fits the arena (14.22); the specialists' gain is a whole-strategy shift of +12 to +22 (14.12, 14.30) | unknown where it matters: the ceiling was never measured on a cell the base wins under 80%. T2 was deferred | CPU only: about 0.3 s per decision at N = 32, 1.9 s at N = 128 | a one-step improvement over a policy that folds later streets may not reach a multi-street shift |
+| **S. Safety of exploitation** | the Z gate tests rollout noise only: X2m lost 4.6 with every override past 2.6 standard errors (14.18); `sticky_overbettor` -11.7 at N = 128, -3.0 at N = 32 (14.21, 14.22); a closed gate misroutes an unseen bot with rising confidence (14.47), a support test fixes it (14.49) | turns "gains on one pool, level on the other" into something that can ship; worth the size of the guard losses, 3 to 12 points on wide bettors | small: an ensemble or posterior draw in the rollouts and a predictive-evidence gate | gating the gain away |
+| **B. Base strategy exploitability** | a 2-minute exploiter wins 96.5% (14.9); the exploiter league brought it to 78.7% and then stopped paying, at -3 league points and -1.1 [-2.8, +0.6] on bp100 (14.10, 14.15, 14.27); 5 of the field's top 10 are themselves exploitable by over-folding and slopBot rates first by exploiting, not by being sturdy (14.29); the real blueprint wins only 63% against random (14.1) | against today's field: unproven, possibly zero. Never measured: whether the sturdier checkpoint wins more against the styles that take the over-fold. For the future field it is insurance against adaptive bots | a real recipe change is days of training with no known recipe; one read of the existing checkpoint is minutes | highest: the only attempt lost field win rate |
+
+#### 1.3 Ranking and the order of slices
+
+1. **GP0, the first slice (spec in Part 2): procedure ceiling and model transfer, measured on held-out real code with a model fitted only on what the arena shows.** It ranks first because it is the central claim of the owner's architecture, it has never been measured where the base is weak, it needs no training, and each stage can kill a path. It also carries a one-hour read of the sturdier base on the aggressor styles, which settles lever B's rank with data instead of argument.
+2. **GP1, chosen by GP0's outcome table** (stop and switch rules are the table in the spec):
+   * **Path A, the lookahead as the bot:** numpy port at N = 32, per-name fits over every archive name with 100 or more matches on the gb10-c GPU, K from the estimated edge, the safety blend, then the deploy gate. Taken when the fitted model carries the gain and guards hold.
+   * **Safety first:** the blend alone on the failing cells, when the gain is there but a guard fails.
+   * **Path C, model work:** pot-weighted calibration at big bets and capacity on the GPU, judged by GP0's Stage B rerun on fresh seeds, when the true model gains and the fitted one does not.
+   * **Path B, a deeper procedure:** when rollouts cap low even with the true model. One policy conditioned on the model's posterior, trained on the GPU against the fitted models of the archive's names with fb2-900 as the anchor. Its own kill test comes first: a best response trained against the fitted model of `ext:ashwing` must keep at least half of br_ashwing's +14.2 on the real code.
+3. **Base slice, only if GP0's Stage 0 reads BASE-UP,** written then for the gb10-c GPU beside GP1. On BASE-FLAT, E3 stays a reported number and the base's leaks are left to the procedure, which fixes them online against whoever takes them.
+4. **Live read:** whatever is entered plays its season fixtures and the archive fetch brings them in. With about ten matches a season this confirms nothing per class; the per-class live judge exists only with a challenge series, which is the owner's standing limit. Until then the judge of record is held-out real code plus archive calibration, and every result says so.
+* **Switch rule between slices:** a lever that fails its pre-registered line twice in a row drops one rank and the order is re-read, as 14.15 closed the exploiter league. No slice widens its own scope.
+* **Standing rule kept from the Redirect:** no new per-opponent expert. GP0's cells are real-code bots used as held-out tests of a name-agnostic pipeline; nothing is trained against them and no class is added for them.
+
+#### 1.4 V6b and v5
+
+* **V6b: stays parked, no run, no verification, nothing deleted.** Checked: `v6` e23e5a9, `v6-rl` 6d56896 and `v6-root` e9a9d95 are on the archive and on origin, and the three local worktrees are clean. Two pieces are worth lifting later, by name: the explicit class-to-expert map with its refusal of a file that names a missing network, and the open-set support test of G0b, which is the natural form of the safety blend's "do I know this opponent" question. Its two families are 2 to 4% of seats and its solver decision (give up T1) is made moot by the path change.
+* **v5: leave it uploaded and not entered; no v5.1, no further work on it.** Live it is v4 plus T1 on solver-looking names with no evidence either way (14.52 to 14.54), and a wrong expert costs 12 to 18 points where it plays (14.33). My judgment, not a measurement: v4 stays the default entry for the next season because it is the measured quantity; entering v5 would be a bet on T1 against the live Blueprint that eight fixtures cannot read. v5 keeps its value as the reference package (gate, card, HF copy) and as the rollback for a gated candidate.
+* **Account note:** the account holds three bots (v3, v4, v5), so the next candidate's upload needs a deletion, and v3 is the one to give up. That is the owner's yes when a candidate exists, not now.
+* **Recall risk found while checking:** the data GP0 needs is on gb10-d only. `ckpt/s2`, the G1 base fits (`fit_fold*_W.pt`) and D2a's logs are absent from archive branch `train-essentials` (checked: its checkpoints are br_ashwing, br_autofast, br_bp100, br_chipzen, br_small_ball, fb2). A recall before GP0 costs about 6 GPU-hours and 12 core-hours to rebuild them.
+
+### GP0. Does a model fitted only on what the arena shows carry the lookahead on real code, and how high is the lookahead's ceiling where the base is weak? (spec, 2026-11-27; a measurement, nothing reaches the bot; the roadmap agent after the Redirect)
+
+* **Why:** the Redirect asks for the global path: a model of the opponent, a procedure that maximizes match wins against it, a safety blend. Three things about that path were never measured, and each can end it or turn it:
+  1. The procedure's ceiling where the base is weak. 14.17's +4.2 with the true model is on cells fb2-900 wins 83 to 95%. Against `small_ball` it wins 75.7% and training reaches 97.6% (14.30). Rollouts are a one-step improvement on a policy that folds later streets, so the ceiling there is open.
+  2. Whether a model fitted from arena-visible logs carries that gain on real code. 14.34's per-name fine-tune reads ranges at +1.00 nats against the λ range's +0.57, and was stopped on one calibration bucket before it ever drove a decision. 14.25 warns that likelihood and strength move apart.
+  3. Whether the sturdier base wins more against the styles that take fb2-900's over-fold. S2 it1800 (E3 78.7% against 96.5%) was read on bp100 and the league, never on the aggressor cells.
+* **What this is not:** no expert, no gate class, no training against any cell. The pipeline (logs of a name, a fit, the lookahead) is the same for every name; the real-code bots are its held-out test, as the archive names will be its use.
+* **Facts checked at writing (local refs of the archive, 2026-11-27):**
+  * `tools/x2r_oracle.py` on `c1v5` 4767f28 has the arms oracle, x1, oracle-range, x1-range, x3; `ext:` opponents only under x1 and x3; no bpopp opponent.
+  * The oracle refuses `small_ball` and `small_ball_b` (`tools/x2s_ablate.py` `refuse_street_bet`: its bet probability is `bet[i]` without the `street_bet` multiplier). `small_ball` is `street_bet` (1.0, 0.92, 0.64) and nothing else beyond StyleBot; `small_ball_b` also shoves preflop (`shove_p`).
+  * `rl/search.py` holds K as a module constant, 2 ln(0.912 / 0.088) = 4.68.
+  * The fit side lives on `g1-2a` f3d1afd (`tools/d2_generate.py`, `d2_clone.py` with a play-time `CloneBot`, `g1_tune.py`, `g1_2a_*.py`, `league/`), whose `holdem/opponents.py` has no `small_ball`; `c1v5` has the cells and no fit tools. Merge base d4c3cb8.
+  * D2a's generator seats the bot against hero k mod 6 of (fb2_900_policy, heur_102b05e, raise_station, sticky_overbettor, tight_sticky, never_fold_pre). One match in six is against our own policy.
+* **Envelope:**
+  * **Owners:** the main session builds through an executor and runs the box; the roadmap agent owns the lines and the outcome table; a fresh outcome verifier checks each stage's read. Plan review as usual, cap 2.
+  * **Branch to create:** `gp0` from `c1v5` 4767f28, with the fit tools and `league/` copied from `g1-2a` f3d1afd in one commit that names the source commit and file list. Owned files, new unless noted: `tools/gp0_drive.sh`, `tools/gp0_read.py`, `tools/gp0_fit.sh`, `tools/gp0_model.py` (numpy net, root posterior, rollout opponent), `tests/test_gp0.py`, `tests/gp0_plants.py`; edits to `tools/x2r_oracle.py` (arm `g`, K per run, the bpopp opponent), `tools/x2s_ablate.py` (the `street_bet` multiplier in `_probs`), `tools/d2_generate.py` (targets `small_ball`, `sticky_overbettor`, bp100), `rl/search.py` (`win_prob` takes K; default unchanged).
+  * **Not created:** no `-rl` and no `-root` branch. The hero is fb2-900 as in X3b and R1; `c1v5-root` b14b176 is not touched.
+  * **Box:** gb10-d, dir `~/gp0-run`, cores 0 to 17, bp100 cells alone in the serial bpopp queue. Fits on gb10-d's GPU under the GPU lock with the page cache dropped before and after (the base fits and logs are there); gb10-c's GPU is held for GP1.
+  * **Writes:** branch commits (revert), `~/gp0-run` (delete), registry lines (remove). Rollback: nothing is deployed.
+* **Seeds: next free from the registry, registered first.** Four read seeds in this order: Stage 0, Stage A screen, Stage A read, Stage B read; one more for the new fitting logs. Smoke runs use a seed outside the registry. D2a's 61 stays the fitting seed of its existing logs. Bootstrap 47.
+* **K, fixed here (14.28's definition, K = 2 ln(p / (1 - p)) from the recorded fb2-900 rate, capped at 4.68):** `small_ball` 2.27 (75.7%, 14.29); `sticky_overbettor` 3.11 (82.6%, 14.33); `ext:ashwing` 2.08 (73.9%, 14.9); `ext:autodidact_fast` 2.45 (77.3%, 14.25); bp100 0.80 (59.85%, 14.27); `ext:wolf` 4.68 (cap).
+* **Budget:** expected 22 box-hours on 16 cores, hard cap 40; GPU under 0.5 hours, cap 2. Per stage: Stage 0 about 0.5 (cap 1); Stage A about 6 (cap 10); Stage B about 15 (cap 28).
+  * **Smoke on the real path before each stage:** 20 matches per (cell, arm) through the stage's own driver and reader, timed per decision. The scaled total over the stage's cap means the stage does not start and returns to the roadmap agent.
+  * **Stops:** a stage past its cap stops and what finished is recorded, not judged. A crash stops the slice until the cause is known. A run interrupted by a recall or any outside stop is discarded whole and rerun in a fresh directory; the driver refuses a non-empty one.
+* **Stage 0. The sturdier base on the styles that take the over-fold (tier 1, reported with one line).**
+  * S2 it1800 (`ckpt/s2/it001800.npz`, sha256 prefix 4989481c5e7d5d8b, 14.15) and fb2-900, plain `rl.eval_arena`, 2,000 matches per cell, cells `small_ball`, `small_ball_b`, `sticky_overbettor`, `loose_passive`, paired on (seed, hero seat).
+  * **BASE-UP:** it1800 minus fb2-900 on `small_ball` has its 95% lower bound at or above +4.0, and the four-cell pool's lower bound is above -2.0.
+  * **BASE-FLAT:** the `small_ball` upper bound is under +4.0.
+  * Otherwise BASE-OPEN, reported. If the file is missing or its hash differs: NOT RUN, recorded, and nothing waits on it.
+* **Stage A. The lookahead's ceiling with the true model.**
+  * **Build first:** the oracle models `street_bet` (bet probability `bet[i]` times the street's multiplier); `small_ball_b` stays refused.
+  * **A1, K screen:** `small_ball`, 600 matches, arms off (N = 1), oracle N = 32 at K 2.27 and at K 4.68, Z = 2.6. The K rule for the rest of the slice is the per-cell table above if the 2.27 arm's point estimate is at or above the 4.68 arm's, else 4.68 everywhere. Chosen on the screen seed only.
+  * **A2, the read, fresh seed:** `small_ball` 1,000 matches with arms off, oracle N = 32, oracle N = 128; `sticky_overbettor` 600 matches with arms off and oracle N = 32. Z = 2.6. Paired against off.
+  * **Lines, on `small_ball` at N = 128, 95% paired interval** (reference: the trained response gains +21.9 [+19.9, +23.8], 14.30):
+    * **A-HIGH:** lower bound at or above +8.0.
+    * **A-LOW:** upper bound under +4.0. GP0 stops here; Stage B does not run; the next spec is Path B.
+    * **A-MID:** anything else. Stage B runs.
+  * Reported: N = 32 minus N = 128, `sticky_overbettor`'s gain, overrides by street and by kind, hands per win.
+* **Stage B. The fitted model on real code.**
+  * **Cells:** gain cells `ext:ashwing`, `ext:autodidact_fast`, bp100 (1,000 matches each); guard cells `ext:wolf`, `small_ball`, `sticky_overbettor` (600 each).
+  * **Fitting logs, only what the arena shows and never our own policy:** D2a's seed-61 logs for the three `ext:` bots; new logs for `small_ball`, `sticky_overbettor` and bp100 from the same generator and hero mix. Matches whose hero is fb2_900_policy (k mod 6 = 0) are dropped; sizes 100 and 1,000 are the first matches by index after the drop. No fit opens a `true_cards.jsonl`.
+  * **Fit:** 14.34's arm (c) with its literals: the W base fit of the fold that held the bot's name out (`fit_fold2_W.pt` for the Ashwing and autodidact names; fold 0 for names absent from the archive), start epochs 0, 4 EM iterations, Adam 3e-4, first 90% to fit, last 10% for the per-street fold bias. Exported to npz; the lookahead reads it with numpy only.
+  * **Arm `g`:** the root range is the posterior over live combos under the fitted net's likelihood of every action the opponent took this hand; the rollout opponent is the same net acting on its sampled combo, with the in-match block causal and the history block fixed from the fitting split. No λ, no band.
+  * **Arms, N = 32, Z = 2.6, the Stage A K rule:** off (N = 1); x3 (today's cold-start arm, 14.22); g1000 on every cell; g100 on the gain cells; the specialist at N = 1 where one exists (br_ashwing, br_autofast, br_bp100, br_small_ball); oracle N = 32 on the two rule cells, same seeds.
+  * **Lines, 95% paired intervals; the gain pool is the gain cells present, equal weight:**
+    * **CARRIES:** g1000 minus off, pooled, lower bound at or above +2.0. **NO-CARRY:** upper bound under +2.0. Else **MID**.
+    * **MODEL-ADDS:** g1000 minus x3, pooled, lower bound above 0.
+    * **GUARD FAIL:** any guard cell whose g1000 minus off has its upper bound below 0.
+    * **MODEL-LOSS:** oracle minus g1000, pooled over the two rule cells, lower bound above 0.
+    * **SIZE-100:** g100 minus off, pooled, lower bound above 0. Reported with one use: it says whether names with 100 to 999 matches are served in GP1.
+  * Reported per cell: g1000's gain over the specialist's gain, x3 minus off (the unseen-name floor under the new K), overrides by kind, the fold calibration table by bet-size bucket, numpy seconds per decision.
+* **Outcome table, one row per result:**
+
+  | Stage A | Stage B | next |
+  |---|---|---|
+  | A-LOW | not run | Path B: a deeper procedure, its transfer test first |
+  | HIGH or MID | CARRIES, MODEL-ADDS, no GUARD FAIL | Path A: the lookahead as the candidate (numpy port, per-name fits over the archive on gb10-c, K from the estimated edge, the safety blend, the deploy gate) |
+  | HIGH or MID | CARRIES, GUARD FAIL | the safety blend alone, read on the failing cells on fresh seeds, then Path A |
+  | HIGH or MID | CARRIES, not MODEL-ADDS, no GUARD FAIL | Path A with the cold-start model for every name; per-name fits are dropped |
+  | HIGH or MID | MID or NO-CARRY, MODEL-LOSS | Path C: model work on the GPU, judged by Stage B again on fresh seeds |
+  | HIGH or MID | NO-CARRY, not MODEL-LOSS | Path B |
+  | HIGH or MID | MID, not MODEL-LOSS | returned to the roadmap agent with the per-cell table; no path is taken on it |
+
+  Stage 0 adds to any row: BASE-UP means a base slice is specified beside the next one; BASE-FLAT means E3 stays reported and the base stays last.
+* **Tests and plants (`tests/test_gp0.py`; `tests/gp0_plants.py` is the committed plant runner, and a kill counts only when the named assertion fails on the planted path):**
+  * Oracle: its per-combo probabilities equal the bot's own `decide` frequencies on sampled spots for `small_ball` on each street (plants: multiplier dropped; the flop's multiplier used on the river); `small_ball_b` is still refused.
+  * Every arm at N = 1 plays byte for byte as the policy on 20 seeds, arm `g` included.
+  * Arm `g`: the root posterior equals a brute-force product on a toy net (plants: board cards left live; the hero's cards left live); the rollout opponent's input equals the fit-side vector at the same decision (plants: a raise read as raise-to; history block built from read-seed matches); numpy output equals torch within 1e-5 on 1,000 rows (plant: a bias dropped).
+  * Fitting data: no match with hero fb2_900_policy (plant: k mod 6 = 1 dropped instead); sizes exactly 100 and 1,000 after the drop (plant: 1,000 before it); no `true_cards.jsonl` opened (plant); the base fit is the held-out fold (plant: a fold that trained on the name).
+  * K: the six literals; `win_prob` uses the run's K (plant: the module constant); the A1 choice rule on a tie.
+  * Reader: a missing key, a seed mismatch, a wrong row count (600, 1,000, 2,000) each fail; one override-count record per judged run, and an absent record fails closed.
+  * Lines and table: the literals +8.0, +4.0, +2.0, 0 and -2.0 driven from both sides; the outcome table enumerated over every combination of its inputs, one outcome per cell.
+  * Driver: a non-empty output directory, an interrupted run, a smoke estimate over the cap, a read seed without its registry line.
+* **Non-goals:** no training of any policy; no gate, class or expert; no change to v4, v5 or the account; no fetch from chipzen.ai; no runtime port to the deployed image (seconds per decision are reported only); no safety blend (it is the next slice when the table says so); no archive-name fits; no change to G1's or D2a's recorded outputs.
+* **Fallbacks fixed now:** if the bpopp opponent or bp100's fitting logs fail their tests after two fix rounds, bp100 is dropped, recorded, and the gain pool is the two `ext:` cells. If the play-time vector for the G1 profile blocks cannot be proven equal to the fit side in two rounds, arm `g` uses D2a's per-name network (14.34's arm (b), which has a play-time `CloneBot`) and the record says so.
+* **Unverified at writing:**
+  * That `ckpt/s2/it001800.npz`, the G1 base fits and D2a's fitting logs are still on gb10-d; none is on the archive.
+  * The registry's live state: the copy in `environment/` ends at 120, while 121 (E2) and 127 (V6) are used and V6b named 122 to 126 without writing them.
+  * Per-decision cost of the neural rollout opponent and hero decisions per match; the budget's 15 box-hours for Stage B assumes about 1.5 times the X1 arm's cost.
+  * Whether a play-time builder for G1's 37 profile inputs exists beyond `embed_d2a`.
+  * How the D2a generator and the lookahead tool drive a bpopp container as the opponent; neither does today.
+  * Whether fold 0's base fit is the right one for bp100 and the rule cells (they are absent from the archive; Blueprint, a relative of bp100, is in its training names).
+  * The K literals were computed by me from the cited rates and have no test yet.
+  * Paired standard errors of about 1.3 points on the gain pool and 1.7 on `small_ball` are estimates from 14.17 and 14.22, not measured at these sizes.
+* **Checked by the main session after writing (gb10-d, 2026-11-27 08:34 UTC):** `~/poker-ai-lab-rl/ckpt/s2/it001800.npz`
+  sha256 prefix 4989481c5e7d5d8b (present); G1 base fits `~/poker-ai-lab-d2s2/data/g1/fit_fold{1,2,3,4}_W.pt` and
+  `slice2k/fit_fold0_W.pt` (present); D2a logs under `~/poker-ai-lab-d2s2/logs/d2/<bot>/{fit,heldout}/` (present); the live
+  registry holds 94, 121 to 126 (`E2 read`) and 127 (`V6 draw`), so the next free seed is 128. None of these files is on
+  `train-essentials` yet.
 
 ### V6b. v6 without T1: experts only where we hold real code or our own judge cell (spec, 2026-11-27; the roadmap agent after 14.56; revision 1 after plan review 1)
 
