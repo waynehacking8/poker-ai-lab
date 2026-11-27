@@ -14,7 +14,7 @@ environment was built, and what comes next. The result record is `experiments.md
 | The shipped v5 commit | tag `v5-c1v5` on the archive = `c1v5-root` b14b176 | private |
 | v5 package as uploaded | Chipzen bot `poker-ai-lab-v5` (uploaded 2026-11-27), image `holdem-v5-c1v5.tar.gz` sha256 3758ca7f...0840 | account |
 | v5 runtime, weights, card, research copy | huggingface.co/waynehacking8/poker-ai-lab-hunl-v5 (private until the Season 16 playoffs end) | private |
-| Python package lists, seed registry | `env/` next to this page | public |
+| Python package lists, seed registry | `environment/` next to this page | public |
 
 Clone everything with `git clone https://github.com/waynehacking8/poker-ai-lab-archive.git` (all branches come along),
 then `git -c core.autocrlf=false` for every `git archive` that goes to a Linux box (CRLF breaks the shell scripts).
@@ -36,9 +36,9 @@ exact commands.
 
 ## 3. Environment
 
-* Python 3.12.3. Training venv (`~/poker-ai-lab-rl/.venv`): `env/requirements-rl-venv.txt` (torch 2.15.0 with the
+* Python 3.12.3. Training venv (`~/poker-ai-lab-rl/.venv`): `environment/requirements-rl-venv.txt` (torch 2.15.0 with the
   CUDA 13 wheels, numba 0.68.1, numpy 2.5.5, chipzen-bot 0.7.0, pytest 9.2.0). League venv:
-  `env/requirements-league-venv.txt` (numpy, chipzen-bot, pytest). The deployed bot needs numpy only.
+  `environment/requirements-league-venv.txt` (numpy, chipzen-bot, pytest). The deployed bot needs numpy only.
 * The training trainer picks CUDA when present and falls back to CPU. The old box was a 20-core ARM machine with
   one GPU and 121 GB of memory; arena runs used 6 to 18 worker processes.
 * Docker with buildx for the Chipzen image, which is `linux/amd64`: on an ARM box install QEMU binfmt first
@@ -54,7 +54,7 @@ Code is all on GitHub. These are the results that cost hours or days to make aga
 | Priority | Path | Size | Needed for |
 |---|---|---|---|
 | 1 | `~/poker-ai-lab-rl/ckpt/` (68 runs; `fb2/it000900.npz` carries the PPO value head the deployed npz lacks; the v5 experts' teachers are `br_bp100` (T1) and `br_chipzen`) | 2.8 GB | any training that starts from fb2-900 or the experts |
-| 1 | `~/poker-ai-lab-rl/tools/seed_registry.txt` (copy in `env/`) | 4 KB | fresh-seed discipline: the next free seed is 121 |
+| 1 | `~/poker-ai-lab-rl/tools/seed_registry.txt` (copy in `environment/`) | 4 KB | fresh-seed discipline: the next free seed is 121 |
 | 1 | `~/chipzen-replays/` (44,169 public match files) | 4.1 GB | replay clones, the real-arena reads; about 54 h of paced fetching to redo |
 | 2 | `~/bp-data/` (`blueprint-100bb.tar` and its abstraction) and `~/bp-logs/` | 4.1 GB | the bp100 opponent (the largest share of the field) |
 | 2 | `~/poker-ai-lab-d2s2/data/g1` and `logs/` | 3.8 GB | the G1 per-name fine-tune data |
@@ -68,7 +68,7 @@ Not worth copying: model and Hugging Face caches, venvs, `bp-src` (upstream gith
 ## 5. First checks on the new machine
 
 1. Clone the archive, archive `c1v5-root` into a run root and `c1v5` into an evaluation tree (LF endings).
-2. Build the venvs from `env/` and run each tree's `pytest -q`; the evaluation tree also runs its plant runner
+2. Build the venvs from `environment/` and run each tree's `pytest -q`; the evaluation tree also runs its plant runner
    (`tests/c1v5_plants.py`: 130 of 130 caught on the old box).
 3. Rebuild the v5 image from `c1v5-root` and check `rl/models/weights.npz` sha256 f7d22324...91e6 and the 17-file
    list in the image against the Hugging Face copy.

@@ -7,7 +7,7 @@ that ties them together is [roadmap.md](roadmap.md): it opens with where the wor
 stands and what comes next.
 
 To continue the work on a new machine, start with [restore.md](restore.md): where the code, models
-and data are, the environment ([env/](env/)), and the first checks.
+and data are, the environment ([environment/](environment/)), and the first checks.
 
 ## Literature studies
 

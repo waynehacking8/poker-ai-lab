@@ -1,0 +1,52 @@
+# Seed registry of the roadmap envelope (revision 3). One line per entry: `seed slice kind`, whitespace separated.
+# tools/bpq.sh: a read passes only if the line `BPQ_SEED BPQ_SLICE read` exists; a training job passes only if
+# `BPQ_SEED * train` exists (training seeds are shared by every slice, as tools/rl_br.sh and tools/rl_fb2.sh share
+# rl.train's default 1). 89 is unused and absent.
+1 * train
+81 S2r read
+81 T1 read
+82 T2 read
+83 D2b read
+84 D2b read
+85 D2b read
+86 D2b read
+87 T1 read
+88 B0 read
+90 A0 read
+91 B0 read
+92 G1 read
+93 C1 read
+94 B1 read
+95 B1 read
+96 B1 read
+97 B1 read
+102 AD1 read
+101 AD1 read
+103 AD1 read
+104 AD1 read
+105 AD1 read
+95 AD0 read
+106 AD0 read
+107 AD0 read
+95 TT read
+109 TT read
+94 V5A read
+95 V5A read
+108 V5A read
+3 V5B read
+94 V5B read
+95 V5B read
+108 V5B read
+110 V5B read
+111 V5B read
+94 G0 read
+95 G0 read
+112 G0 read
+113 G0 read
+114 G0B read
+115 G0B read
+116 G0B read
+117 G0B read
+118 C1V5 read
+119 C1V5 read
+120 C1V5 read
