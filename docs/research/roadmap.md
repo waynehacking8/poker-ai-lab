@@ -1533,6 +1533,11 @@ reader and driver)**
   right count; item 9's bounds and guard use the reader's own Z 1.96 and -2.0; the judge replays counted cells; the driver refuses a
   non-empty LOGS or league out, removes a PASS verdict beside a failed step and keeps the step order in one function; the step 2 clock is in
   nanoseconds; one plant per surviving mutation (30 new).
+* **Result (experiments 14.51): VERDICT PASS, the full upload gate met** (run 2026-11-26 23:03 to 2026-11-27 01:50 UTC from
+  `c1v5` 4767f28, 86 tests, 130 of 130 plants): headline +13.21 [+12.00, +14.41], bp100 +18.9 [+17.2], `small_ball` +20.1 [+18.1],
+  no guard failure, twenty new styles pooled -0.2 [-0.8]; E1 23 of 23 league opponents at 80% or more over 400 matches (lowest
+  `arch:5` 83.25%); head to head over 102b05e 76.25%, Wilson lower 71.8%. Outcome verifier CONFIRMED. The Season 16 swap window
+  closed on 23 Nov, so v4 stays entered; on Wayne's word (2026-11-27) v5 is packaged for the account and for Hugging Face.
 * **Writes, each with its rollback:** commits on two local branches (revert); gb10-d `~/c1v5-run/`,
   `~/poker-ai-lab-x2r/logs/c1v5/`, `~/poker-ai-lab-league/candidates/c1v5-src`, `out/c1v5/` (delete); registry lines
   118 to 120 (restore the copy); the image tag `holdem-v5-c1v5` and `~/build-rl/holdem-v5-c1v5.tar.gz` on gb10-d

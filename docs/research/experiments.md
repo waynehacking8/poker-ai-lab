@@ -2319,3 +2319,42 @@ GS50 is 0.81 above GS80, outside the 0.005 tie band: chosen GS50.
 * **What it is not:** a candidate. 200 matches per league opponent is the screen; the upload gate needs 400 per
   opponent and a head-to-head win over the heuristic bot, and the bot as entered also carries the all-in answer.
   Next is the candidate slice (spec item 3), written by the roadmap agent.
+
+### 14.51 C1v5: v5 (GS50 shipped as is) passes the full upload gate (2026-11-27)
+
+Run on gb10-d 2026-11-26 23:03 to 2026-11-27 01:50 UTC (gating steps) from holdem-x2r `c1v5` 4767f28 (`~/c1v5-run/code-x2r-4`,
+`tools/c1v5_drive.sh`) and `c1v5-root` b14b176 (`~/c1v5-run/code-root-2`); registry 118 to 120; rows
+`~/poker-ai-lab-x2r/logs/c1v5/{step2,styles}`, result `c1v5_result.json`, `item9.out`, `gate.out`; league
+`~/poker-ai-lab-league/out/c1v5/verify-rl-v5`. Twenty new styles `~/c1v5-run/styles_c1v5.json` (seed 120). Package
+`~/build-rl/holdem-v5-c1v5.tar.gz` sha256 3758ca7f...0840, weights sha256 f7d22324...91e6 (= `rl/models/gs50.npz`).
+Outcome verifier CONFIRMED (2026-11-27, own script on the raw rows: seeds, pairing, every gain and bound, league and head
+to head counts and Wilson bounds, all 35 counter records and the package and weights hashes).
+
+**Item 9, seed 118, v5 against fb2-900, paired match-win gain in points:**
+
+| cell | weight | n | gain [95%] |
+|---|---|---|---|
+| bp100 | 0.70 | 4000 | +18.9 [+17.2, +20.6] |
+| `small_ball` | 0.00 | 2000 | +20.1 [+18.1, +22.1] |
+| `chipzen` | 0.00 | 2000 | +5.9 [+3.7, +8.1] (lower bound under its +5.10 line; reported, does not decide) |
+| `tight_sticky`, `sticky_overbettor`, `small_ball_b` | 0.10, 0.09, 0.08 | 2000 each | -0.1, -0.1, +0.0, every interval spans zero |
+| `never_fold_pre`, `raise_station`, `loose_passive` | 0.00 | 2000 each | +0.3, +0.1, +0.1 |
+| `ext:ashwing`, `ext:ashwing_search`, `ext:ashwing_hive`, `ext:autodidact`, `ext:wolf` | 0 to 0.03 | 1000 each | +0.6, +0.3, -1.0 [-2.5, +0.5], +0.0, +0.1 |
+| styles `gen3:0` to `gen3:19` (seed 119), pooled | | 4000 | -0.2 [-0.8, +0.3]; lowest `gen3:11` and `gen3:16` -2.5 |
+
+Headline +13.21 [+12.00, +14.41]. Every item 9 line holds: no guard failure, bp100 lower +17.2 against +10, `small_ball`
++18.1 against +11, pooled styles lower -0.8 against -2, no style under -5. Counters clean over 34 runs.
+
+**Step 3, E1 league pairs 200 to 399 (400 matches per opponent) and the head to head:** 23 of 23 opponents at 80% or
+more; lowest `arch:5` 83.25% (Wilson lower 79.3%), then `arch:2` 86.0%, `bot:PoetAndCoder` 86.25%, `base:random` 86.5%,
+`base:maniac` 87.75%; the rest 89% to 98.25%. No illegal action, no exception, no capped match. Paired differences against
+fb2-900 per opponent within -1.5 to +0.5 points. Head to head against `cand:chipzen-102b05e`: 305 of 400, 76.25%, Wilson
+lower 71.8% (fb2-900 +6.0 points behind it). Item 12: bp100's +18.9 beside the `bot:Blueprint` clone's -0.2 [-3.9, +3.4],
+no flag. **VERDICT PASS** over 35 counter records.
+
+* **What it means:** v5 is the first candidate to clear the whole upload gate (80% against each of the 23 league
+  opponents over 400 matches, head to head win over the heuristic bot, verifier CONFIRMED). Its gains sit where the gate
+  arm routes (bp100, `small_ball`, `chipzen`); everywhere else it plays as fb2-900 does, inside a point.
+* **Season 16:** the swap window closed with registration (Mon 23 Nov 23:59 UTC); the season page shows no Change bot
+  while matches run, so `poker-ai-lab-v4` stays the entry. Wayne said on 2026-11-27 to wrap up and upload; v5 is packaged
+  for the account and for Hugging Face (private while the season runs).
