@@ -1506,6 +1506,73 @@ reader and driver)**
 * **Unverified at writing:** the seat shares of the Ashwing and autodidact names; whether C1v5's reported table 4.2
   holds R3's numbers; the solver image's settings.
 
+### V6b. v6 without T1: experts only where we hold real code or our own judge cell (spec, 2026-11-27; the roadmap agent after 14.56)
+
+* **Why:** 14.56 shows that on the gate's 14 terms arena Blueprint and bp100 overlap, and 14.53 shows T1 gains nothing
+  on the Blueprint clone at 45.7% routing. Every hand T1 plays in the arena is on an opponent we have no evidence for,
+  and the opponent it was built for (bp100) is not in the arena. v6b drops T1, adds the two E2 families, and holds
+  solver-looking opponents on the default. v5's +18.9 on bp100 is given up on purpose. Rejected: another prior (the
+  overlap is in the likelihood, and the prior would be chosen after the failure); new terms (separation has value only
+  with an expert that is right for Blueprint, which is S1's job).
+* **Rule for any expert in a candidate (standing from here):** an expert enters only for opponents where we hold real
+  code, our own judge cell, or a stand-in accepted by S1's two lines; a stand-in-based expert is capped at weight 0.5
+  until live matches exist. Any expert taking more than 10% of the hands of an archive name above 2% of entrant-faced
+  seats, without real-code or live evidence for that name, gets that name's archive rows added to solver_like (or to a
+  second default-routed class) once, and the stage B table is read again.
+* **Package:** experts fb2-900 (default), C1 (small_ball), br_chipzen (chipzen), br_ashwing (ashwing family),
+  br_autofast (autodidact family); T1 is not in the package. Checkpoints asserted by full sha256 (br_ashwing
+  b247feb2..., br_autofast 08575045..., fb2-900 f7a29a39..., C1 and br_chipzen as in gs50's package at b14b176).
+* **Stages:**
+  1. Stage A, logging (E2 Stage 2 as written: seed 122, member names ext:ashwing, ext:ashwing_search, ext:autodidact,
+     ext:autodidact_fast, 500 matches each, fit pairs 0 to 199 and held out 200 to 249, under both actors fb2-900 and
+     v5 (v5's own play is what the deployed gate saw; the new gate's input is counts of the opponent, logged under both
+     actors as in G0b).
+  2. Stage B, gate fit and offline lines. Classes and priors, literal: solver_like 0.30 (expert: default; fitted on
+     bp100's G0b fit rows pooled with the fit-band archive rows of Blueprint and NashForge from 14.56's draw, seed 127,
+     reused by hash), small_ball 0.10 (C1), chipzen 0.05 (br_chipzen), ashwing 0.05 (br_ashwing), autodidact 0.05
+     (br_autofast), population 0.45 (default); sum 1.00. Threshold 0.50, terms, support test and temperature as v5,
+     calibration weighted per decision. If solver_like's three sources disagree on held-out rows (any source's own
+     held-out rows routed to a non-default expert above 10% in any bucket while the pooled class passes the others), split
+     into two default-routed classes (bp100; Blueprint with NashForge) at 0.15 each, once. Lines, buckets hands 1 to 10,
+     11 to 40, 41 and later, 300-hand pooling as in V6:
+     a. held-out archive Blueprint and NashForge (14.56's held-out band), the 400 `bot:Blueprint` shadow keys, and G0b's
+        held-out bp100 pairs under both actors: at most 10% routed to any expert in every bucket;
+     b. the new classes on stage A's held-out pairs: at least 50% to the right expert at hands 11 and later;
+     c. small_ball and chipzen: right-expert share at hands 11 and later not more than 5 points under v5's on the same
+        rows;
+     d. every remaining D4 cell (hive and wolf always), and V5b's generated styles: at most 10% routed in every bucket
+        under both actors;
+     e. reported: routing for every A0 name above 2% of entrant-faced seats; the standing rule above applies.
+     Any line fails after the one split: stop and return to the roadmap agent.
+  3. Stage C, judge, registered before any play, fresh fb2-900 arms: eligibility on B1's screen (seed 94, pairs 400 to
+     499) and ten validation styles (drawn on 123, played on 124) as G0b; confirmation on seed 125 across every C1v5
+     cell (bp100 included), hive and wolf held out; twenty new generated styles drawn and played on seed 126.
+     GUARD: no cell under -2.0 with its upper bound under zero; the twenty styles pooled lower bound above -2.0, none under
+     -5.0 with its upper bound under zero. NEW: lower bounds above +8.0 on ext:ashwing, +7.7 on ext:ashwing_search, +6.7
+     on ext:autodidact. KEEP: small_ball lower bound above +11.0; chipzen reported against +5.10. A NEW or KEEP miss with
+     GUARD holding is recorded and the candidate still proceeds (at worst v4 on those cells). B1's headline is not used
+     (0.70 of it sits on bp100, where v6b plays the default by design).
+  4. Stage D, candidate: C1v5's steps unchanged (deployment check with live-format parity for the gate inputs, one
+     fault-counter record per run, E1 on pairs 200 to 399, the heuristic head to head, a fresh verifier, then Wayne).
+     Card in plain words: v6b applies an expert only where we hold the opponent's real code or our own judge cell;
+     against the solver names and every other live name it plays as v4; v5's bp100 gain is given up on purpose; v6b is
+     meant to replace v5 on the account because v5 would play T1 against Blueprint on about 38% of hands with no evidence
+     that it helps.
+* **Envelope:** branches `v6-root` (runtime: the five-expert package, the class-to-expert map, T1 removed),
+  `v6` (drivers, readers, tests, plants), `v6-rl` (fitter); box dir `~/v6-run/b` onward; seeds 94 and 122 to 126 are
+  E2's registered lines and are read here under E2's registration (no new seed), any further style draw takes the next
+  free seed (128) registered first. Budget, hard cap at twice, each from a smoke on the real path: stage A 60 minutes,
+  B 20, C 150, D 60. Stops, fresh directories, `.pushed` gating, plant runner with every plant caught before launch, and
+  `train-essentials` (gate file and class row hashes after stage B), as in V6. Non-goals: no training, no new expert,
+  no change to v4, v5 or the account, no fetch from chipzen.ai.
+* **S1 beside it (spare cores, its own spec later):** solver image variants at each setting the image exposes, 300
+  logged matches each against fb2-900. A variant is a stand-in for a name when (1) its A0 distance to the name is at
+  most 0.17 and (2) on the gate's 14 terms its held-out rows route to a class fitted on that name's archive rows on at
+  least 50% of hands at 11 and later. A variant passing both gives a teacher worth training and a class that tells it
+  from bp100; none passing closes the offline route to the solver class.
+* **Unverified at writing:** whether solver_like's three sources form one coherent class; whether chipzen-like bots
+  play in the arena (br_chipzen's live value); the solver image's settings; v6b against any live opponent.
+
 ### V6. One candidate: the solver names back to the default, plus E2's classes (spec, 2026-11-27; the roadmap agent after 14.54)
 
 * **Why:** 14.54 sends Blueprint (15.4% of entrant-faced seats) and NashForge (6.1%) to the default. The one usable
