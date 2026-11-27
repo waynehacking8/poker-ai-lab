@@ -98,11 +98,12 @@ roadmap's order of evidence:
    {ext:autodidact, ext:autodidact_fast}; rows in `~/poker-ai-lab-x2r/logs/e2/` on gb10-d, branch `e2` ddd487a.
 2. R4R5 done (14.52 to 14.54, branch `r45` 973550f, `~/r45-run`): no evidence that T1 gains on any live name; Blueprint
    (15.4% of entrant-faced seats, T1 on 38.5% of hands) and NashForge (6.1%) go to the default.
-3. Next, V6 (roadmap "### V6."): stage A fits a solver_live class for Blueprint and NashForge whose expert is the
-   default, then E2 Stages 2 to 5 add the two families, into one candidate v6 through C1v5's steps. Branches `v6`,
-   `v6-root`, `v6-rl`; box dir `~/v6-run`.
+3. V6 stage A ran and stopped (14.56, STOP_V6): a solver_live class cannot keep Blueprint off T1 while bp100 keeps
+   it; on the gate's 14 terms the two overlap. Branches `v6` e23e5a9, `v6-root` 562cb58, `v6-rl` 79dc09a; box dir
+   `~/v6-run`; seed 127 used. The next step is the roadmap agent's call (v6 without T1, other terms, or S1 and live
+   play).
 4. To resume on a new machine: ship the branches, copy `code-root` from `c1v5-root` b14b176, and relaunch a stage with
-   its driver's restart flag (`E2_RESTART=1`, `R45_RESTART=1`); every driver refuses stale directories.
+   its driver's restart flag (`E2_RESTART=1`, `R45_RESTART=1`, `V6_RESTART=1`); every driver refuses stale directories.
 
 Process rules that held through the work: a written spec per slice, plan review and outcome verification, fresh
 seeds from the registry for every read, counters on every judged run, and a fault-plant runner committed with the
