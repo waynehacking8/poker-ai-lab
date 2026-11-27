@@ -1395,7 +1395,7 @@ reader and driver)**
   collision with a V5b style, which the real-file L8 step would catch; a default path equal to the explicit one).
   Step D launches from g0b-root 27773b0 and g0b aaa17ad.
 
-### E2. Two more experts: the Ashwing and autodidact families (spec, 2026-11-27; the roadmap agent's decision after 14.51; plan review 1 REVISE, revised)
+### E2. Two more experts: the Ashwing and autodidact families (spec, 2026-11-27; the roadmap agent's decision after 14.51; plan reviews 1 and 2 REVISE, cap reached, fixed first-hand)
 
 * **Why first:** Ashwing_v3 and AutodidactInnovations are the only arena entrants whose real code we hold (14.37), so a
   gain against them needs no stand-in argument. The teachers exist and are archived (`train-essentials`): `br_ashwing`
@@ -1422,6 +1422,10 @@ reader and driver)**
   * Row checks (the reader, with plants): every cell has exactly 500 rows with distinct keys, each teacher cell's keys
     equal the fb2-900 cell's keys, and the cell's run log names the asserted checkpoint hash. A short, unpaired or
     wrong-hash cell is void: it is played once more whole on the same seed, and a second void stops the stage.
+    Every run and rerun writes to a fresh directory and the driver refuses a non-empty one. A key mismatch between a
+    teacher cell and its fb2-900 cell voids both, and both are replayed. A run interrupted by a box recall or any
+    outside stop is discarded whole and Stage 1 restarts from its start; that is not a void. The stage table is
+    written only from complete cells, and only after all 24 are complete.
   * Class rule, fixed now, one class per name for every pattern of the 16 lower bounds: a name joins a teacher's
     class when that teacher's 95% lower bound is +5.0 or more; if both teachers clear, it joins the one with the
     larger lower bound (exact tie: the ashwing family for `ext:ashwing*` names, the autodidact family otherwise); if
@@ -1431,6 +1435,15 @@ reader and driver)**
     empty continues E2 with the other class alone (five classes, the empty class's prior added to population). A
     class whose only member is its teacher's training name (`ext:ashwing` for br_ashwing, `ext:autodidact_fast` for
     br_autofast) still counts as a class.
+* **Held-out set, amended for E2 (the one change to G0b's design, made on purpose):** a D4 name that Stage 1 makes a
+  class member (only `ext:ashwing`, `ext:ashwing_search` or `ext:autodidact` can be) leaves D4 for E2 and is judged
+  by the NEW lines instead. Always held out, whatever Stage 1 says: `ext:ashwing_hive`, `ext:wolf` and the six rule
+  bots (`tight_sticky`, `sticky_overbettor`, `small_ball_b`, `never_fold_pre`, `raise_station`, `loose_passive`).
+  The fitter's L4 refusal becomes: refuse any D4 name except the Stage 1 members listed in `stage1_classes.json`, and
+  admit those only from Stage 2's fit pairs (seed 122, pairs 0 to 199). Every ext name ends in exactly one of
+  {fitted class member, held-out D4}; the non-members `ext:ashwing_v2`, `ext:ashwing_value`, `ext:ashwing_adaptive`,
+  `ext:autodidact_fast`, when members, are new data opponents and were never D4. Test: a non-member D4 name added to
+  the fit rows still fails L4 (plant: the member list ignored).
 * **Stage 2, logging (seed 122):** the member names, 500 matches each under both actors (fb2-900 and v5; autodidact at
   300 if the smoke says it is too slow), action lists as in G0b; existing class rows reused by hash.
 * **Stage 3, gate GS50+2, offline lines (one arm, nothing selected):**
@@ -1438,7 +1451,7 @@ reader and driver)**
      0.05, 0.45; the same terms, support test and threshold 0.50 as v5.
   2. New classes: on Stage 2's held-out pairs (seed 122, pairs 200 to 249 of each member name, which the fit never
      reads; the fit uses pairs 0 to 199), hands 11 and later, at least 50% routed to the right expert.
-  3. Misroute: every D4 cell, hive, wolf and V5b's generated styles at most 10% routed to any expert in every hand
+  3. Misroute: every remaining D4 cell (hive and wolf always among them) and V5b's generated styles at most 10% routed to any expert in every hand
      bucket, under both actors.
   4. Old classes: the routed share to the right expert not more than 5 points under v5's on the same rows.
   5. Any line fails: stop and return the table to the roadmap agent.
@@ -1453,19 +1466,36 @@ reader and driver)**
 * **Stage 5, candidate v6:** C1v5's steps unchanged (deployment check with live-format parity for the gate inputs,
   fault counter with one record per run, E1 on pairs 200 to 399, the heuristic head to head, a fresh verifier, then
   Wayne). Entering it is his call for the next season.
+* **Non-goals:** no network trained, no new teacher, no change to v5, v4 or the deployed bots, no upload or Chipzen
+  action, no fetch from chipzen.ai, no change to D4 beyond the amendment above.
+* **Review record:** plan review 1 REVISE (inputs not fixed, class rule incomplete, no envelope, rows could pass
+  vacuously, R3 unbounded); revised. Plan review 2 REVISE (the held-out set changed silently, seed 94 unregistered,
+  the void path could reuse rows or end on a recall, no tests or pins or non-goals, R3 without budget or writes). The
+  cap of two is reached; fixed first-hand on 2026-11-27 (this text).
 * **Recall care:** the fitted gate file and the class rows' hashes go to `train-essentials` at the end of stage 3;
   each stage's table is pushed to research before the next starts; `restore.md` gets the E2 state line each time.
 * **Seeds:** 121 to 126 as above. Before Stage 1 the runner copies `~/poker-ai-lab-rl/tools/seed_registry.txt` to
-  `~/e2-run/seed_registry.pre-e2` (once) and appends `121 E2 read` to `126 E2 read`; rollback restores the copy.
+  `~/e2-run/seed_registry.pre-e2` (once) and appends `94 E2 read` (Stage 4's B1 screen, pairs 400 to 499) and
+  `121 E2 read` to `126 E2 read`; rollback restores the copy. A dry run greps the copy for one `E2 read` line per seed.
+* **Tests and pins (branch `e2`, with a committed plant runner, every plant caught before launch):** a
+  synthetic-bounds test of the class rule over every pattern (both teachers clear, one clears, an exact tie, neither
+  clears, `ext:ashwing_hive` clearing yet staying out); the Stage 1 stop lines (both classes empty, one empty, a class
+  of only its teacher's training name); the row checks (499 rows, a duplicate key, a shifted key set in one teacher
+  cell, a wrong checkpoint hash, an interrupted cell, a non-empty cell directory); R3's population assertion (330
+  matches, 10,516 hands). Literal pins in the reader itself: the +5.0 bar, z 1.96, 500 rows, seed 121, the three full
+  sha256 values, and the eight registry keys asserted present in `rl/field_bots` REGISTRY of the run's root copy.
+  Each Stage 1 run log records the root and x2r commit hashes and the three checkpoint hashes. Teacher arms load
+  through `rl.eval_arena --model <npz>` from the root copy (`c1v5-root` b14b176), as fb2-900 does.
 * **Owners and bases:** branch `e2-root` from `c1v5-root` b14b176 (runtime, the new gate file, packaging) and branch `e2`
   from `c1v5` 4767f28 (drivers, judges, readers, tests and plants); the training tree is read only. Box run dir
-  `~/e2-run` (code copies `code-root`, `code-x2r`, logs, markers), rows `~/poker-ai-lab-x2r/logs/e2/`.
+  `~/e2-run` (code copies `code-root`, `code-x2r`, logs, markers), rows `~/poker-ai-lab-x2r/logs/e2/`. R3: tool
+  `tools/e2_r3.py` on `e2`, output `~/e2-run/r3.json` and `r3.out`.
 * **Budget (each stage stops at twice its number), cores 0-17:** Stage 1 about 90 minutes (the six autodidact cells
   dominate: 1,000 `ext:autodidact` matches took 57 minutes at 6 workers in C1v5, so about 29 minutes per 500; three
   cells run at once, 6 workers each), Stage 2 about 60, Stage 3 about 20 (offline), Stage 4 about 150, Stage 5 about
-  60 as in C1v5.
+  60 as in C1v5. R3 about 15 minutes, run on cores 18-19 beside Stage 1 (stop at 30).
 * **Writes, each with its rollback:** commits on `e2-root` and `e2` (revert); `~/e2-run/` and
-  `~/poker-ai-lab-x2r/logs/e2/` (delete); registry lines 121 to 126 (restore the copy); at the end of Stage 3 the
+  `~/poker-ai-lab-x2r/logs/e2/` and R3's `~/e2-run/r3.*` (delete); registry lines 94 and 121 to 126 (restore the copy); at the end of Stage 3 the
   gate file and the class rows' hashes added to archive branch `train-essentials` (a new commit, revertible).
 * **After E2 (outline, to be specified from R3):** the solver class. Make the stand-in a family, not one bot: run the
   solver image at several settings (play threshold, resolver on and off, other stack depths if the image allows;
