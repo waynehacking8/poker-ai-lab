@@ -4,9 +4,11 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-27 01:44 UTC, box clock UTC+8)
+## Now (2026-11-27 02:05 UTC, box clock UTC+8)
 
-**Box recall (Wayne 2026-11-27):** gb10-a to gb10-d are vendor loans and may be taken back, date unknown. Inventory and the push record in `docs/box-recall.md`. Box-only code (branch `box-d-snapshot`) and all 42 local branches are on the private repo waynehacking8/poker-ai-lab-archive, tips read back. Nothing is moved yet. C1v5 (below): item 9 PASS at 01:44 UTC (headline +13.21 [+12.00, +14.41], every line met, counters clean over 34 runs; e1 and h2h pending); league step started 01:44 UTC (stop at 20 min), then the gate read.
+**v5 shipped state (2026-11-27 02:05 UTC):** C1v5 **VERDICT PASS**, the full upload gate met (experiments 14.51, research 15887bd; outcome verifier CONFIRMED): headline +13.21 [+12.00, +14.41], 23 of 23 league opponents at 80% or more over 400 (lowest arch:5 83.25%), head to head over 102b05e 76.25% (Wilson lower 71.8%). Wayne 2026-11-27: wrap up, push, package and upload. Done: HF private repo `waynehacking8/poker-ai-lab-hunl-v5` (34 files = the image's /bot tree, model.safetensors, card, research copy with our hardware names replaced; every hash read back), tag `v5-c1v5` = c1v5-root b14b176 on the private archive. Season 16: the swap window closed 23 Nov, no Change bot while matches run, v4 stays entered (6th, 5-1 at 01:40). **Open:** the Chipzen upload of `~/build-rl/holdem-v5-c1v5.tar.gz` (sha256 3758ca7f) needs a free slot (3 of 3: v4, v3, v2); deleting v2 (fb1-900, 0 matches) was refused by the permission classifier and needs Wayne's explicit yes. Box: the non-gating depart step still runs (done marker pending).
+
+**Box recall (Wayne 2026-11-27):** gb10-a to gb10-d are vendor loans and may be taken back, date unknown. Inventory and the push record in `docs/box-recall.md`. Box-only code (branch `box-d-snapshot`) and all 42 local branches are on the private repo waynehacking8/poker-ai-lab-archive, tips read back. Nothing is moved yet. 
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
