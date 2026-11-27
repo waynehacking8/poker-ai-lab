@@ -92,13 +92,17 @@ roadmap's order of evidence:
 2. Real-arena measurement of v5 once it plays (Season 17 entry or challenges), since clones overstate (14.3, 14.36).
 3. Revision 2's lookahead (14.17 to 14.24), parked until the opponent model at the root is good enough.
 
-**State on 2026-11-27 (update with each read):** E2 Stage 1 is done (14.55, CONTINUE both; the gain matrix on seed
-121 (`~/e2-run` on gb10-d, branch `e2` ddd487a); its class table fixes membership for the next gate). V6 (roadmap "### V6.") is next: stage A, a solver_live class for Blueprint and NashForge, then E2 Stages 2 to 5 into one candidate v6. R4R5 (roadmap
-"### R4R5.", branch `r45` 973550f, `~/r45-run`) decides per live name whether v5's T1 routing is a liability; item 5
-is done (14.52: Blueprint, 15.4% of entrant-faced seats, gets T1 on 38.5% of hands), R4 next, then the validity
-check, R5 and the rule table. A rule-A outcome leads to v5.1, a gate refit through C1v5's steps. To resume on a new
-machine: ship both branches, copy `code-root` from `c1v5-root` b14b176, and relaunch the stage with `R45_RESTART=1`
-or `E2_RESTART=1`; each driver refuses stale directories.
+**State on 2026-11-27 (update with each read):**
+
+1. E2 Stage 1 done (14.55, CONTINUE both): ashwing family {ext:ashwing, ext:ashwing_search}, autodidact family
+   {ext:autodidact, ext:autodidact_fast}; rows in `~/poker-ai-lab-x2r/logs/e2/` on gb10-d, branch `e2` ddd487a.
+2. R4R5 done (14.52 to 14.54, branch `r45` 973550f, `~/r45-run`): no evidence that T1 gains on any live name; Blueprint
+   (15.4% of entrant-faced seats, T1 on 38.5% of hands) and NashForge (6.1%) go to the default.
+3. Next, V6 (roadmap "### V6."): stage A fits a solver_live class for Blueprint and NashForge whose expert is the
+   default, then E2 Stages 2 to 5 add the two families, into one candidate v6 through C1v5's steps. Branches `v6`,
+   `v6-root`, `v6-rl`; box dir `~/v6-run`.
+4. To resume on a new machine: ship the branches, copy `code-root` from `c1v5-root` b14b176, and relaunch a stage with
+   its driver's restart flag (`E2_RESTART=1`, `R45_RESTART=1`); every driver refuses stale directories.
 
 Process rules that held through the work: a written spec per slice, plan review and outcome verification, fresh
 seeds from the registry for every read, counters on every judged run, and a fault-plant runner committed with the
