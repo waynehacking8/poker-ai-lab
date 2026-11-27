@@ -1570,6 +1570,20 @@ reader and driver)**
   most 0.17 and (2) on the gate's 14 terms its held-out rows route to a class fitted on that name's archive rows on at
   least 50% of hands at 11 and later. A variant passing both gives a teacher worth training and a class that tells it
   from bp100; none passing closes the offline route to the solver class.
+* **Review record:** plan review 1 REVISE (2026-11-27), revision pending, five blockers to fix: (1) the temperature
+  rule and every class's calibration rows are not fixed (state T fixed at v5's value or chosen on the grid over named
+  calibration rows; give the new classes a calibration band or exclude them; a committed sha256 list of the seed 127
+  fit-band rows from `~/v6-run/a`); (2) Stage B lacks a literal outcome table (all pass; (a) fails on one source only;
+  (a) fails otherwise; (b), (c) or (d) fails before the split; any failure after it; the standing rule firing, firing
+  after a split, a name still above 10% after the re-read), the standing rule's destination class, prior, rows, draw
+  seed and band, and line (e)'s rows; (3) Stage A rows: pin 500 matches per name and actor (no 300 fallback; a smoke
+  over the cap stops), carry E2 Stage 1's row checks, per-line hand floors with a stop or not-judged branch, the actors
+  for lines (b) and (c), one row directory; (4) base commits per branch (`v6-root` 562cb58, `v6` e23e5a9, `v6-rl`
+  79dc09a) and a writes and rollback list (branch commits, box dirs, a registry line 128 with label and pre-copy,
+  `train-essentials`, the T1 removal in `v6-root`); (5) an enumerated V6b test and plant list (six-class prior vector
+  summing to 1.00, the class-to-expert map with T1 absent, literal sha256 for all five experts, an L6-form cross-tree
+  runtime test with a positive decision for each new class, the split trigger, the standing rule, thresholds at 10.0
+  and 10.1%, 50%, 5.0 and 5.1 points, the not-judged and stop branches).
 * **Unverified at writing:** whether solver_like's three sources form one coherent class; whether chipzen-like bots
   play in the arena (br_chipzen's live value); the solver image's settings; v6b against any live opponent.
 
