@@ -108,6 +108,12 @@ roadmap's order of evidence:
 5. V6b was revised and reviewed twice, then STOPPED by Wayne on 2026-11-27 08:23 UTC before any run (roadmap "### V6b." Status): the known-opponent expert line is not a global solution. Partial build parked unverified on `v6-root` e9a9d95 and `v6-rl` 6d56896. Next: the global path plan (roadmap "Where we are", Redirect).
 6. To resume on a new machine: ship the branches, copy `code-root` from `c1v5-root` b14b176, and relaunch a stage with
    its driver's restart flag (`E2_RESTART=1`, `R45_RESTART=1`, `V6_RESTART=1`); every driver refuses stale directories.
+7. GP0 (roadmap "### GP0.", the global path's first slice, a measurement): its inputs are on `train-essentials` 88df139
+   (`box-d/poker-ai-lab-rl/ckpt/s2/it001800.npz`, the G1 base fits `box-d/poker-ai-lab-d2s2/data/g1/*.pt` and
+   `slice2k/fit_fold0_*.pt`, the D2a logs as `box-d/poker-ai-lab-d2s2/logs/d2a-<bot>.tar.xz` for ashwing,
+   autodidact_fast and wolf; untar into `~/poker-ai-lab-d2s2/logs/d2/`); 18 hashes read back. Plan review 1 running.
+8. `origin` (poker-ai-lab) is public: only research and holdem-chipzen go there; code branches with weights and
+   `train-essentials` stay on the private archive (Wayne, 2026-11-27).
 
 Process rules that held through the work: a written spec per slice, plan review and outcome verification, fresh
 seeds from the registry for every read, counters on every judged run, and a fault-plant runner committed with the
