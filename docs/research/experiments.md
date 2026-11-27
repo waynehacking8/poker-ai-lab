@@ -2358,3 +2358,36 @@ no flag. **VERDICT PASS** over 35 counter records.
 * **Season 16:** the swap window closed with registration (Mon 23 Nov 23:59 UTC); the season page shows no Change bot
   while matches run, so `poker-ai-lab-v4` stays the entry. Wayne said on 2026-11-27 to wrap up and upload; v5 is packaged
   for the account and for Hugging Face (private while the season runs).
+
+### 14.52 R3 and R5 item 5: where v5's gate sends live names (reported; feeds the R4R5 rule)
+
+Tools: holdem-x2r `e2` ddd487a `tools/e2_r3.py` (R3, C1v5's 330 replays) and `r45` 973550f `tools/r5_arena.py route`
+(item 5, A0's snapshot of `~/chipzen-replays`: 20,421 files, 16,099 poker matches, all accepted by C1v5's conformance
+filter; parity with r3.json on the 330 shared matches held). Root c1v5-root b14b176, hashes checked before and after.
+Outputs on gb10-d: `~/e2-run/r3.out`, `~/r45-run/item5/run/r5_route.json`, printed table in `~/r45-run/drive.out`.
+Both build verifiers CONFIRMED.
+
+Entrant-faced share and v5's routing (default, T1, C1, br_chipzen), item 5:
+
+| name | faced | default | T1 | C1 | br_chipzen |
+|---|---|---|---|---|---|
+| Blueprint | 15.4% | 59.6% | 38.5% | 0.1% | 1.8% |
+| fermat6 | 6.8% | 84.5% | 14.6% | 0.2% | 0.6% |
+| NashForge | 6.1% | 78.2% | 21.2% | 0.2% | 0.4% |
+| hoops | 5.8% | 99.8% | 0.1% | 0.1% | 0.0% |
+| mr_hide | 5.7% | 90.8% | 9.1% | 0.0% | 0.1% |
+| r0ckGarden | 5.3% | 98.3% | 1.5% | 0.1% | 0.0% |
+| PluriBot | 3.8% | 82.3% | 10.6% | 0.1% | 7.0% |
+| slopBot | 2.7% | 89.2% | 10.6% | 0.1% | 0.0% |
+| WSmithSimLab | 2.3% | 90.8% | 8.9% | 0.0% | 0.2% |
+| AutodidactInnovations | 1.5% | 98.5% | 1.4% | 0.0% | 0.1% |
+| MonteCarlo | 1.3% | 55.2% | 41.0% | 0.1% | 3.7% |
+| Shuck1e1 | 0.9% | 63.8% | 35.9% | 0.1% | 0.2% |
+| Chatterbox | 0.5% | 67.7% | 32.0% | 0.0% | 0.2% |
+
+* 81 names reach a T1 share of 25% or more (in item 5 or R3); Blueprint is the only one above 2% of entrant-faced
+  seats. In R3's 330 replays (v4's own Season 16 matches) Blueprint was 5.0% of seats and 60.0% T1; Chatterbox 5.3%
+  and 30.0%; the Ashwing and autodidact names together about 3.6%.
+* Reading: v5 plays T1 on more than a third of its hands against the largest live name without any measurement that
+  T1 gains there. The R4R5 rule decides it; under rule C (no evidence) Blueprint, above 2%, is treated as A.
+
