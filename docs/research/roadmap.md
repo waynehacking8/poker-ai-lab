@@ -1395,28 +1395,49 @@ reader and driver)**
   collision with a V5b style, which the real-file L8 step would catch; a default path equal to the explicit one).
   Step D launches from g0b-root 27773b0 and g0b aaa17ad.
 
-### E2. Two more experts: the Ashwing and autodidact families (spec outline, 2026-11-27; the roadmap agent's decision after 14.51)
+### E2. Two more experts: the Ashwing and autodidact families (spec, 2026-11-27; the roadmap agent's decision after 14.51; plan review 1 REVISE, revised)
 
 * **Why first:** Ashwing_v3 and AutodidactInnovations are the only arena entrants whose real code we hold (14.37), so a
   gain against them needs no stand-in argument. The teachers exist and are archived (`train-essentials`): `br_ashwing`
   +16.0 and +15.4, `br_autofast` +13.4 on real code (14.45). The gate machinery is proven (14.49 to 14.51). No training,
   short stages, which suits a box that may be recalled. It does not touch the largest class (solver-like names, about
   35% of entrant seats, 14.29); that is the slice after E2, sized by R3.
-* **R3, tier 1, beside E2 (archive only):** per entrant-faced name (14.29's list plus Ashwing_v3 and
-  AutodidactInnovations) from v4's Season 16 replays: seat share, the share of hands v5's gate routes to each expert,
-  and the A0 distance to each class. Two numbers order the work after E2: the seat share of the Ashwing and autodidact
-  names, and whether any solver name routes to T1 at all.
-* **Stage 1, gain matrix (seed 121):** `br_ashwing` and `br_autofast` against the eight ext names we hold (ashwing,
-  ashwing_search, ashwing_hive, ashwing_v2, ashwing_value, ashwing_adaptive, autodidact, autodidact_fast), 500 matches
-  each, paired against fb2-900. A name joins a teacher's class when that teacher's gain has a lower bound of +5.0 or
-  more. `ext:ashwing_hive` and `ext:wolf` are never members: they stay the held-out real-code cells. Names that join
-  nothing go to the population class.
+* **R3, tier 1, beside E2, reported only (does not gate E2):** on C1v5's replay population, asserted at 330 NLHE
+  matches and 10,516 conformance-accepted hands: per entrant name, its seat share and the share of its hands v5's
+  gate routes to each expert (C1v5 item 13's routing table, extended with Ashwing_v3 and AutodidactInnovations). It
+  orders the work after E2 (the seat share of the Ashwing and autodidact names; whether any solver name routes to T1)
+  and changes nothing inside E2.
+* **Stage 1, gain matrix (seed 121), inputs fixed:**
+  * Teachers, asserted by full sha256 in the runner (copies on archive branch `train-essentials`):
+    `~/poker-ai-lab-rl/ckpt/br_ashwing/latest.npz` b247feb2e7c15e767fda96c5a654fa36243916083ba263af5f7a34ed6aeb80d6 and
+    `~/poker-ai-lab-rl/ckpt/br_autofast/latest.npz` 08575045b55952d6b37ae8cfa8910442cde918328089fe257db6fe76cdcbbc45.
+    The baseline arm is `rl/models/fb2_it000900.npz` (f7a29a39d1bedf08c9c52129205f72af2f73c5bfd59c25de5443629dd088c7d3), played new on seed 121; no rows are
+    reused.
+  * Cells: the three arms (br_ashwing, br_autofast, fb2-900) against `ext:ashwing`, `ext:ashwing_search`,
+    `ext:ashwing_hive`, `ext:ashwing_v2`, `ext:ashwing_value`, `ext:ashwing_adaptive`, `ext:autodidact`,
+    `ext:autodidact_fast` (all eight are keys of `rl/field_bots` REGISTRY at `c1v5-root` b14b176), 500 matches each
+    (250 pairs, both hero seats), 24 cells. A dry run lists the 24 commands before anything plays.
+  * Gain: per (teacher, name), the paired difference in match wins against the fb2-900 arm on the same
+    (seed, hero seat) keys, with its two-sided 95% interval (z 1.96), as in 14.45.
+  * Row checks (the reader, with plants): every cell has exactly 500 rows with distinct keys, each teacher cell's keys
+    equal the fb2-900 cell's keys, and the cell's run log names the asserted checkpoint hash. A short, unpaired or
+    wrong-hash cell is void: it is played once more whole on the same seed, and a second void stops the stage.
+  * Class rule, fixed now, one class per name for every pattern of the 16 lower bounds: a name joins a teacher's
+    class when that teacher's 95% lower bound is +5.0 or more; if both teachers clear, it joins the one with the
+    larger lower bound (exact tie: the ashwing family for `ext:ashwing*` names, the autodidact family otherwise); if
+    neither clears, it goes to the population class. `ext:ashwing_hive` (and `ext:wolf`, not in the matrix) never
+    join a class whatever their bounds; they stay the held-out real-code cells and are fitted as population.
+  * Stop lines after Stage 1: both new classes empty stops E2 and the table returns to the roadmap agent; one class
+    empty continues E2 with the other class alone (five classes, the empty class's prior added to population). A
+    class whose only member is its teacher's training name (`ext:ashwing` for br_ashwing, `ext:autodidact_fast` for
+    br_autofast) still counts as a class.
 * **Stage 2, logging (seed 122):** the member names, 500 matches each under both actors (fb2-900 and v5; autodidact at
   300 if the smoke says it is too slow), action lists as in G0b; existing class rows reused by hash.
 * **Stage 3, gate GS50+2, offline lines (one arm, nothing selected):**
   1. Classes bp100, small_ball, chipzen, ashwing family, autodidact family, population; priors 0.30, 0.10, 0.05, 0.05,
      0.05, 0.45; the same terms, support test and threshold 0.50 as v5.
-  2. New classes: on held-out pairs, hands 11 and later, at least 50% routed to the right expert.
+  2. New classes: on Stage 2's held-out pairs (seed 122, pairs 200 to 249 of each member name, which the fit never
+     reads; the fit uses pairs 0 to 199), hands 11 and later, at least 50% routed to the right expert.
   3. Misroute: every D4 cell, hive, wolf and V5b's generated styles at most 10% routed to any expert in every hand
      bucket, under both actors.
   4. Old classes: the routed share to the right expert not more than 5 points under v5's on the same rows.
@@ -1434,7 +1455,18 @@ reader and driver)**
   Wayne). Entering it is his call for the next season.
 * **Recall care:** the fitted gate file and the class rows' hashes go to `train-essentials` at the end of stage 3;
   each stage's table is pushed to research before the next starts; `restore.md` gets the E2 state line each time.
-* **Seeds:** 121 to 126 as above (the registry's next free is 121).
+* **Seeds:** 121 to 126 as above. Before Stage 1 the runner copies `~/poker-ai-lab-rl/tools/seed_registry.txt` to
+  `~/e2-run/seed_registry.pre-e2` (once) and appends `121 E2 read` to `126 E2 read`; rollback restores the copy.
+* **Owners and bases:** branch `e2-root` from `c1v5-root` b14b176 (runtime, the new gate file, packaging) and branch `e2`
+  from `c1v5` 4767f28 (drivers, judges, readers, tests and plants); the training tree is read only. Box run dir
+  `~/e2-run` (code copies `code-root`, `code-x2r`, logs, markers), rows `~/poker-ai-lab-x2r/logs/e2/`.
+* **Budget (each stage stops at twice its number), cores 0-17:** Stage 1 about 90 minutes (the six autodidact cells
+  dominate: 1,000 `ext:autodidact` matches took 57 minutes at 6 workers in C1v5, so about 29 minutes per 500; three
+  cells run at once, 6 workers each), Stage 2 about 60, Stage 3 about 20 (offline), Stage 4 about 150, Stage 5 about
+  60 as in C1v5.
+* **Writes, each with its rollback:** commits on `e2-root` and `e2` (revert); `~/e2-run/` and
+  `~/poker-ai-lab-x2r/logs/e2/` (delete); registry lines 121 to 126 (restore the copy); at the end of Stage 3 the
+  gate file and the class rows' hashes added to archive branch `train-essentials` (a new commit, revertible).
 * **After E2 (outline, to be specified from R3):** the solver class. Make the stand-in a family, not one bot: run the
   solver image at several settings (play threshold, resolver on and off, other stack depths if the image allows;
   which knobs exist is unverified), measure each variant's A0 distance to Blueprint, fermat6, NashForge and hoops,
