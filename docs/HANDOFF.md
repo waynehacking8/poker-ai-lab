@@ -4,9 +4,9 @@ Updated 2026-11-25 05:39 UTC. Read "Now" first; the session context is compacted
 the working memory. Update it at every step that changes state.
 
 
-## Now (2026-11-27 01:42 UTC, box clock UTC+8)
+## Now (2026-11-27 01:44 UTC, box clock UTC+8)
 
-**Box recall (Wayne 2026-11-27):** gb10-a to gb10-d are vendor loans and may be taken back, date unknown. Inventory and the push record in `docs/box-recall.md`. Box-only code (branch `box-d-snapshot`) and all 42 local branches are on the private repo waynehacking8/poker-ai-lab-archive, tips read back. Nothing is moved yet. C1v5 (below) at 01:38 UTC: still in step 2 `read`, fb2 arm on its 13th of 14 cells (autodidact is slow, about 57 min a cell); expected end about 03:00 UTC.
+**Box recall (Wayne 2026-11-27):** gb10-a to gb10-d are vendor loans and may be taken back, date unknown. Inventory and the push record in `docs/box-recall.md`. Box-only code (branch `box-d-snapshot`) and all 42 local branches are on the private repo waynehacking8/poker-ai-lab-archive, tips read back. Nothing is moved yet. C1v5 (below): item 9 PASS at 01:44 UTC (headline +13.21 [+12.00, +14.41], every line met, counters clean over 34 runs; e1 and h2h pending); league step started 01:44 UTC (stop at 20 min), then the gate read.
 
 **Standing rules from Wayne:** English in this project; when he writes "中文說明", answer in Traditional Chinese.
 Think from first principles, not narrowly. Goal is the long-term "future king", not Season 16. Act on Fable's
