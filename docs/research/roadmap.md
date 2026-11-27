@@ -1610,7 +1610,10 @@ reader and driver)**
   no positive runtime test, the bp100 prior cut confounded line (c) and the price branch was unbounded, no fitter commit
   or row hashes); the cap of two is reached, fixed first-hand on 2026-11-27 (this text). Build verifier 1 REFUTED
   (line (b) read R3's third-party replays as own-hero rows, including fit and calibration matches; calibration weighed
-  per hand, not per decision); fixed in the text above and in the build.
+  per hand, not per decision); fixed in the text above and in the build. Build verifier 2 REFUTED (the threshold 0.50, the
+  support test and the gate feeding line (c)'s v6 count were not pinned by any test); the cap of two is reached, fixed
+  first-hand: `v6-rl` 79dc09a pins threshold and support in `route_rows`, `v6` e23e5a9 moves line (c)'s counts into a
+  tested function; on gb10-d v6 52 tests and 92 of 92 plants, v6-rl 21 tests and 42 of 42 plants.
 * **After V6:** S1, the solver stand-in family (run the solver image at each setting it exposes, 300 logged matches
   each against fb2-900; a variant is a stand-in for a name when its A0 distance is at most 0.17); live play, which is
   Wayne's to start. Parked: lookahead, clone-trained experts, more style pooling.
