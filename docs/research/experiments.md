@@ -2415,3 +2415,17 @@ after). Output `~/r45-run/r4` on gb10-d, table in `~/r45-run/drive-r4.out`. 0 vo
 * Reading: against the Blueprint clone v5 routes T1 on 45.7% of hands and wins the same as fb2-900 within about 3.6
   points either way. Clones overstate (14.25), so this neither supports nor condemns T1 there.
 
+### 14.54 R4R5 rule table: Blueprint and NashForge go to v5.1 (no evidence, above 2% of seats)
+
+Tool: holdem-x2r `r45` 973550f `tools/r45_rules.py table` over item 5 (14.52), R3 and R4 (14.53); output
+`~/r45-run/table/table.json` on gb10-d, printed in `~/r45-run/drive-table.out`. Validity check FAIL (0 counted
+clones), so R5 contributed nothing and every target name is C.
+
+* 81 target names (T1 share 25% or more in item 5 or R3): all C. Two are above 2% of entrant-faced seats and so take
+  rule A's action: **Blueprint** (15.4% of seats, T1 38.5% in item 5 and 60.0% in R3; R4 clone -0.25 [-3.89, +3.39])
+  and **NashForge** (6.1%, T1 21.2% in item 5 and 28.0% in R3). The other 79 are kept; 210 other names not judged.
+* Action, as pre-registered: v5.1, the gate refit with Blueprint's and NashForge's real archive counts in the
+  population class, through C1v5's steps before it replaces v5.
+* What this does not show: that T1 loses to Blueprint. It shows nothing measures T1 there, and the rule puts the
+  largest live names on the default until something does.
+
