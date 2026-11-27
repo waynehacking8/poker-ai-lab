@@ -1642,7 +1642,7 @@ entry. No new per-opponent expert.
   * Whether fold 0's base fit is the right one for bp100 and the rule cells (they are absent from the archive; Blueprint, a relative of bp100, is in its training names).
   * The K literals were computed by me from the cited rates and have no test yet.
   * Paired standard errors of about 1.3 points on the gain pool and 1.7 on `small_ball` are estimates from 14.17 and 14.22, not measured at these sizes.
-* **Review record:** plan review 1 REVISE (2026-11-27): no outcome for a stage stopped at its cap or crashed (A-MID took it in), the fold-0 base fit ambiguous (two different files), no capacity rule on the shared box; revised (A-MID and NOT JUDGED rows, fold paths and hashes, the Box capacity floor and worker rule).
+* **Review record:** plan review 1 REVISE (2026-11-27): no outcome for a stage stopped at its cap or crashed (A-MID took it in), the fold-0 base fit ambiguous (two different files), no capacity rule on the shared box; revised (A-MID and NOT JUDGED rows, fold paths and hashes, the Box capacity floor and worker rule). Plan review 2 READY (2026-11-27, on 94ad7ce).
 * **Checked by the main session after writing (gb10-d, 2026-11-27 08:34 UTC):** `~/poker-ai-lab-rl/ckpt/s2/it001800.npz`
   sha256 prefix 4989481c5e7d5d8b (present); G1 base fits `~/poker-ai-lab-d2s2/data/g1/fit_fold{1,2,3,4}_W.pt` and
   `slice2k/fit_fold0_W.pt` (present); D2a logs under `~/poker-ai-lab-d2s2/logs/d2/<bot>/{fit,heldout}/` (present); the live
