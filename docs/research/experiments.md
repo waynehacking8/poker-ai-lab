@@ -2455,3 +2455,33 @@ CONFIRMED.
   path is inert is unverified. It changes no class here (all three are population), but `ext:ashwing_v2` is not an
   independent cell, and the live Ashwing_v2 may play differently on the river than our copy.
 
+### 14.56 V6 stage A: STOP_V6; on the gate's 14 terms Blueprint cannot be told from bp100
+
+Tool: holdem-x2r `v6` e23e5a9 `tools/v6_drive.sh` (stage a), fitter holdem-rl `v6-rl` 79dc09a, runtime `v6-root`
+562cb58, root c1v5-root b14b176; gb10-d `~/v6-run` (06:21 UTC; output `~/v6-run/drive.out`, gates `~/v6-run/a/`).
+Seed 127 registered `127 V6 draw`. Draw: Blueprint 1,918 candidates, NashForge 560 (324 Blueprint-against-NashForge
+matches dropped); bands Blueprint 250 calibration, 250 held out, 500 fit; NashForge 140, 140, 280. check-v5 reproduced
+gs50 exactly. Shadow replay: 400 `bot:Blueprint` keys, 13,212 hands, 0 rows differing from E1. r3 parity 0. Build
+verifiers 1 and 2 REFUTED (cap), fixed first-hand (roadmap V6 review record).
+
+Hands routed to any expert (the line bar is 10% in every bucket):
+
+| attempt | line | name | hands 1-10 | 11-40 | 41+ |
+|---|---|---|---|---|---|
+| 1, solver_live (T 0.40) | (a) archive held out | Blueprint | 30.3% | 35.1% | 16.3% |
+| 1 | (a) | NashForge | 11.6% | 3.2% | 0.0% |
+| 1 | (b) own-hero shadow | Blueprint | 36.4% | 32.3% | 3.5% |
+| 2, two classes (T 0.45) | (a) | Blueprint | 35.6% | 38.0% | 17.5% |
+| 2 | (a) | NashForge | 15.1% | 3.7% | 0.1% |
+| 2 | (b) | Blueprint | 41.3% | 37.9% | 4.9% |
+
+Line (c) held both times (T1 share on bp100 at hands 11 and later: fb2-900 94.84% under v5, 93.00% and 93.90% under the
+two refits; G50 96.69%, 95.75% and 96.37%). Nearly all routed hands go to T1. Reported (item 6), v5 then attempt 1:
+Blueprint any-expert 60.9% to 33.9%, Chatterbox 32.3% to 17.3%, MonteCarlo 44.8% to 16.6%, PluriBot 17.7% to 8.0%,
+fermat6 15.5% to 2.7%.
+
+* Outcome STOP_V6, as pre-registered; returned to the roadmap agent.
+* Reading: a class fitted on Blueprint's own archive counts halves T1 routing on Blueprint but leaves about a third of
+  its hands on T1, while bp100 keeps 93% or more. On these 14 terms Blueprint and bp100 overlap: the gate sees
+  Blueprint as bp100 for long stretches. A gate on these terms cannot keep T1 for bp100 and keep it off Blueprint.
+
