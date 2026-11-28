@@ -8,7 +8,7 @@ swap window had closed, so v4 stays entered. To continue on a new machine, read 
 
 ## Where we are (2026-11-28 10:34 UTC)
 
-**Redirect (Wayne, 2026-11-27 08:23 UTC):** the known-opponent expert line (G0 to V6b) stops; it is not a global solution. The roadmap agent's plan is "### Global path" and its first slice "### GP0." (a measurement: the lookahead's ceiling where the base is weak, whether a model fitted only on arena-visible logs carries it on real code, and the sturdier base on the aggressor styles). V6b is parked (its Status line). **GP0 Stage 0 (14.57): BASE-FLAT**, S2 it1800 minus fb2-900 on `small_ball` -0.9 [-2.9, +1.1], pooled over four aggressor cells -1.25 [-2.12, -0.38]; the base stays last. **GP0 Stage A (14.58): A-HIGH**, the true-model lookahead at N = 128 gains +15.1 [+12.3, +17.9] on `small_ball` (K 4.68 by the cap rule). **GP0 Stage B (14.59): NO-CARRY with MODEL-LOSS**, the lookahead with a model fitted on 1,000 arena-visible matches loses to the plain base on the gain cells, -6.6 [-8.6, -4.6] pooled, while the true model on the rule cells is +11.2 [+8.6, +13.8] above it; GUARD FAIL on `sticky_overbettor` (-8.2). The fitted net over-predicts folds to overbets by 12 to 40 points on four of six cells. **GP0's outcome row: Path C, model work on the GPU, judged by Stage B again on fresh seeds**; GP1 spec pending from the roadmap agent.
+**Redirect (Wayne, 2026-11-27 08:23 UTC):** the known-opponent expert line (G0 to V6b) stops; it is not a global solution. The roadmap agent's plan is "### Global path" and its first slice "### GP0." (a measurement: the lookahead's ceiling where the base is weak, whether a model fitted only on arena-visible logs carries it on real code, and the sturdier base on the aggressor styles). V6b is parked (its Status line). **GP0 Stage 0 (14.57): BASE-FLAT**, S2 it1800 minus fb2-900 on `small_ball` -0.9 [-2.9, +1.1], pooled over four aggressor cells -1.25 [-2.12, -0.38]; the base stays last. **GP0 Stage A (14.58): A-HIGH**, the true-model lookahead at N = 128 gains +15.1 [+12.3, +17.9] on `small_ball` (K 4.68 by the cap rule). **GP0 Stage B (14.59): NO-CARRY with MODEL-LOSS**, the lookahead with a model fitted on 1,000 arena-visible matches loses to the plain base on the gain cells, -6.6 [-8.6, -4.6] pooled, while the true model on the rule cells is +11.2 [+8.6, +13.8] above it; GUARD FAIL on `sticky_overbettor` (-8.2). The fitted net over-predicts folds to overbets by 12 to 40 points on four of six cells. **GP0's outcome row: Path C, model work on the GPU, judged by Stage B again on fresh seeds.** Next is "### GP1." (spec 2026-11-28, plan review pending): the same fit on fitting logs whose heroes raise large at the archive's rates (155 postflop and 606 preflop spots per 1,000 matches, against 0 and about 170 in GP0's logs), with and without the stake-weighted loss, screened on seed 134 and read by Stage B on seed 135. If it fails, per-name nets leave the candidate path and the safety blend on the cold-start arm is next.
 
 
 The bot is three parts (Wayne, 2026-11-21): an opponent model, a decision procedure that maximizes the match
@@ -1648,6 +1648,117 @@ entry. No new per-opponent expert.
   `slice2k/fit_fold0_W.pt` (present); D2a logs under `~/poker-ai-lab-d2s2/logs/d2/<bot>/{fit,heldout}/` (present); the live
   registry holds 94, 121 to 126 (`E2 read`) and 127 (`V6 draw`), so the next free seed is 128. None of these files is on
   `train-essentials` yet.
+
+### GP1. Does the fitted model carry the lookahead once its fitting logs show the large raises the arena shows? (spec, 2026-11-28; a measurement, nothing reaches the bot; the roadmap agent after GP0)
+
+* **Why:** GP0 read A-HIGH, NO-CARRY, MODEL-LOSS (14.58, 14.59). The procedure gains with the true model and loses with the fitted one, and the table's row is Path C (not the safety blend: the table sends GUARD FAIL to the blend only with CARRIES, and there is no gain yet to protect). Three things in GP0's own records name the lever:
+  1. **The loss is all-in raises the model wrongly expects to work.** g1000's overrides end in an all-in on 5,003 of 9,645 (`ext:autodidact_fast`), 2,101 of 4,638 (bp100) and 1,985 of 7,234 (`ext:ashwing`), at a median of 20 to 21 times the pot. The oracle arm shoves on 114 of 2,318 overrides (`small_ball`) and x3 on 610 to 695. A 20-pot shove with 25% equity when called breaks even near a 91% fold rate (chip arithmetic, not match value). The net predicted 94.7% on `ext:autodidact_fast` and got 82.3%.
+  2. **The fitting logs never show what the arena shows.** After the own-policy drop, GP0's logs hold 0 postflop spots facing a bet over 3 times the pot. The archive holds 155 per 1,000 player-matches (5,031 of 475,102 postflop faced bets, fold rate 54.7%), with quartiles 65, 124 and 262 per 1,000 matches over the 30 names with 100 or more matches. Preflop the logs hold 91 to 223 per 1,000 matches, all from `heur_102b05e`; the archive holds 606. The lab's hero mix was a poor copy of the field on exactly the action the lookahead leans on.
+  3. **The fine-tune weighs a 200 bb decision like a 2 bb one.** `gp0_model.fit_cell` uses the unweighted likelihood (14.34's arm (c)). The stake weight of G1's W loss already exists (`g1_fit.w_weights`, `d.dw`).
+* **What it tests, two model levers, one after the other:**
+  * **D, field-faithful fitting logs:** the five non-own heroes make large raises at the archive's rates.
+  * **W, stake-weighted fine-tune:** D plus `g1_fit.w_weights` (min(stake in bb, 200), mean 1) on the fine-tune's decision weights.
+  * The play-time path is GP0's, byte for byte: arm `g` with another npz. The base fits, EM literals, 90/10 split and per-street fold bias are unchanged.
+* **What this is not:** no expert, no gate class, nothing trained against a cell. The hero mix, rates and fit are the same for every name. Capacity is not a lever here: 14.59's fit-side check shows the error where the net has no data, so coverage goes first.
+* **Design call on the fitting data (the roadmap agent's, stated once):**
+  * **Field heroes that raise large are in.** The arena shows a name's answers to the whole field, and the archive count says the field does this. The rates are archive literals, not tuned on any cell.
+  * **Own-policy matches stay out of every arm that can be chosen.** The arena gives about ten of our own matches a season against a name, not 167 per 1,000. One reported ceiling arm (`gdwo`) adds 200 of them to say whether coverage volume is the limit; it is never chosen and judges nothing.
+  * **No leak:** fitting logs are on seed 133, the screen on 134, the read on 135. The generator's deal seed is seed * 100000 + k, so no deal is shared. No fit opens a `true_cards.jsonl`. The read's hero (the lookahead on fb2-900) is in no chosen arm's data.
+* **Facts checked at writing (gb10-d, read-only, 2026-11-28):**
+  * Play-time fold rates of g1000 at bets over 3 pots, predicted against actual: `ext:autodidact_fast` 94.7 against 82.3 (5,188 spots), `ext:ashwing` 76.7 against 76.0 (2,642), bp100 82.8 against 78.9 (2,613), `small_ball` 80.7 against 64.7 (726), `sticky_overbettor` 49.5 against 12.5 (184), `ext:wolf` 39.9 against 0.0 (752). These equal 14.59's table, which is the play-time calibration file, not the fit's calibration split.
+  * Preflop shoves are part of the loss: `sticky_overbettor`'s most common override is preflop fold to all-in (161), and bp100 has 317 preflop call to all-in and 212 fold to all-in. The play-time calibration file covers postflop only.
+  * Archive, 32,380 player-matches in `data/g1/shard_*.npz`: postflop over 8 pots 2,099 (fold 63.7%); preflop over 3 pots 19,634 (fold 77.7%), over 8 pots 11,239.
+  * Measured walls of 14.59 (`runs.jsonl`, hours): g1000 0.64, 0.47, 1.86, 0.11, 0.16, 0.10 (ashwing, autodidact_fast, bp100, wolf, small_ball, sticky_overbettor); x3 on the gain cells 0.67, 0.66, 2.10; off 0.30 over six cells; oracle 0.11 over two.
+  * Generator rates: 5,000 matches in 332 s (ashwing), 755 s (autodidact_fast), 510 s (wolf) at 16 workers; bp100 1,200 in 105 s at 3 workers; rule bots in seconds.
+  * The live registry ends at `132 GP0 read`; 133 is free (rechecked by the main session).
+  * GP0's six size-1,000 npz files are in `~/gp0-run/stageB/fits/<bot>/1000/model.npz`, sha256 prefixes df99f718 (ashwing), 82c67932 (autodidact_fast), bf463bc8 (bp100), d75dd523 (small_ball), b39368a9 (sticky_overbettor), ed988491 (wolf) (rechecked by the main session).
+  * GP0's kept fitting logs, counted by the main session for all six cells: no hero other than fb2_900_policy faces the bot with a postflop bet over 3 pots (14.59).
+* **Envelope:**
+  * **Owners:** the main session builds through one executor and runs the box; the roadmap agent owns the lines and the table; a fresh outcome verifier checks each stage's read. Plan review by a fresh plan-verifier, cap 2. Build verifier, cap 2.
+  * **Branch to create:** `gp1` from `gp0` e1424cd, archive only. New files: `tools/gp1_drive.sh`, `tools/gp1_read.py`, `tests/test_gp1.py`, `tests/gp1_plants.py`. Edits: `tools/d2_generate.py` (the large-raise wrapper and its two rates), `tools/gp0_model.py` (`fit_cell` takes the loss and the match selector), `tools/gp0_fit.sh` or a `gp1_fit.sh` beside it. `tools/x2r_oracle.py` and the play-time classes are not edited. GP0's recorded outputs are not touched, and no script a live run executes is replaced.
+  * **Box:** gb10-d, dir `~/gp1-run`, cores 0 to 17, GP0's capacity rules unchanged: available memory at least 16 GiB to start; workers 16 minus the cores other users keep above 50% busy, under 8 does not start; bp100 at most 3 workers, alone in the bpopp queue; a swap rise over 1 GiB stops the stage. Fits run under `flock /tmp/gpu-job.lock`; the page-cache drop is attempted and its refusal logged (no passwordless sudo). gb10-c is the control seat only. Timings are labelled as from a shared device.
+  * **Archive:** the new fitting logs, the 18 npz files and each stage's `result.json`, `runs.jsonl` and rows go to `train-essentials` after each stage's read, hashes read back.
+  * **Writes:** branch commits (revert), `~/gp1-run` (delete), three registry lines (remove). Nothing is deployed.
+* **Seeds, registered first:** 133 the fitting logs, 134 the screen, 135 the read, each as `GP1 read`. The rate calibration and every smoke use 9133, outside the registry. Bootstrap 47.
+* **K, N, Z:** 4.68 everywhere (the Stage A cap rule, not screened again), N = 32, Z = 2.6.
+* **Budget:** expected 10.5 box-hours, hard cap 17; GPU expected under 0.2 hours, cap 1.
+  * Stage D about 0.4 (cap 1). Stage S about 2.5 (cap 4). Stage B about 7.5 (cap 12).
+  * **Smoke before S and before B:** 20 matches per (cell, arm) through the stage's own driver and reader. The scaled total times 1.5 (GP0's Stage B ran 10.3 against 6.8) must be under the stage's cap, or the stage does not start and returns to the roadmap agent.
+  * **Stops:** as GP0. Past the cap, a crash, or an outside stop is NOT JUDGED. An interrupted run is discarded whole and rerun in a fresh directory. The driver's wait ends on a dead driver as well as on a marker.
+* **Stage D. The fitting logs and the fits.**
+  * **The wrapper:** in a kept match (k mod 6 not 0) the hero is wrapped. When the inner hero raises, with probability q_post (postflop) or q_pre (preflop) the raise becomes a large one: all-in with probability 0.42 postflop and 0.57 preflop (the archive's share of over-8-pot among over-3-pot spots, used as the all-in share), else a raise of u times the pot before it, u uniform on 3 to 8, capped at all-in. The wrapper has its own rng, seeded from the match's pair seed. The fb2-900 hero is never wrapped.
+  * **The two rates, fixed before seed 133 plays:** 240 matches per bot on seed 9133 at 0.05 and 0.05; the pooled count over the six bots' kept matches gives q_post = 0.05 times 155 over the postflop count per 1,000 matches, and q_pre = 0.05 times 606 over the preflop count, each capped at 0.5 and rounded to three decimals. Written to the stage record.
+  * **Logs:** 2,400 matches per bot on seed 133 for all six cells, the three `ext:` bots included (D2a's seed-61 logs have the old heroes and are not used).
+  * **Coverage check, literal:** pooled over the six bots, postflop spots facing more than 3 pots per 1,000 kept matches must lie in 65 to 262. Outside is D NOT JUDGED. The preflop count and each bot's counts are reported; a bot under 30 postflop spots in its fit split is marked thin.
+  * **Match sets by index k:**
+    * Fit set: the first 1,000 with k mod 6 not 0 (k under 1,200), first 900 to fit, last 100 for the bias.
+    * Own-policy set: k mod 12 = 0, 200 matches, used only by `gdwo`, all in its fitting split.
+    * Held-out own-policy set: k mod 12 = 6, 200 matches, fitted by no arm.
+    * Held-out field set: k mod 6 not 0 and k at or above 1,200, fitted by no arm.
+  * **Fits, size 1,000, GP0's base fits by full hash (fold 2 for the Ashwing and autodidact names, fold 0 for the rest; a mismatch is NOT JUDGED):**
+    * `gd`: GP0's recipe on the fit set.
+    * `gdw`: `gd` with `d.dw = w_weights(stake)`.
+    * `gdwo`: `gdw` plus the own-policy set.
+    * `g1000`: GP0's six npz files, copied and checked by the hashes above.
+  * **Offline table, reported, no line:** predicted minus actual fold rate at spots facing more than 3 pots, postflop and preflop, per cell and arm, on both held-out sets, with counts. GP0's fit-side figures on its dropped matches (+35.3, +25.6, +14.1, +8.4) are the reference.
+* **Stage S. The screen, seed 134.**
+  * **Cells, 600 matches each:** `ext:autodidact_fast` (GP0's worst gain cell), `small_ball`, `sticky_overbettor` (the rule cells).
+  * **Arms:** off, `g1000`, `gd`, `gdw`, `gdwo`; oracle on the two rule cells.
+  * **Choice:** of `gd` and `gdw`, the higher point estimate of arm minus off pooled over the three cells, equal weight; a tie takes `gd`. Chosen on seed 134 only.
+  * **S-STOP:** the chosen arm's pooled 95% upper bound is below 0. Stage B does not run and the table's S-STOP row applies. Reason: an arm that still loses to the plain base here cannot reach +2.0 on the gain pool, and Stage B is 7.5 hours of a shared box.
+  * **CEILING, reported with one use:** `gdwo` minus off, pooled, lower bound above 0. It is read only by the table's failure rows.
+  * **S NOT JUDGED:** cap, crash, a cell or arm short of 600 matches, or a failed row check.
+  * Reported, paired on the same keys: `gd` minus `g1000` (lever D), `gdw` minus `gd` (lever W), `gdwo` minus `gdw`; per arm the share of overrides ending all-in, play-time fold calibration over 3 pots, hands per win.
+* **Stage B. The read, seed 135: GP0's Stage B with the chosen arm in g1000's place.**
+  * **Cells:** gain cells `ext:ashwing`, `ext:autodidact_fast`, bp100 (1,000 matches each); guard cells `ext:wolf`, `small_ball`, `sticky_overbettor` (600 each).
+  * **Arms:** off; x3 on the gain cells; the chosen arm on all six; oracle on the two rule cells.
+  * **Dropped from GP0's arm list, with reasons:** g100 (SIZE-100 read -14.7; names with 100 to 999 matches are read again only after a CARRIES); the specialists and x3 on the guard cells (reported only in GP0, 14.59 holds them).
+  * **Lines, GP0's literals, 95% paired intervals, the gain pool equal weight:**
+    * **CARRIES:** chosen minus off, pooled, lower bound at or above +2.0. **NO-CARRY:** upper bound under +2.0. Else **MID**.
+    * **MODEL-ADDS:** chosen minus x3, pooled, lower bound above 0.
+    * **GUARD FAIL:** any guard cell whose chosen minus off has its upper bound below 0.
+    * **MODEL-LOSS:** oracle minus chosen, pooled over the two rule cells, lower bound above 0.
+  * Reported per cell: overrides by kind and the all-in share, the play-time fold calibration table, hands per win, numpy seconds per decision.
+* **Outcome table, one row per result:**
+
+  | Stage S | Stage B | next |
+  |---|---|---|
+  | chosen arm passes | CARRIES, MODEL-ADDS, no GUARD FAIL | Path A: the lookahead as the candidate, with the chosen fit recipe (numpy port, per-name fits over the archive on gb10-d's GPU, K from the estimated edge, the safety blend, the deploy gate); size 100 is read again in its spec |
+  | chosen arm passes | CARRIES, GUARD FAIL | the safety blend alone, read on the failing cells on fresh seeds, then Path A |
+  | chosen arm passes | CARRIES, not MODEL-ADDS, no GUARD FAIL | Path A with the cold-start model for every name; per-name fits are dropped |
+  | chosen arm passes | MID, MODEL-ADDS | the safety blend on the chosen arm, read on Stage B's cells on fresh seeds; Path A only if it then reads CARRIES |
+  | chosen arm passes | MID without MODEL-ADDS, or NO-CARRY with MODEL-LOSS | lever M has failed twice in a row (14.59, GP1) and drops below S: per-name nets leave the candidate path. Next is the safety blend on the cold-start arm x3 (pooled +2.1 on the gain cells in 14.59, -4.5 on `sticky_overbettor`), then Path A with the cold-start model if it holds |
+  | S-STOP | not run | the same row as the line above |
+  | either failure row | CEILING held | added note: per-name fits return only as an on-policy data slice (the entered bot's own matches as fitting data), written after Path A cold |
+  | either failure row | CEILING not held | added note: the per-name net is closed at 1,000 matches; no further GPU on it |
+  | chosen arm passes | NO-CARRY, not MODEL-LOSS | Path B: a deeper procedure, its transfer test first |
+  | S NOT JUDGED or D NOT JUDGED | not run | returned to the roadmap agent; no path is taken |
+  | chosen arm passes | NOT JUDGED (cap, crash, a hash mismatch, or a cell missing other than by the bp100 fallback) | returned to the roadmap agent; no path is taken |
+
+  The global path itself stands on every row: the opponent model, the procedure and the blend stay the architecture. A failure here changes which model drives the rollouts (cold start for every name), not the path. Stage 0's BASE-FLAT stands: E3 stays reported and the base stays last.
+* **Tests and plants (`tests/test_gp1.py`; `tests/gp1_plants.py` is the committed plant runner; a kill counts only when the named assertion fails on the planted path):**
+  * Wrapper: a wrapped hero's non-raise actions are the inner hero's, byte for byte; at rate 0 the logs equal GP0's generator on the same seed; the fb2-900 hero is never wrapped (plant: wrapped); sizes lie in 3 to 8 pots or all-in (plant: pots after the call); all-in shares 0.42 and 0.57 (plant: swapped).
+  * Rates: the formula from a counted calibration, the 0.5 cap, the literals 155 and 606 (plant: the postflop count used for both).
+  * Coverage: the band 65 to 262 driven from both sides; the count uses kept matches only (plant: own-policy matches counted).
+  * Match sets: the four sets are disjoint; `gd` and `gdw` hold no own-policy match (plant: k mod 6 = 1 dropped instead); `gdwo` holds exactly k mod 12 = 0; the held-out sets appear in no fit (plant: k mod 12 = 6 fitted); no `true_cards.jsonl` opened (plant).
+  * Fits: `gdw`'s decision weights equal `w_weights(stake)` with cap 200 (plant: ones); `gd`'s are ones; `g1000`'s six hashes (plant: one swapped file); base fits by full hash.
+  * Play path: arm `g` with a GP1 npz gives the fit-side input vector at the same decision (GP0's test, on a new log).
+  * Reader: row counts 600 and 1,000, a missing key, a seed mismatch each fail; one override-count record per judged run, an absent record fails closed.
+  * Lines and table: +2.0 and 0 driven from both sides; the choice rule on a tie; S-STOP at an upper bound of exactly 0; the table enumerated over every combination of its inputs, each NOT JUDGED included, one outcome per cell (plants: `gdwo` chosen; a 599-match screen cell judged).
+  * Driver: a non-empty directory, a smoke estimate times 1.5 over the cap, a read seed without its registry line, memory under 16 GiB, fewer than 8 workers, each refusing to start; Stage B refusing without a Stage S choice; caps 1, 4, 12 read from the reader's pinned table.
+* **Non-goals:** no training of any policy; no gate, class or expert; no safety blend or support rule on the candidates (the next slice when the table says so); no capacity change; no size-100 arm; no N = 128 arm; no K screen; no archive-name fits; no runtime port; no fetch from chipzen.ai; no upload, swap or deletion (v4 stays entered, v5 stays uploaded).
+* **Fallbacks fixed now:** if bp100's new logs or its run fail after two fix rounds, bp100 is dropped, recorded, and the gain pool is the two `ext:` cells (GP0's rule). If either computed rate hits the 0.5 cap, Stage D stops as NOT JUDGED before seed 133 plays.
+* **Unverified at writing:**
+  * That a wrapped hero reaches the archive's rates at a rate under 0.5; `raise_station` never bets after the flop, so four heroes carry the postflop count.
+  * That the count is near linear in the rate. One calibration point is used; the coverage band is the check.
+  * The 0.42 and 0.57 all-in shares stand in for the archive's size mix above 3 pots; the archive's all-in share itself was not read.
+  * The archive's preflop quartiles per name; only the pooled 606 was counted, so the preflop count has no band.
+  * Fit time with the W weights and with 200 more matches; the GPU figure assumes GP0's 175 s for nine fits.
+  * Paired standard errors at these sizes: about 1.2 points on the screen pool and 1.0 on the gain pool, estimates from 14.59's intervals.
+  * The archive shards (`data/g1/shard_*.npz`) are on gb10-d only, as far as restore.md lists. The four archive literals are pinned here, so a recall does not block GP1.
+  * Whether one rate per street is faithful enough when names differ fourfold in the archive (Blueprint 277 per 1,000, Chatterbox 39). One rate keeps the pipeline name-agnostic; the per-bot counts are reported so a later slice can see it.
+* **Open calls settled by the roadmap agent:** S-STOP is a screen that can stop before Stage B (if the plan verifier objects, drop S-STOP and keep the screen as a pure choice); no capacity change or size-bucketed fold bias (the 100-match calibration split holds about 15 large-raise spots at the archive's rate, too few to fit a bias); on failure the architecture stays and the cold-start model drives the rollouts for every name, blend first.
+* **Review record:** none yet; plan review pending.
 
 ### V6b. v6 without T1: experts only where we hold real code or our own judge cell (spec, 2026-11-27; the roadmap agent after 14.56; revision 1 after plan review 1)
 
