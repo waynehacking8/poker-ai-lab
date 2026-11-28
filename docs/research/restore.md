@@ -114,9 +114,11 @@ roadmap's order of evidence:
    autodidact_fast and wolf; untar into `~/poker-ai-lab-d2s2/logs/d2/`); 18 hashes read back. Plan reviewed (READY),
    built on `gp0` e1424cd (archive only), build verifiers capped and fixed first-hand. Run dir `~/gp0-run` (code in
    `code/`, seeds 128 to 132 `GP0 read`). Stage 0 done (14.57, BASE-FLAT). Stage A done (14.58, A-HIGH, K rule cap; the first launch was lost to a
-   reboot and discarded). Stage B next:
-   `cd ~/gp0-run/code && setsid -f bash tools/gp0_drive.sh B > ~/gp0-run/driveB.out 2>&1 < /dev/null`; a stage
-   interrupted by a recall is rerun with `GP0_RESTART=1` (the old directory is moved aside).
+   reboot and discarded). Stage B done (14.59, NO-CARRY with MODEL-LOSS, GUARD FAIL on `sticky_overbettor`); the
+   outcome row is Path C (model work, judged by Stage B again on fresh seeds), GP1 spec next from the roadmap agent.
+   Results live in `~/gp0-run/stage{0,A,B}/` on gb10-d; a stage interrupted by a recall is rerun with
+   `GP0_RESTART=1` (the old directory is moved aside), e.g.
+   `cd ~/gp0-run/code && GP0_RESTART=1 setsid -f bash tools/gp0_drive.sh B > ~/gp0-run/driveB.out 2>&1 < /dev/null`.
 8. `origin` (poker-ai-lab) is public: only research and holdem-chipzen go there; code branches with weights and
    `train-essentials` stay on the private archive (Wayne, 2026-11-27).
 

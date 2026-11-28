@@ -2546,3 +2546,55 @@ with the `street_bet` multiplier, Z 2.6, paired against off (N = 1). Capacity at
   keys; replays of four A2 matches per arm on one core matched the stored rows and decision records exactly at K 4.68 with
   the stated N and Z 2.6 (controls at K 2.27, Z 2.0 and swapped N diverge); seven key files equal to e1424cd; the void
   directory is the first launch and was not read.
+
+### 14.59 GP0 Stage B: NO-CARRY, MODEL-LOSS, GUARD FAIL on `sticky_overbettor`; the fitted model loses the lookahead's gain on real code, the true model keeps it
+
+Tool: holdem-x2r `gp0` e1424cd `tools/gp0_drive.sh B` on gb10-d, 2026-11-28 00:18 (fits) to 10:34 UTC (run 00:45:50 to
+10:34:24, rc 0), from `~/gp0-run/code` (`code.commit`); result `~/gp0-run/stageB/result.json`, rows `rows/`, records
+`runs.jsonl`, fits `fits/<bot>/<size>/` (`info.json` names the base fit and its full hash). Read seed 131 (`131 GP0 read`);
+the new fitting logs for `small_ball`, `sticky_overbettor` and bp100 on seed 132; D2a's seed-61 logs for the three `ext:`
+bots. Base fits as pinned (`logs/check_base.out`): fold 2 (8447e75c) for `ext:ashwing` and `ext:autodidact_fast`, fold 0
+(e81120b8) for the rest. Fits on the GPU took 5 minutes; the page-cache drop was refused (no passwordless sudo on gb10-d)
+and logged with 93 GiB available after. K 4.68 everywhere (the Stage A cap rule), N = 32, Z 2.6. Capacity at the run:
+89.4 GiB available, swap 0, 16 workers, bp100 at 3 (shared device; timings from a shared box). Wall 10.3 box-hours against
+the smoke's 6.8 estimate and the 28-hour cap; x3/bp100 alone took 2.1 hours against 1.26 estimated.
+
+| cell | n | x3 minus off | g1000 minus off | g100 minus off | specialist minus off | oracle minus off | oracle minus g1000 |
+|---|---|---|---|---|---|---|---|
+| `ext:ashwing` | 1000 | +3.0 [+0.3, +5.7] | +0.9 [-2.4, +4.2] | -11.9 [-15.4, -8.4] | +16.6 | | |
+| `ext:autodidact_fast` | 1000 | +2.5 [-0.3, +5.3] | -16.5 [-20.1, -12.9] | -14.6 [-18.2, -11.0] | +13.7 | | |
+| bp100 | 1000 | +0.8 [-2.3, +3.9] | -4.1 [-7.6, -0.6] | -17.6 [-21.5, -13.7] | +19.7 | | |
+| `ext:wolf` (guard) | 600 | +0.7 [-1.0, +2.3] | -0.7 [-3.0, +1.6] | | | | |
+| `small_ball` (guard) | 600 | -2.7 [-6.2, +0.9] | -1.7 [-5.8, +2.5] | | +24.5 | +10.0 [+6.5, +13.5] | +11.7 [+7.8, +15.5] |
+| `sticky_overbettor` (guard) | 600 | -4.5 [-8.1, -0.9] | **-8.2 [-11.7, -4.6]** | | | +2.5 [-0.0, +5.0] | +10.7 [+7.2, +14.2] |
+
+| line | pool | gain (points) | 95% interval | verdict |
+|---|---|---|---|---|
+| CARRIES | g1000 minus off, three gain cells | -6.57 | [-8.56, -4.58] | **NO-CARRY** (upper bound under +2.0) |
+| MODEL-ADDS | g1000 minus x3, three gain cells | -8.67 | [-10.67, -6.66] | not MODEL-ADDS |
+| GUARD FAIL | g1000 minus off per guard cell | | | **`sticky_overbettor`** (upper bound -4.6) |
+| MODEL-LOSS | oracle minus g1000, two rule cells | +11.17 | [+8.56, +13.78] | **MODEL-LOSS** |
+| SIZE-100 | g100 minus off, three gain cells | -14.70 | [-16.83, -12.57] | not SIZE-100 |
+
+* Outcome row (`gp0_read.py outcome`, Stage A A-HIGH, Stage B NO-CARRY with MODEL-LOSS, Stage 0 BASE-FLAT): **Path C,
+  model work on the GPU, judged by Stage B again on fresh seeds**; E3 stays reported and the base stays last. The guard
+  failure does not change the row (the table sends GUARD FAIL to the safety blend only with CARRIES).
+* Fold calibration on the calibration split (postflop, facing a bet; bucket by bet over the pot before it: under 0.8,
+  0.8 to 3, over 3), predicted minus actual fold rate for g1000: small bets +1.7 to +4.1 on the gain cells, -5.8 on
+  `small_ball`; mid bets -0.9 to +1.5 on the gain cells, -5.4 on `small_ball`, +9.3 on `sticky_overbettor`; overbets
+  +3.9 (bp100), +12.3 (`ext:autodidact_fast`), +16.0 (`small_ball`), +37.0 (`sticky_overbettor`), +39.9 (`ext:wolf`,
+  which never folded to one: 0 of 752). At size 100 the errors are larger (bp100: +7.6, +8.6, +15.8).
+* Overrides: g1000 changes the base most often to a raise (`ext:autodidact_fast`: check to raise 4,095, raise to raise
+  2,056, call to raise 1,248, fold to raise 628; bp100: fold to raise 825, call to raise 1,005), where x3's most common
+  change is raise to check. g1000's mean hands per win falls on every cell (`ext:autodidact_fast` 40.2 off to 36.0,
+  bp100 45.9 to 42.2, `ext:wolf` 22.1 to 15.0), which is what a bot that bets into folds it does not get looks like.
+* Reported: g1000 over the specialist -15.7 (`ext:ashwing`), -30.2 (`ext:autodidact_fast`), -23.8 (bp100), -26.2
+  (`small_ball`); numpy 0.22 to 0.32 s per decision at N = 32 (shared box).
+* Reading: on the two rule cells the procedure with the true model gains +10.0 and +2.5 and the fitted model at 1,000
+  matches loses 11 points of it, so the procedure is not what fails; the fitted net is. Its fold rates are near right at
+  small and mid bets on the gain cells but too high at overbets, by 12 to 40 points on four of six cells, and the rollouts
+  turn that into raises and bluffs that are called (14.34 saw the same failure at 5 to 7 points; here it is larger at
+  the overbet bucket and on names absent from the archive). At 100 matches the fit is worse everywhere. The cold-start arm
+  x3 stays near off (+0.8 to +3.0 on the gain cells) and loses 4.5 on `sticky_overbettor`, the wide bettor where every
+  lookahead arm without the true model has lost so far (14.21, 14.22). Path C's target is therefore named by the data: the fitted model's fold response at big
+  bets, judged by this stage again on fresh seeds.
