@@ -116,7 +116,8 @@ roadmap's order of evidence:
    `code/`, seeds 128 to 132 `GP0 read`). Stage 0 done (14.57, BASE-FLAT). Stage A done (14.58, A-HIGH, K rule cap; the first launch was lost to a
    reboot and discarded). Stage B done (14.59, NO-CARRY with MODEL-LOSS, GUARD FAIL on `sticky_overbettor`); the
    outcome row is Path C (model work, judged by Stage B again on fresh seeds), GP1 spec next from the roadmap agent.
-   Results live in `~/gp0-run/stage{0,A,B}/` on gb10-d; a stage interrupted by a recall is rerun with
+   Results live in `~/gp0-run/stage{0,A,B}/` on gb10-d and on `train-essentials` ef36730 as
+   `results/gp0-results-20261128.tar.xz` (sha256 eab5a23a...7a43d, paths relative to the box home); a stage interrupted by a recall is rerun with
    `GP0_RESTART=1` (the old directory is moved aside), e.g.
    `cd ~/gp0-run/code && GP0_RESTART=1 setsid -f bash tools/gp0_drive.sh B > ~/gp0-run/driveB.out 2>&1 < /dev/null`.
 8. `origin` (poker-ai-lab) is public: only research and holdem-chipzen go there; code branches with weights and
