@@ -115,7 +115,8 @@ roadmap's order of evidence:
    built on `gp0` e1424cd (archive only), build verifiers capped and fixed first-hand. Run dir `~/gp0-run` (code in
    `code/`, seeds 128 to 132 `GP0 read`). Stage 0 done (14.57, BASE-FLAT). Stage A done (14.58, A-HIGH, K rule cap; the first launch was lost to a
    reboot and discarded). Stage B done (14.59, NO-CARRY with MODEL-LOSS, GUARD FAIL on `sticky_overbettor`); the
-   outcome row is Path C (model work, judged by Stage B again on fresh seeds), GP1 spec next from the roadmap agent.
+   outcome row is Path C (model work, judged by Stage B again on fresh seeds). Outcome verifier CONFIRMED.
+   GP1 spec written (roadmap "### GP1.", 2026-11-28; plan review pending; seeds 133 to 135, run dir `~/gp1-run`).
    Results live in `~/gp0-run/stage{0,A,B}/` on gb10-d and on `train-essentials` ef36730 as
    `results/gp0-results-20261128.tar.xz` (sha256 eab5a23a...7a43d, paths relative to the box home); a stage interrupted by a recall is rerun with
    `GP0_RESTART=1` (the old directory is moved aside), e.g.
