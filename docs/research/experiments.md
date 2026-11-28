@@ -2512,3 +2512,32 @@ GiB, 16 workers (shared device; timings are from a shared box).
   (2,000 distinct shared keys per cell and arm, won consistent with stacks, pool = mean of the four gains with SE
   sqrt(sum SE^2)/4); a 40-match replay per arm on small_ball and loose_passive matched its own arm's rows 40 of 40 and the
   other arm's 13 or 14 of 40, so each arm used its pinned model; registry diff exactly 128 to 132 `GP0 read`.
+
+### 14.58 GP0 Stage A: A-HIGH; with the true model the lookahead gains +15.1 on `small_ball`, where fb2-900 is weakest
+
+Tool: holdem-x2r `gp0` e1424cd `tools/gp0_drive.sh A` on gb10-d, rerun 2026-11-27 23:24 to 2026-11-28 00:10 UTC from
+`~/gp0-run/code`; result `~/gp0-run/stageA/result.json`, runs `a1/` and `a2/`. The first launch (12:42 UTC) died when
+gb10-d was rebooted at 13:02 UTC by another tenant's experiment; it wrote no marker and was discarded whole
+(`~/gp0-run/stageA.void-20261127T232406`), as the spec's stop rule says. Seeds 129 (A1 screen) and 130 (A2 read). Oracle
+with the `street_bet` multiplier, Z 2.6, paired against off (N = 1). Capacity at the run: 89.4 GiB available, swap 0,
+16 workers (shared device; timings from a shared box).
+
+| run | n | gain over off (points) | 95% interval |
+|---|---|---|---|
+| A1 `small_ball`, oracle N = 32, K 2.27 | 600 | +10.33 | [+6.94, +13.72] |
+| A1 `small_ball`, oracle N = 32, K 4.68 | 600 | +10.50 | [+6.97, +14.03] |
+| A2 `small_ball`, oracle N = 32 (K 4.68) | 1000 | +9.70 | [+6.94, +12.46] |
+| A2 `small_ball`, oracle N = 128 (K 4.68) | 1000 | **+15.10** | **[+12.30, +17.90]** |
+| A2 `small_ball`, N = 32 minus N = 128 | 1000 | -5.40 | [-7.71, -3.09] |
+| A2 `sticky_overbettor`, oracle N = 32 | 600 | +4.00 | [+1.66, +6.34] |
+
+* K rule: the 2.27 arm's point estimate (+10.33) is under the 4.68 arm's (+10.50), so K is 4.68 everywhere for the rest of
+  the slice (the cap rule), chosen on seed 129 only.
+* Verdict **A-HIGH** (N = 128 lower bound +12.30, at or above +8.0): Stage B runs.
+* Reported: overrides on 13.4% of decisions at N = 128 (7,916 of 58,966; most often raise to raise 2,285, check to raise
+  1,130, call to raise 1,135, fold to raise 1,101, raise to fold 930) and 7.0% at N = 32; mean 0.40 s per decision at
+  N = 128, 0.11 s at N = 32 (shared box); mean hands per win 30.0 off, 27.9 at N = 32, 31.4 at N = 128.
+* Reading: where fb2-900 is weakest (75.7%), one-step lookahead with the true opponent recovers about 70% of the trained
+  best response's +21.9 (14.30), and depth of sampling matters (N = 128 is 5.4 points above N = 32). The procedure's
+  ceiling is high; whether a model fitted from arena-visible logs carries it is Stage B's question. On
+  `sticky_overbettor`, a wide bettor where earlier lookahead lost (14.21, 14.22), N = 32 with the true model gains +4.0.

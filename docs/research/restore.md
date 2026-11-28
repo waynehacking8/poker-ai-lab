@@ -113,8 +113,9 @@ roadmap's order of evidence:
    `slice2k/fit_fold0_*.pt`, the D2a logs as `box-d/poker-ai-lab-d2s2/logs/d2a-<bot>.tar.xz` for ashwing,
    autodidact_fast and wolf; untar into `~/poker-ai-lab-d2s2/logs/d2/`); 18 hashes read back. Plan reviewed (READY),
    built on `gp0` e1424cd (archive only), build verifiers capped and fixed first-hand. Run dir `~/gp0-run` (code in
-   `code/`, seeds 128 to 132 `GP0 read`). Stage 0 done (14.57, BASE-FLAT). Stage A next:
-   `cd ~/gp0-run/code && setsid -f bash tools/gp0_drive.sh A > ~/gp0-run/driveA.out 2>&1 < /dev/null`; a stage
+   `code/`, seeds 128 to 132 `GP0 read`). Stage 0 done (14.57, BASE-FLAT). Stage A done (14.58, A-HIGH, K rule cap; the first launch was lost to a
+   reboot and discarded). Stage B next:
+   `cd ~/gp0-run/code && setsid -f bash tools/gp0_drive.sh B > ~/gp0-run/driveB.out 2>&1 < /dev/null`; a stage
    interrupted by a recall is rerun with `GP0_RESTART=1` (the old directory is moved aside).
 8. `origin` (poker-ai-lab) is public: only research and holdem-chipzen go there; code branches with weights and
    `train-essentials` stay on the private archive (Wayne, 2026-11-27).
