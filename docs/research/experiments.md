@@ -2517,7 +2517,7 @@ GiB, 16 workers (shared device; timings are from a shared box).
 
 Tool: holdem-x2r `gp0` e1424cd `tools/gp0_drive.sh A` on gb10-d, rerun 2026-11-27 23:24 to 2026-11-28 00:10 UTC from
 `~/gp0-run/code`; result `~/gp0-run/stageA/result.json`, runs `a1/` and `a2/`. The first launch (12:42 UTC) died when
-gb10-d was rebooted at 13:02 UTC by another tenant's experiment; it wrote no marker and was discarded whole
+gb10-d was shut down at 13:02 UTC and booted at 13:03 (`last -x`) by another tenant's experiment; it wrote no marker and was discarded whole
 (`~/gp0-run/stageA.void-20261127T232406`), as the spec's stop rule says. Seeds 129 (A1 screen) and 130 (A2 read). Oracle
 with the `street_bet` multiplier, Z 2.6, paired against off (N = 1). Capacity at the run: 89.4 GiB available, swap 0,
 16 workers (shared device; timings from a shared box).
@@ -2534,10 +2534,15 @@ with the `street_bet` multiplier, Z 2.6, paired against off (N = 1). Capacity at
 * K rule: the 2.27 arm's point estimate (+10.33) is under the 4.68 arm's (+10.50), so K is 4.68 everywhere for the rest of
   the slice (the cap rule), chosen on seed 129 only.
 * Verdict **A-HIGH** (N = 128 lower bound +12.30, at or above +8.0): Stage B runs.
-* Reported: overrides on 13.4% of decisions at N = 128 (7,916 of 58,966; most often raise to raise 2,285, check to raise
-  1,130, call to raise 1,135, fold to raise 1,101, raise to fold 930) and 7.0% at N = 32; mean 0.40 s per decision at
+* Reported: overrides on 13.4% of decisions at N = 128 (7,916 of 58,966; most often raise to raise 2,285, call to raise
+  1,135, check to raise 1,130, fold to raise 1,101, raise to fold 930) and 7.0% at N = 32; mean 0.40 s per decision at
   N = 128, 0.11 s at N = 32 (shared box); mean hands per win 30.0 off, 27.9 at N = 32, 31.4 at N = 128.
 * Reading: where fb2-900 is weakest (75.7%), one-step lookahead with the true opponent recovers about 70% of the trained
   best response's +21.9 (14.30), and depth of sampling matters (N = 128 is 5.4 points above N = 32). The procedure's
   ceiling is high; whether a model fitted from arena-visible logs carries it is Stage B's question. On
   `sticky_overbettor`, a wide bettor where earlier lookahead lost (14.21, 14.22), N = 32 with the true model gains +4.0.
+* Outcome verifier CONFIRMED (2026-11-28): every gain and interval recomputed from the raw rows (shared keys 600/600 and
+  1000/1000, wins consistent with stacks, A1 and A2 seeds disjoint); the K rule read from 514 against 515 wins on the same
+  keys; replays of four A2 matches per arm on one core matched the stored rows and decision records exactly at K 4.68 with
+  the stated N and Z 2.6 (controls at K 2.27, Z 2.0 and swapped N diverge); seven key files equal to e1424cd; the void
+  directory is the first launch and was not read.
