@@ -2554,8 +2554,8 @@ Tool: holdem-x2r `gp0` e1424cd `tools/gp0_drive.sh B` on gb10-d, 2026-11-28 00:1
 `runs.jsonl`, fits `fits/<bot>/<size>/` (`info.json` names the base fit and its full hash). Read seed 131 (`131 GP0 read`);
 the new fitting logs for `small_ball`, `sticky_overbettor` and bp100 on seed 132; D2a's seed-61 logs for the three `ext:`
 bots. Base fits as pinned (`logs/check_base.out`): fold 2 (8447e75c) for `ext:ashwing` and `ext:autodidact_fast`, fold 0
-(e81120b8) for the rest. Fits on the GPU took 5 minutes; the page-cache drop was refused (no passwordless sudo on gb10-d)
-and logged with 93 GiB available after. K 4.68 everywhere (the Stage A cap rule), N = 32, Z 2.6. Capacity at the run:
+(e81120b8) for the rest. The fits phase took 4 min 51 s (the new fitting logs plus 175 s of GPU fitting); the page-cache drop was refused (no
+passwordless sudo on gb10-d) and logged with 89.3 GiB available after. K 4.68 everywhere (the Stage A cap rule), N = 32, Z 2.6. Capacity at the run:
 89.4 GiB available, swap 0, 16 workers, bp100 at 3 (shared device; timings from a shared box). Wall 10.3 box-hours against
 the smoke's 6.8 estimate and the 28-hour cap; x3/bp100 alone took 2.1 hours against 1.26 estimated.
 
@@ -2583,10 +2583,11 @@ the smoke's 6.8 estimate and the 28-hour cap; x3/bp100 alone took 2.1 hours agai
   0.8 to 3, over 3), predicted minus actual fold rate for g1000: small bets +1.7 to +4.1 on the gain cells, -5.8 on
   `small_ball`; mid bets -0.9 to +1.5 on the gain cells, -5.4 on `small_ball`, +9.3 on `sticky_overbettor`; overbets
   +3.9 (bp100), +12.3 (`ext:autodidact_fast`), +16.0 (`small_ball`), +37.0 (`sticky_overbettor`), +39.9 (`ext:wolf`,
-  which never folded to one: 0 of 752). At size 100 the errors are larger (bp100: +7.6, +8.6, +15.8).
+  which never folded to one: 0 of 752). At size 100 the errors are mostly larger (bp100: +7.6, +8.6, +15.8; `ext:autodidact_fast`'s overbet bucket is +11.8
+  against +12.3).
 * Overrides: g1000 changes the base most often to a raise (`ext:autodidact_fast`: check to raise 4,095, raise to raise
   2,056, call to raise 1,248, fold to raise 628; bp100: fold to raise 825, call to raise 1,005), where x3's most common
-  change is raise to check. g1000's mean hands per win falls on every cell (`ext:autodidact_fast` 40.2 off to 36.0,
+  change is raise to check on the gain cells and `ext:wolf` (call to fold on `small_ball` and `sticky_overbettor`). g1000's mean hands per win falls on every cell (`ext:autodidact_fast` 40.2 off to 36.0,
   bp100 45.9 to 42.2, `ext:wolf` 22.1 to 15.0), which is what a bot that bets into folds it does not get looks like.
 * Reported: g1000 over the specialist -15.7 (`ext:ashwing`), -30.2 (`ext:autodidact_fast`), -23.8 (bp100), -26.2
   (`small_ball`); numpy 0.22 to 0.32 s per decision at N = 32 (shared box).
@@ -2594,7 +2595,21 @@ the smoke's 6.8 estimate and the 28-hour cap; x3/bp100 alone took 2.1 hours agai
   matches loses 11 points of it, so the procedure is not what fails; the fitted net is. Its fold rates are near right at
   small and mid bets on the gain cells but too high at overbets, by 12 to 40 points on four of six cells, and the rollouts
   turn that into raises and bluffs that are called (14.34 saw the same failure at 5 to 7 points; here it is larger at
-  the overbet bucket and on names absent from the archive). At 100 matches the fit is worse everywhere. The cold-start arm
+  the overbet bucket and on names absent from the archive). The net has never seen an overbet: in all six fitting logs
+  the only hero that bets over three times the pot is fb2_900_policy (54 to 1,999 such spots per log), whose matches the
+  spec drops; the other five heroes make none. At 100 matches the fit is worse everywhere. The cold-start arm
   x3 stays near off (+0.8 to +3.0 on the gain cells) and loses 4.5 on `sticky_overbettor`, the wide bettor where every
   lookahead arm without the true model has lost so far (14.21, 14.22). Path C's target is therefore named by the data: the fitted model's fold response at big
   bets, judged by this stage again on fresh seeds.
+* Outcome verifier CONFIRMED (2026-11-28): the code in `~/gp0-run/code` equals e1424cd file by file; every line and cell
+  recomputed from the raw rows with its own script (1,000 or 600 shared keys per arm, wins consistent with stacks; a
+  paired bootstrap with seed 47 gives the same verdicts); 15 one-core replays across g1000, g100, x3, off, oracle and
+  the specialist matched rows, decision records and calibration lines exactly, with seat and model assertions silent, and
+  six controls (wrong bot's model, K 2.45, g100's npz, N 16, x3 at K 2.45, x3 on g1000's rows) diverged; bp100 was
+  recomputed but not replayed (it needs the container). Base fits by full hash, the fitting split (first 1,000 or 100
+  after the k mod 6 = 0 drop, 900/100), seeds 131 and 132, and the outcome row checked. Bug hunt: the play-time input
+  vector equals `g1_2a_extract.build` byte for byte on 2,490 decisions over three cells, history block included; on the
+  dropped fb2-900 matches the fit side alone, with no play-time code, over-predicts overbet folds by +35.3 (`ext:wolf`),
+  +25.6 (`sticky_overbettor`), +14.1 (`small_ball`) and +8.4 (`ext:autodidact_fast`), so the loss is the model's
+  extrapolation, not the harness. Wording corrections applied (fits time, memory after the fits, x3's top override, the
+  size-100 sentence).
